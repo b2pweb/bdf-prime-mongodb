@@ -25,5 +25,10 @@
     },
     "require-dev": {
         "b2p/bdf-phpunit": "~1.3"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.3-dev"
+        }
     }
 }

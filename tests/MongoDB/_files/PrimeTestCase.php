@@ -7,6 +7,8 @@ use Bdf\Prime\Entity\Hydrator\ArrayHydrator;
 use Bdf\Prime\Entity\Hydrator\HydratorRegistry;
 use Bdf\Prime\Entity\Model;
 use Bdf\Prime\Logger\PsrDecorator;
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
+use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\Test\TestPack;
 use Bdf\Serializer\Normalizer\ObjectNormalizer;
 use Bdf\Serializer\Normalizer\PaginatorNormalizer;
@@ -55,6 +57,7 @@ trait PrimeTestCase
                     'searchable_array' => 'Bdf\Prime\Types\SearchableArrayType'
                 ]
             ]);
+            Prime::service()->connections()->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
             $serializer = SerializerBuilder::create()
                 ->build();

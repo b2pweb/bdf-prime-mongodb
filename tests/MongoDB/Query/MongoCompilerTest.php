@@ -43,6 +43,7 @@ class MongoCompilerTest extends TestCase
                 ],
             ]
         ]);
+        $manager->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
         $this->connection = $manager->connection('mongo');
 

@@ -5,11 +5,11 @@ namespace Bdf\Prime\MongoDB\Query;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\Query\AbstractQuery;
 use Bdf\Prime\Query\Compiler\CompilerInterface;
-use Bdf\Prime\Query\Contract\Iterable;
 use Bdf\Prime\Query\Contract\Orderable;
-use Bdf\Prime\Query\Extension\IterableTrait;
+use Bdf\Prime\Query\Contract\Paginable;
 use Bdf\Prime\Query\Extension\LimitableTrait;
 use Bdf\Prime\Query\Extension\OrderableTrait;
+use Bdf\Prime\Query\Extension\PaginableTrait;
 use Bdf\Prime\Query\QueryInterface;
 use MongoDB\Driver\Cursor;
 
@@ -19,9 +19,9 @@ use MongoDB\Driver\Cursor;
  * @property MongoConnection $connection
  * @property MongoCompiler $compiler
  */
-class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Iterable
+class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable
 {
-    use IterableTrait;
+    use PaginableTrait;
     use LimitableTrait;
     use OrderableTrait;
 
@@ -40,7 +40,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Ite
             'collection' => null,
             'columns'    => [],
             'where'      => [],
-            'values'   => [],
+            'values'     => [],
             'update'     => [],
             'limit'      => null,
             'offset'     => null,

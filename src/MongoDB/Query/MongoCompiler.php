@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Query;
 
 use Bdf\Prime\Query\Clause;
 use Bdf\Prime\Query\Compiler\AbstractCompiler;
+use Bdf\Prime\Query\Expression\ExpressionTransformerInterface;
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Query;
@@ -347,6 +348,14 @@ class MongoCompiler extends AbstractCompiler
      */
     protected function compileComparisonOperator($column, $operator, $value)
     {
+        if ($value instanceof ExpressionTransformerInterface) {
+            $value->setContext($this, $column, $operator);
+
+            $column   = $value->getColumn();
+            $operator = $value->getOperator();
+            $value    = $value->getValue();
+        }
+
         if (isset (self::$operatorsMap[$operator])) {
             return $this->compileSimpleOperator($column, self::$operatorsMap[$operator], $value);
         }

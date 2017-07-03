@@ -6,6 +6,7 @@ use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
+use Bdf\Prime\Query\Expression\Like;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Query;
 
@@ -189,6 +190,24 @@ class MongoCompilerTest extends TestCase
                     'last_name' => ['$regex' => 'A.*']
                 ]
             ]
+        ], $filters);
+    }
+
+    /**
+     *
+     */
+    public function test_compileFilters_transformer_expression_like()
+    {
+        $query = $this->query()
+            ->where('first_name', (new Like('j'))->startsWith())
+        ;
+
+        $filters = $this->compiler->compileFilters(
+            $query->statements['where']
+        );
+
+        $this->assertEquals([
+            'first_name' => ['$regex' => 'j.*']
         ], $filters);
     }
 

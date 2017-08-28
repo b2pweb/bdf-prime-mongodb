@@ -165,6 +165,26 @@ class OdmTest extends TestCase
     /**
      *
      */
+    public function test_searchable_array()
+    {
+        $this->addPersons();
+
+        $kings = Person::find(['tags' => 'roi']);
+
+        $this->assertCount(1, $kings);
+        $this->assertEquals([$this->persons['louisxvi']], $kings);
+
+        $beaufs = Person::find(['tags' => ['beauf', 'corse']]);
+
+        $this->assertEquals([
+            $this->persons['john'],
+            $this->persons['napoleon']
+        ], $beaufs);
+    }
+
+    /**
+     *
+     */
     protected function addPersons()
     {
         $this->persons = [
@@ -172,19 +192,22 @@ class OdmTest extends TestCase
                 'id' => 1,
                 'firstName' => 'John',
                 'lastName'  => 'Doe',
-                'age' => 36
+                'age' => 36,
+                'tags' => ['beauf', 'personne'],
             ]),
             'louisxvi' => new Person([
                 'id' => 2,
                 'firstName' => 'Louis-Auguste',
                 'lastName' => 'De France',
-                'age' => 38
+                'age' => 38,
+                'tags' => ['décapité', 'roi'],
             ]),
             'napoleon' => new Person([
                 'id' => 3,
                 'firstName' => 'Napoleone',
                 'lastName' => 'di Buonaparte',
-                'age' => 51
+                'age' => 51,
+                'tags' => ['empereur', 'auto-couronné', 'corse'],
             ])
         ];
 

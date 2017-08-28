@@ -34,6 +34,11 @@ class Person extends Model
      */
     protected $age;
 
+    /**
+     * @var array
+     */
+    protected $tags = [];
+
 
     /**
      * PersonEntity constructor.
@@ -124,6 +129,26 @@ class Person extends Model
 
         return $this;
     }
+
+    /**
+     * @return array
+     */
+    public function tags()
+    {
+        return $this->tags;
+    }
+
+    /**
+     * @param array $tags
+     *
+     * @return $this
+     */
+    public function setTags(array $tags)
+    {
+        $this->tags = $tags;
+
+        return $this;
+    }
 }
 
 /**
@@ -156,8 +181,7 @@ class PersonMapper extends Mapper
     public function indexes()
     {
         return [
-            'search_name' => ['firstName', 'lastName'],
-            'age_sort'    => ['age']
+            'age_sort' => ['age']
         ];
     }
 
@@ -168,9 +192,10 @@ class PersonMapper extends Mapper
     {
         $builder
             ->string('id')->alias('_id')->primary()
-            ->string('firstName')->alias('first_name')
-            ->string('lastName')->alias('last_name')
+            ->string('firstName')->alias('first_name')->unique('search_name')
+            ->string('lastName')->alias('last_name')->unique('search_name')
             ->integer('age')
+            ->searchableArray('tags')->nillable()
         ;
     }
 }

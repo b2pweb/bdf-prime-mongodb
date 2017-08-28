@@ -5,8 +5,6 @@ namespace Bdf\Prime\MongoDB\Orm;
 require_once __DIR__ . '/../_files/mongo_entities.php';
 
 use Bdf\PHPUnit\TestCase;
-use Bdf\Prime\MongoDB\Driver\MongoConnection;
-use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\MongoDB\Test\Person;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;

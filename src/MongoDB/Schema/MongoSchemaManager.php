@@ -1,15 +1,16 @@
 <?php
 
-namespace Bdf\Prime\MongoDB;
+namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\Schema\AbstractSchemaManager;
-use Bdf\Prime\Schema\Table;
-use Doctrine\DBAL\Schema\Index;
-use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Schema\SchemaConfig;
-use Doctrine\DBAL\Schema\SchemaDiff;
+use Bdf\Prime\Schema\Bag\IndexSet;
+use Bdf\Prime\Schema\Bag\Table;
+use Bdf\Prime\Schema\Comparator\IndexSetComparator;
+use Bdf\Prime\Schema\IndexInterface;
+use Bdf\Prime\Schema\TableInterface;
 use MongoDB\Driver\BulkWrite;
+use MongoDB\Driver\Command;
 
 /**
  * SchemaManager for MongoDB on Prime
@@ -19,9 +20,10 @@ use MongoDB\Driver\BulkWrite;
 class MongoSchemaManager extends AbstractSchemaManager
 {
     /**
-     * @var Schema[]|SchemaDiff[]
+     * @var array
      */
     protected $pending = [];
+
 
     /**
      * {@inheritdoc}
@@ -39,10 +41,10 @@ class MongoSchemaManager extends AbstractSchemaManager
     public function flush()
     {
         foreach ($this->pending as $pending) {
-            if ($pending instanceof Schema) {
-                $this->executeSchema($pending);
-            } elseif ($pending instanceof SchemaDiff) {
-                $this->executeDiff($pending);
+            if ($pending instanceof Command) {
+                $this->connection->runCommand($pending);
+            } elseif ($pending instanceof \Closure) {
+                $pending($this->connection);
             }
         }
 
@@ -58,82 +60,56 @@ class MongoSchemaManager extends AbstractSchemaManager
     }
 
     /**
-     *
+     * {@inheritdoc}
      */
-    protected function executeSchema(Schema $schema)
+    public function schema($tables = [])
     {
-        foreach ($schema->getTables() as $table) {
-            $this->executeIndexes($table->getName(), $table->getIndexes());
-        }
-    }
-
-    /**
-     * @param SchemaDiff $diff
-     */
-    protected function executeDiff(SchemaDiff $diff)
-    {
-        foreach ($diff->changedTables as $table) {
-            $this->executeIndexes($table->name, array_merge($table->addedIndexes, $table->changedIndexes));
-
-            foreach ($table->removedIndexes as $index) {
-                $this->connection->runCommand([
-                    'dropIndexes' => $table->name,
-                    'index'       => $index->getName()
-                ]);
-            }
+        if (!is_array($tables)) {
+            $tables = [$tables];
         }
 
-        foreach ($diff->newTables as $table) {
-            $this->connection->runCommand('create', $table->getName());
-            $this->executeIndexes($table->getName(), $table->getIndexes());
-        }
-
-        foreach ($diff->removedTables as $table) {
-            $this->drop($table->getName());
-        }
-    }
-
-    /**
-     * @param string $collection
-     * @param Index[] $indexes
-     */
-    protected function executeIndexes($collection, array $indexes)
-    {
-        $indexQuery = [];
-
-        foreach ($indexes as $index) {
-            $indexQuery[] = [
-                'key'  => array_fill_keys($index->getColumns(), 1),
-                'name' => $index->getName()
-            ];
-        }
-
-        $this->connection->runCommand([
-            'createIndexes' => $collection,
-            'indexes'       => $indexQuery
-        ]);
+        return new SchemaCreation($tables);
     }
 
     /**
      * {@inheritdoc}
      */
+    public function diff(TableInterface $newTable, TableInterface $oldTable)
+    {
+        $comparator = new IndexSetComparator(
+            $oldTable->indexes(),
+            $newTable->indexes()
+        );
+
+        return new IndexSetDiff(
+            $newTable->name(),
+            $comparator
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @todo à voir si on a un système de schema
+     */
     public function loadSchema()
     {
-        $tables = [];
-
-        foreach ($this->connection->runCommand('listCollections') as $collection) {
-            $tables[] = $this->loadTable($collection->name);
-        }
-
-        $config = new SchemaConfig();
-
-        $config->setName($this->connection->getDatabase());
-
-        return new Schema(
-            $tables,
-            [],
-            $config
-        );
+        throw new \BadMethodCallException('Cannot load Doctrine Schema from MongoDB');
+//        $tables = [];
+//
+//        foreach ($this->connection->runCommand('listCollections') as $collection) {
+//            $tables[] = $this->loadTable($collection->name);
+//        }
+//
+//        $config = new SchemaConfig();
+//
+//        $config->setName($this->connection->getDatabase());
+//
+//        return new Schema(
+//            $tables,
+//            [],
+//            $config
+//        );
     }
 
     /**
@@ -166,6 +142,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     public function createDatabase($database)
     {
         // Databases are implicitly created
+        return $this;
     }
 
     /**
@@ -173,7 +150,7 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function dropDatabase($database)
     {
-        $this->connection->dropDatabase();
+        return $this->pushCommand('dropDatabase');
     }
 
     /**
@@ -199,7 +176,7 @@ class MongoSchemaManager extends AbstractSchemaManager
         return new Table(
             $tableName,
             [], //Cannot resolve schemas from MongoDB
-            $this->getIndexes($tableName)
+            new IndexSet($this->getIndexes($tableName))
         );
     }
 
@@ -208,7 +185,7 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function drop($tableName)
     {
-        $this->connection->runCommand('drop', $tableName);
+        return $this->pushCommand('drop', $tableName);
     }
 
     /**
@@ -216,10 +193,12 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function truncate($tableName, $cascade = false)
     {
-        $bulk = new BulkWrite();
-        $bulk->delete([]);
+        return $this->push(function (MongoConnection $connection) use($tableName) {
+            $bulk = new BulkWrite();
+            $bulk->delete([]);
 
-        $this->connection->executeWrite($tableName, $bulk);
+            $connection->executeWrite($tableName, $bulk);
+        });
     }
 
     /**
@@ -227,10 +206,12 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function rename($from, $to)
     {
-        $this->connection->runAdminCommand([
-            'renameCollection' => $this->connection->getDatabase().'.'.$from,
-            'to'               => $this->connection->getDatabase().'.'.$to
-        ]);
+        return $this->push(function (MongoConnection $connection) use($from, $to) {
+            $connection->runAdminCommand([
+                'renameCollection' => $this->connection->getDatabase().'.'.$from,
+                'to'               => $this->connection->getDatabase().'.'.$to
+            ]);
+        });
     }
 
     /**
@@ -238,7 +219,9 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function push($queries)
     {
-        if (!is_array($queries)) {
+        if ($queries instanceof CommandSetInterface) {
+            $queries = $queries->commands();
+        } elseif (!is_array($queries)) {
             $queries = [$queries];
         }
 
@@ -256,7 +239,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * @param string $table
      *
-     * @return Index[]
+     * @return IndexInterface[]
      */
     protected function getIndexes($table)
     {
@@ -266,14 +249,26 @@ class MongoSchemaManager extends AbstractSchemaManager
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
 
         foreach ($cursor as $info) {
-            $indexes[] = new Index(
-                $info['name'],
-                array_keys($info['key']),
-                !empty($info['unique']),
-                $info['name'] === '_id_' //Primary index is on _id_ index
-            );
+            $indexes[] = new MongoIndex($info);
         }
 
         return $indexes;
+    }
+
+    /**
+     * @param string|array|Command $command
+     * @param mixed $arguments
+     *
+     * @return $this
+     */
+    protected function pushCommand($command, $arguments = 1)
+    {
+        if (is_array($command)) {
+            $command = new Command($command);
+        } elseif (is_string($command)) {
+            $command = new Command([$command => $arguments]);
+        }
+
+        return $this->push($command);
     }
 }

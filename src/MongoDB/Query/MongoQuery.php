@@ -108,12 +108,11 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function insert(array $data = [], array $types = [])
+    public function insert(array $data = [])
     {
         if ($data) {
             $this->statements['values'] = [
                 'data' => $data,
-                'types' => $types
             ];
         }
 
@@ -126,14 +125,13 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function replace(array $values = [], array $types = [])
+    public function replace(array $values = [])
     {
         $this->statements['replace'] = true;
 
         if ($values) {
             $this->statements['values'] = [
-                'data' => $values,
-                'types' => $types
+                'data' => $values
             ];
         }
 

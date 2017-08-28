@@ -305,7 +305,8 @@ class MongoCompiler extends AbstractCompiler
             return $this->compileComparisonOperator(
                 $filter['column'],
                 $filter['operator'],
-                $filter['value']
+                $filter['value'],
+                isset($filter['converted']) ? $filter['converted'] : false
             );
         }
     }
@@ -343,10 +344,11 @@ class MongoCompiler extends AbstractCompiler
      * @param string $column
      * @param string $operator
      * @param mixed $value
+     * @param boolean $converted
      *
      * @return string|array
      */
-    protected function compileComparisonOperator($column, $operator, $value)
+    protected function compileComparisonOperator($column, $operator, $value, $converted)
     {
         if ($value instanceof ExpressionTransformerInterface) {
             $value->setContext($this, $column, $operator);
@@ -354,6 +356,11 @@ class MongoCompiler extends AbstractCompiler
             $column   = $value->getColumn();
             $operator = $value->getOperator();
             $value    = $value->getValue();
+            $converted = true;
+        }
+
+        if (!$converted && $value !== null) {
+            $value = $this->autoConvertValue($value);
         }
 
         if (isset (self::$operatorsMap[$operator])) {
@@ -365,7 +372,7 @@ class MongoCompiler extends AbstractCompiler
             case ':eq':
                 // OR :eq === IN
                 if (is_array($value)) {
-                    return $this->compileComparisonOperator($column, ':in', $value);
+                    return $this->compileComparisonOperator($column, ':in', $value, true); // $value is always converted here
                 }
                 return [$column => $value];
 
@@ -446,6 +453,27 @@ class MongoCompiler extends AbstractCompiler
         return [
             '$regex' => strtr($value, ['%' => '.*', '?' => '.'])
         ];
+    }
+
+    /**
+     * Try to resolve type and auto convert value
+     *
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    protected function autoConvertValue($value)
+    {
+        if (is_array($value)) {
+            foreach ($value as &$e) {
+                $type = $this->platform->types()->resolve($e);
+                $e = $type->toDatabase($this->platform, $e);
+            }
+
+            return $value;
+        }
+
+        return $this->platform->types()->resolve($value)->toDatabase($this->platform, $value);
     }
 
     /**

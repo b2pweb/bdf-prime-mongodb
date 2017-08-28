@@ -7,6 +7,7 @@ use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\Query\Expression\Like;
+use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Query;
 
@@ -86,6 +87,22 @@ class MongoCompilerTest extends TestCase
         $this->assertEquals([
             'first_name' => 'John'
         ], $filters);
+    }
+
+    /**
+     *
+     */
+    public function test_compileFilters_type_transform()
+    {
+        $query = $this->query()->where('created_at', $date = new \DateTime('2017-07-10 15:45:32'));
+
+        $filters = $this->compiler->compileFilters(
+            $query->statements['where']
+        );
+
+        $this->assertCount(1, $filters);
+        $this->assertInstanceOf(UTCDateTime::class, $filters['created_at']);
+        $this->assertEquals($date, $filters['created_at']->toDateTime());
     }
 
     /**

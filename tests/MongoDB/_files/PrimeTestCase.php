@@ -10,6 +10,7 @@ use Bdf\Prime\Logger\PsrDecorator;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\Test\TestPack;
+use Bdf\Prime\Types\SearchableArrayType;
 use Bdf\Serializer\Normalizer\ObjectNormalizer;
 use Bdf\Serializer\Normalizer\PaginatorNormalizer;
 use Bdf\Serializer\Normalizer\PrimeCollectionNormalizer;
@@ -52,9 +53,6 @@ trait PrimeTestCase
                             'memory' => true
                         ],
                     ]
-                ],
-                'types' => [
-                    'searchable_array' => 'Bdf\Prime\Types\SearchableArrayType'
                 ]
             ]);
             Prime::service()->connections()->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
@@ -68,6 +66,7 @@ trait PrimeTestCase
                 ->addNormalizer(new ObjectNormalizer())
             ;
 
+            Prime::service()->types()->register(SearchableArrayType::class, 'searchable_array');
             Prime::service()->setSerializer($serializer);
 
             Model::configure(Prime::service());

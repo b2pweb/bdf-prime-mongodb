@@ -7,6 +7,8 @@ use Doctrine\DBAL\Schema\Table;
 
 /**
  * MongoPlatform
+ *
+ * @internal
  */
 class MongoPlatform extends AbstractPlatform
 {

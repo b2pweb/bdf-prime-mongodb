@@ -1,12 +1,14 @@
 <?php
 
-namespace Bdf\Prime\MongoDB\Orm;
+namespace Bdf\Prime\MongoDB\Odm;
 
 require_once __DIR__.'/../_files/mongo_entities.php';
 
 use Bdf\PHPUnit\TestCase;
+use Bdf\Prime\MongoAssertion;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
+use Bdf\Prime\MongoDB\Schema\SchemaCreation;
 use Bdf\Prime\MongoDB\Test\Person;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
@@ -14,6 +16,7 @@ use Bdf\Prime\Schema\Resolver;
 use Doctrine\DBAL\Schema\Index;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\SchemaDiff;
+use MongoDB\Driver\Command;
 
 /**
  * @group Bdf
@@ -24,6 +27,7 @@ use Doctrine\DBAL\Schema\SchemaDiff;
 class UpgraderTest extends TestCase
 {
     use PrimeTestCase;
+    use MongoAssertion;
 
     /**
      * @var Resolver
@@ -92,21 +96,53 @@ class UpgraderTest extends TestCase
     /**
      *
      */
-    public function test_diff()
+    public function test_diff_on_creation()
     {
         $diffs = $this->resolver->diff(true);
-
         $this->assertCount(1, $diffs);
-        $this->assertInstanceOf(Schema::class, $diffs[0]);
-        $this->assertEquals(['test.person_test'], $diffs[0]->getTableNames());
 
-        $this->resolver->migrate(true);
-        $this->assertTrue($this->connection->schema()->hasTable('person_test'));
+        /** @var Command $creation */
+        $creation = $diffs[0];
+        $this->assertInstanceOf(Command::class, $creation);
 
+        $this->assertCommand([
+            'createIndexes' => 'person_test',
+            'indexes'       => [
+                [
+                    'key' => [
+                        'first_name' => 1,
+                        'last_name'  => 1
+                    ],
+                    'name'   => 'search_name',
+                    'unique' => 1
+                ],
+                [
+                    'key' => [
+                        'age' => 1
+                    ],
+                    'name' => 'age_sort'
+                ]
+            ]
+        ], $creation);
+    }
+
+    /**
+     *
+     */
+    public function test_diff_on_migration()
+    {
         $this->connection->runCommand([
-            'dropIndexes' => 'person_test',
-            'index'       => 'age_sort'
+            'createIndexes' => 'person_test',
+            'indexes'       => [
+                [
+                    'key' => [
+                        'age' => 1
+                    ],
+                    'name' => 'age_sort'
+                ]
+            ]
         ]);
+
         $this->connection->runCommand([
             'createIndexes' => 'person_test',
             'indexes'       => [
@@ -120,11 +156,26 @@ class UpgraderTest extends TestCase
         ]);
 
         $diffs = $this->resolver->diff(true);
-        $this->assertInstanceOf(SchemaDiff::class, $diffs[0]);
-        $this->assertCount(1, $diffs[0]->changedTables);
-        $this->assertCount(1, $diffs[0]->changedTables['person_test']->addedIndexes);
-        $this->assertEquals(new Index('age_sort', ['age']), $diffs[0]->changedTables['person_test']->addedIndexes['age_sort']);
-        $this->assertCount(1, $diffs[0]->changedTables['person_test']->removedIndexes);
-        $this->assertEquals(new Index('to_delete', ['other']), $diffs[0]->changedTables['person_test']->removedIndexes['to_delete']);
+
+        $this->assertCount(2, $diffs);
+
+        $this->assertCommand([
+            'dropIndexes' => 'person_test',
+            'index'       => 'to_delete'
+        ], $diffs[0]);
+
+        $this->assertCommand([
+            'createIndexes' => 'person_test',
+            'indexes'       => [
+                [
+                    'key' => [
+                        'first_name' => 1,
+                        'last_name'  => 1
+                    ],
+                    'name'   => 'search_name',
+                    'unique' => 1
+                ]
+            ]
+        ], $diffs[1]);
     }
 }

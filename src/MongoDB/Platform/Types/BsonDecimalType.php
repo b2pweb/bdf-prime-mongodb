@@ -2,35 +2,27 @@
 
 namespace Bdf\Prime\MongoDB\Platform\Types;
 
+use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
-use Bdf\Prime\Platform\Types\PlatformTypeInterface;
 use MongoDB\BSON\Decimal128;
 
 /**
  * Decimal128 type
  */
-class BsonDecimalType implements PlatformTypeInterface
+class BsonDecimalType extends AbstractPlatformType
 {
     /**
-     * @var string
+     * {@inheritdoc}
      */
-    private $name;
-
-
-    /**
-     * BsonArrayType constructor.
-     *
-     * @param string $name
-     */
-    public function __construct($name = self::DECIMAL)
+    public function __construct(PlatformInterface $platform, $name = self::DECIMAL)
     {
-        $this->name = $name;
+        parent::__construct($platform, $name);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function declaration(PlatformInterface $platform, array $field)
+    public function declaration(array $field)
     {
         return 'decimal';
     }
@@ -38,7 +30,7 @@ class BsonDecimalType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function fromDatabase(PlatformInterface $platform, $value)
+    public function fromDatabase($value)
     {
         if ($value === null) {
             return null;
@@ -50,20 +42,17 @@ class BsonDecimalType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function toDatabase(PlatformInterface $platform, $value)
+    public function toDatabase($value)
     {
         if ($value === null) {
             return null;
         }
 
-        return new Decimal128((string) $value);
-    }
+        //TODO: get mongo server version
+        if (class_exists(Decimal128::class)) {
+            return new Decimal128((string) $value);
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function name()
-    {
-        return $this->name;
+        return (float) $value;
     }
 }

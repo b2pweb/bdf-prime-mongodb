@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform;
 use Bdf\Prime\Platform\Types\PlatformTypeInterface;
+use Bdf\Prime\Types\TypesRegistry;
 use MongoDB\BSON\Binary;
 
 /**
@@ -18,7 +19,7 @@ use MongoDB\BSON\Binary;
 class BsonBinDataTypeTest extends TestCase
 {
     /**
-     * @var PlatformTypeInterface
+     * @var BsonBinDataType
      */
     protected $type;
 
@@ -30,8 +31,8 @@ class BsonBinDataTypeTest extends TestCase
 
     protected function setUp()
     {
-        $this->type = new BsonBinDataType();
-        $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform());
+        $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform(), new TypesRegistry());
+        $this->type = new BsonBinDataType($this->platform);
     }
 
     /**
@@ -39,7 +40,7 @@ class BsonBinDataTypeTest extends TestCase
      */
     public function test_fromDatabase_null()
     {
-        $this->assertNull($this->type->fromDatabase($this->platform, null));
+        $this->assertNull($this->type->fromDatabase(null));
     }
 
     /**
@@ -47,7 +48,7 @@ class BsonBinDataTypeTest extends TestCase
      */
     public function test_fromDatabase_string()
     {
-        $this->assertEquals('azerty', $this->type->fromDatabase($this->platform, 'azerty'));
+        $this->assertEquals('azerty', $this->type->fromDatabase('azerty'));
     }
 
     /**
@@ -55,7 +56,7 @@ class BsonBinDataTypeTest extends TestCase
      */
     public function test_fromDatabase_Binary()
     {
-        $this->assertEquals('azerty', $this->type->fromDatabase($this->platform, new Binary('azerty', Binary::TYPE_GENERIC)));
+        $this->assertEquals('azerty', $this->type->fromDatabase(new Binary('azerty', Binary::TYPE_GENERIC)));
     }
 
     /**
@@ -63,6 +64,6 @@ class BsonBinDataTypeTest extends TestCase
      */
     public function test_toDatabase()
     {
-        $this->assertEquals(new Binary('azerty', Binary::TYPE_GENERIC), $this->type->toDatabase($this->platform, 'azerty'));
+        $this->assertEquals(new Binary('azerty', Binary::TYPE_GENERIC), $this->type->toDatabase('azerty'));
     }
 }

@@ -4,8 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform;
-use Bdf\Prime\Platform\Types\PlatformTypeInterface;
-use MongoDB\BSON\Binary;
+use Bdf\Prime\Types\TypesRegistry;
 use MongoDB\BSON\UTCDateTime;
 
 /**
@@ -19,7 +18,7 @@ use MongoDB\BSON\UTCDateTime;
 class BsonDateTypeTest extends TestCase
 {
     /**
-     * @var PlatformTypeInterface
+     * @var BsonDateType
      */
     protected $type;
 
@@ -31,8 +30,8 @@ class BsonDateTypeTest extends TestCase
 
     protected function setUp()
     {
-        $this->type = new BsonDateType();
-        $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform());
+        $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform(), new TypesRegistry());
+        $this->type = new BsonDateType($this->platform);
     }
 
     /**
@@ -40,7 +39,7 @@ class BsonDateTypeTest extends TestCase
      */
     public function test_fromDatabase_null()
     {
-        $this->assertNull($this->type->fromDatabase($this->platform, null));
+        $this->assertNull($this->type->fromDatabase(null));
     }
 
     /**
@@ -48,7 +47,7 @@ class BsonDateTypeTest extends TestCase
      */
     public function test_toDatabase_null()
     {
-        $this->assertNull($this->type->toDatabase($this->platform, null));
+        $this->assertNull($this->type->toDatabase(null));
     }
 
     /**
@@ -58,7 +57,7 @@ class BsonDateTypeTest extends TestCase
     {
         $time = new \DateTime('2017-08-28 15:25:32');
 
-        $this->assertInstanceOf(UTCDateTime::class, $this->type->toDatabase($this->platform, $time));
+        $this->assertInstanceOf(UTCDateTime::class, $this->type->toDatabase($time));
     }
 
     /**
@@ -71,8 +70,7 @@ class BsonDateTypeTest extends TestCase
         $this->assertEquals(
             $time,
             $this->type->fromDatabase(
-                $this->platform,
-                $this->type->toDatabase($this->platform, $time)
+                $this->type->toDatabase($time)
             )
         );
     }

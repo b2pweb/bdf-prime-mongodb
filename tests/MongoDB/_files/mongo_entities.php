@@ -191,11 +191,11 @@ class PersonMapper extends Mapper
     public function buildFields($builder)
     {
         $builder
-            ->string('id')->alias('_id')->primary()
+            ->guid('id')->alias('_id')->primary()
             ->string('firstName')->alias('first_name')->unique('search_name')
             ->string('lastName')->alias('last_name')->unique('search_name')
             ->integer('age')
-            ->searchableArray('tags')->nillable()
+            ->simpleArray('tags')->nillable()
         ;
     }
 }

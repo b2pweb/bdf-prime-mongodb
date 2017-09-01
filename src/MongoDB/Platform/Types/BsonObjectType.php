@@ -2,34 +2,26 @@
 
 namespace Bdf\Prime\MongoDB\Platform\Types;
 
+use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
-use Bdf\Prime\Platform\Types\PlatformTypeInterface;
 
 /**
  * Object type
  */
-class BsonObjectType implements PlatformTypeInterface
+class BsonObjectType extends AbstractPlatformType
 {
     /**
-     * @var string
+     * {@inheritdoc}
      */
-    private $name;
-
-
-    /**
-     * BsonArrayType constructor.
-     *
-     * @param string $name
-     */
-    public function __construct($name = self::OBJECT)
+    public function __construct(PlatformInterface $platform, $name = self::OBJECT)
     {
-        $this->name = $name;
+        parent::__construct($platform, $name);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function declaration(PlatformInterface $platform, array $field)
+    public function declaration(array $field)
     {
         return 'object';
     }
@@ -37,24 +29,24 @@ class BsonObjectType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function fromDatabase(PlatformInterface $platform, $value)
+    public function fromDatabase($value)
     {
-        return $value === null ? null : (object) $value;
+        if ($value === null) {
+            return null;
+        }
+
+        if ($this->name === self::JSON) {
+            return (array) $value;
+        }
+
+        return (object) $value;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function toDatabase(PlatformInterface $platform, $value)
+    public function toDatabase($value)
     {
         return $value === null ? null : (object) $value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function name()
-    {
-        return $this->name;
     }
 }

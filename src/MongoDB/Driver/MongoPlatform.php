@@ -9,6 +9,8 @@ use Doctrine\DBAL\Schema\Table;
  * MongoPlatform
  *
  * @internal
+ *
+ * @deprecated since 1.3 Will be deleted
  */
 class MongoPlatform extends AbstractPlatform
 {

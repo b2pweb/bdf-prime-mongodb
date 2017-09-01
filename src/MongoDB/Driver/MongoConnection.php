@@ -9,7 +9,6 @@ use Bdf\Prime\MongoDB\Platform\MongoPlatform as PrimePlatform;
 use Bdf\Prime\MongoDB\Query\MongoCompiler;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
-use Bdf\Prime\Types\TypeInterface;
 use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ConnectionException;
@@ -92,7 +91,10 @@ class MongoConnection extends Connection implements ConnectionInterface
     public function platform()
     {
         if ($this->platform === null) {
-            $this->platform = new PrimePlatform($this->getDatabasePlatform());
+            $this->platform = new PrimePlatform(
+                $this->getDatabasePlatform(),
+                $this->getConfiguration()->getTypes()
+            );
         }
 
         return $this->platform;
@@ -119,13 +121,7 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     public function fromDatabase($value, $type)
     {
-        $platform = $this->platform();
-
-        if (!$type instanceof TypeInterface) {
-            $type = $platform->types()->get($type);
-        }
-
-        return $type->fromDatabase($platform, $value);
+        return $this->platform()->types()->fromDatabase($value, $type);
     }
 
     /**
@@ -133,19 +129,7 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     public function toDatabase($value, $type = null)
     {
-        $platform = $this->platform();
-
-        if ($type === null) {
-            if ($value === null) {
-                return null;
-            }
-
-            $type = $platform->types()->resolve($value);
-        } elseif (!$type instanceof TypeInterface) {
-            $type = $platform->types()->get($type);
-        }
-
-        return $type->toDatabase($platform, $value);
+        return $this->platform()->types()->toDatabase($value, $type);
     }
 
     /**

@@ -2,35 +2,27 @@
 
 namespace Bdf\Prime\MongoDB\Platform\Types;
 
+use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
-use Bdf\Prime\Platform\Types\PlatformTypeInterface;
 use MongoDB\BSON\Binary;
 
 /**
  * BinData type
  */
-class BsonBinDataType implements PlatformTypeInterface
+class BsonBinDataType extends AbstractPlatformType
 {
     /**
-     * @var string
+     * {@inheritdoc}
      */
-    private $name;
-
-
-    /**
-     * BsonArrayType constructor.
-     *
-     * @param string $name
-     */
-    public function __construct($name = self::BINARY)
+    public function __construct(PlatformInterface $platform, $name = self::BLOB)
     {
-        $this->name = $name;
+        parent::__construct($platform, $name);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function declaration(PlatformInterface $platform, array $field)
+    public function declaration(array $field)
     {
         return 'binData';
     }
@@ -38,7 +30,7 @@ class BsonBinDataType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function fromDatabase(PlatformInterface $platform, $value)
+    public function fromDatabase($value)
     {
         if ($value === null) {
             return null;
@@ -54,16 +46,12 @@ class BsonBinDataType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function toDatabase(PlatformInterface $platform, $value)
+    public function toDatabase($value)
     {
-        return new Binary($value, Binary::TYPE_GENERIC);
-    }
+        if ($value === null) {
+            return null;
+        }
 
-    /**
-     * {@inheritdoc}
-     */
-    public function name()
-    {
-        return $this->name;
+        return new Binary($value, Binary::TYPE_GENERIC);
     }
 }

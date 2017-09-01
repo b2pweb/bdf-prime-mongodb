@@ -466,14 +466,13 @@ class MongoCompiler extends AbstractCompiler
     {
         if (is_array($value)) {
             foreach ($value as &$e) {
-                $type = $this->platform->types()->resolve($e);
-                $e = $type->toDatabase($this->platform, $e);
+                $e = $this->platform->types()->toDatabase($e);
             }
 
             return $value;
         }
 
-        return $this->platform->types()->resolve($value)->toDatabase($this->platform, $value);
+        return $this->platform->types()->toDatabase($value);
     }
 
     /**

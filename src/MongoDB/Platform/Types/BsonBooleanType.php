@@ -2,34 +2,26 @@
 
 namespace Bdf\Prime\MongoDB\Platform\Types;
 
+use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
-use Bdf\Prime\Platform\Types\PlatformTypeInterface;
 
 /**
  * Boolean type
  */
-class BsonBooleanType implements PlatformTypeInterface
+class BsonBooleanType extends AbstractPlatformType
 {
     /**
-     * @var string
+     * {@inheritdoc}
      */
-    private $name;
-
-
-    /**
-     * BsonArrayType constructor.
-     *
-     * @param string $name
-     */
-    public function __construct($name = self::BOOLEAN)
+    public function __construct(PlatformInterface $platform, $name = self::BOOLEAN)
     {
-        $this->name = $name;
+        parent::__construct($platform, $name);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function declaration(PlatformInterface $platform, array $field)
+    public function declaration(array $field)
     {
         return 'bool';
     }
@@ -37,7 +29,7 @@ class BsonBooleanType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function fromDatabase(PlatformInterface $platform, $value)
+    public function fromDatabase($value)
     {
         return $value === null ? null : (bool) $value;
     }
@@ -45,16 +37,8 @@ class BsonBooleanType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function toDatabase(PlatformInterface $platform, $value)
+    public function toDatabase($value)
     {
-        return $value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function name()
-    {
-        return $this->name;
+        return $value === null ? null : (bool) $value;
     }
 }

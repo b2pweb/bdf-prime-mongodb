@@ -10,11 +10,12 @@ use Bdf\Prime\MongoDB\Platform\Types\BsonDecimalType;
 use Bdf\Prime\MongoDB\Platform\Types\BsonDoubleType;
 use Bdf\Prime\MongoDB\Platform\Types\BsonIntegerType;
 use Bdf\Prime\MongoDB\Platform\Types\BsonLongType;
+use Bdf\Prime\MongoDB\Platform\Types\BsonObjectIdType;
 use Bdf\Prime\MongoDB\Platform\Types\BsonObjectType;
 use Bdf\Prime\MongoDB\Platform\Types\BsonStringType;
 use Bdf\Prime\Platform\PlatformInterface;
+use Bdf\Prime\Platform\PlatformTypes;
 use Bdf\Prime\Platform\PlatformTypesRegistry;
-use Bdf\Prime\Platform\Types\SqlDefaultType;
 use Bdf\Prime\Types\TypeInterface;
 use Bdf\Prime\Types\TypesRegistryInterface;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -39,13 +40,34 @@ class MongoPlatform implements PlatformInterface
      * MongoPlatform constructor.
      *
      * @param AbstractPlatform $doctrine
+     * @param TypesRegistryInterface $commons
      */
-    public function __construct(AbstractPlatform $doctrine)
+    public function __construct(AbstractPlatform $doctrine, TypesRegistryInterface $commons)
     {
         $this->doctrine = $doctrine;
-        $this->types = new PlatformTypesRegistry(new SqlDefaultType());
-
-        $this->registerTypes($this->types);
+        $this->types = new PlatformTypes(
+            $this,
+            new PlatformTypesRegistry($this, [
+                TypeInterface::TARRAY   => BsonArrayType::class,
+                TypeInterface::BLOB     => BsonBinDataType::class,
+                TypeInterface::BINARY   => BsonBinDataType::class,
+                TypeInterface::BOOLEAN  => BsonBooleanType::class,
+                TypeInterface::DATETIME => BsonDateType::class,
+                TypeInterface::DECIMAL  => BsonDecimalType::class,
+                TypeInterface::FLOAT    => BsonDoubleType::class,
+                TypeInterface::DOUBLE   => BsonDoubleType::class,
+                TypeInterface::INTEGER  => BsonIntegerType::class,
+                TypeInterface::SMALLINT => BsonIntegerType::class,
+                TypeInterface::TINYINT  => BsonIntegerType::class,
+                TypeInterface::BIGINT   => BsonLongType::class,
+                TypeInterface::OBJECT   => BsonObjectType::class,
+                TypeInterface::JSON     => BsonObjectType::class,
+                TypeInterface::STRING   => BsonStringType::class,
+                TypeInterface::TEXT     => BsonStringType::class,
+                TypeInterface::GUID     => BsonObjectIdType::class,
+            ]),
+            $commons
+        );
     }
 
     /**
@@ -56,35 +78,11 @@ class MongoPlatform implements PlatformInterface
         return $this->types;
     }
 
-
     /**
      * {@inheritdoc}
      */
     public function toDoctrinePlatform()
     {
         return $this->doctrine;
-    }
-
-    /**
-     * Register custom types
-     *
-     * @param TypesRegistryInterface $types
-     */
-    protected function registerTypes(TypesRegistryInterface $types)
-    {
-        $types->register(BsonArrayType::class, TypeInterface::TARRAY);
-        $types->register(BsonBinDataType::class, TypeInterface::BLOB);
-        $types->register(BsonBooleanType::class, TypeInterface::BOOLEAN);
-        $types->register(BsonDateType::class, TypeInterface::DATETIME);
-        $types->register(BsonDecimalType::class, TypeInterface::DECIMAL);
-        $types->register(BsonDoubleType::class, TypeInterface::FLOAT);
-        $types->register(BsonDoubleType::class, TypeInterface::DOUBLE);
-        $types->register(BsonIntegerType::class, TypeInterface::INTEGER);
-        $types->register(BsonIntegerType::class, TypeInterface::SMALLINT);
-        $types->register(BsonIntegerType::class, TypeInterface::TINYINT);
-        $types->register(BsonLongType::class, TypeInterface::BIGINT);
-        $types->register(BsonObjectType::class, TypeInterface::OBJECT);
-        $types->register(BsonStringType::class, TypeInterface::STRING);
-        $types->register(BsonStringType::class, TypeInterface::TEXT);
     }
 }

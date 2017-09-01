@@ -2,34 +2,26 @@
 
 namespace Bdf\Prime\MongoDB\Platform\Types;
 
+use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
-use Bdf\Prime\Platform\Types\PlatformTypeInterface;
 
 /**
  * Long type
  */
-class BsonLongType implements PlatformTypeInterface
+class BsonLongType extends AbstractPlatformType
 {
     /**
-     * @var string
+     * {@inheritdoc}
      */
-    private $name;
-
-
-    /**
-     * BsonArrayType constructor.
-     *
-     * @param string $name
-     */
-    public function __construct($name = self::BIGINT)
+    public function __construct(PlatformInterface $platform, $name = self::BIGINT)
     {
-        $this->name = $name;
+        parent::__construct($platform, $name);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function declaration(PlatformInterface $platform, array $field)
+    public function declaration(array $field)
     {
         return 'long';
     }
@@ -37,7 +29,7 @@ class BsonLongType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function fromDatabase(PlatformInterface $platform, $value)
+    public function fromDatabase($value)
     {
         if ($value === null) {
             return null;
@@ -53,16 +45,8 @@ class BsonLongType implements PlatformTypeInterface
     /**
      * {@inheritdoc}
      */
-    public function toDatabase(PlatformInterface $platform, $value)
+    public function toDatabase($value)
     {
         return $value;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function name()
-    {
-        return $this->name;
     }
 }

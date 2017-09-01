@@ -8,6 +8,8 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
  * MongoSchemasManager
  *
  * @property MongoConnection $_conn
+ *
+ * @deprecated since 1.3 Will be deleted
  */
 class MongoSchemasManager extends AbstractSchemaManager
 {

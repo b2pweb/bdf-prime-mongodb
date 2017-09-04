@@ -98,12 +98,13 @@ class UpgraderTest extends TestCase
      */
     public function test_diff_on_creation()
     {
+        /** @var Command $diffs[] */
         $diffs = $this->resolver->diff(true);
-        $this->assertCount(1, $diffs);
+        $this->assertCount(2, $diffs);
 
-        /** @var Command $creation */
-        $creation = $diffs[0];
-        $this->assertInstanceOf(Command::class, $creation);
+        $this->assertContainsOnly(Command::class, $diffs);
+
+        $this->assertCommand(['create' => 'person_test'], $diffs[0]);
 
         $this->assertCommand([
             'createIndexes' => 'person_test',
@@ -123,7 +124,7 @@ class UpgraderTest extends TestCase
                     'name' => 'age_sort'
                 ]
             ]
-        ], $creation);
+        ], $diffs[1]);
     }
 
     /**

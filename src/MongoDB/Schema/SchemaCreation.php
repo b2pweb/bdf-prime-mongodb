@@ -3,6 +3,7 @@
 namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\Schema\TableInterface;
+use MongoDB\Driver\Command;
 
 /**
  * Generate commands for schema creation on MongoDB
@@ -41,6 +42,10 @@ class SchemaCreation implements CommandSetInterface
         $commands = [];
 
         foreach ($this->tables as $table) {
+            $commands[] = new Command([
+                "create" => $table->name()
+            ]);
+
             $commands = array_merge(
                 $commands,
                 (new IndexSetDiff(

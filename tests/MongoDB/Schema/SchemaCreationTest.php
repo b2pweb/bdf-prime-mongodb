@@ -56,8 +56,9 @@ class SchemaCreationTest extends TestCase
 
         $commands = $creation->commands();
 
-        $this->assertCount(2, $commands);
+        $this->assertCount(4, $commands);
 
+        $this->assertCommand(['create' => 'table_'], $commands[0]);
         $this->assertCommand([
             'createIndexes' => 'table_',
             'indexes'       => [
@@ -66,8 +67,9 @@ class SchemaCreationTest extends TestCase
                     'name' => 'name'
                 ]
             ]
-        ], $commands[0]);
+        ], $commands[1]);
 
+        $this->assertCommand(['create' => 'other_'], $commands[2]);
         $this->assertCommand([
             'createIndexes' => 'other_',
             'indexes'       => [
@@ -76,6 +78,6 @@ class SchemaCreationTest extends TestCase
                     'name' => 'idx'
                 ]
             ]
-        ], $commands[1]);
+        ], $commands[3]);
     }
 }

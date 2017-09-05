@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
+use Bdf\Prime\Types\PhpTypeInterface;
 use MongoDB\BSON\ObjectID;
 
 /**
@@ -60,5 +61,13 @@ class BsonObjectIdType extends AbstractPlatformType
         }
 
         return new ObjectID($value);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function phpType()
+    {
+        return PhpTypeInterface::STRING;
     }
 }

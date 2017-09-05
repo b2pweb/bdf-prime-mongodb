@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
+use Bdf\Prime\Types\PhpTypeInterface;
 
 /**
  * Long type
@@ -48,5 +49,15 @@ class BsonLongType extends AbstractPlatformType
     public function toDatabase($value)
     {
         return $value;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function phpType()
+    {
+        return PHP_INT_SIZE < 8
+            ? PhpTypeInterface::STRING
+            : PhpTypeInterface::INTEGER;
     }
 }

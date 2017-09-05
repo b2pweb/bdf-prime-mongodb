@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
+use Bdf\Prime\Types\PhpTypeInterface;
 
 /**
  * String type
@@ -41,5 +42,13 @@ class BsonStringType extends AbstractPlatformType
     public function toDatabase($value)
     {
         return $value === null ? null : (string) $value;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function phpType()
+    {
+        return PhpTypeInterface::STRING;
     }
 }

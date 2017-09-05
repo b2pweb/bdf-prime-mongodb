@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
+use Bdf\Prime\Types\PhpTypeInterface;
 use MongoDB\BSON\Binary;
 
 /**
@@ -53,5 +54,13 @@ class BsonBinDataType extends AbstractPlatformType
         }
 
         return new Binary($value, Binary::TYPE_GENERIC);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function phpType()
+    {
+        return PhpTypeInterface::STRING;
     }
 }

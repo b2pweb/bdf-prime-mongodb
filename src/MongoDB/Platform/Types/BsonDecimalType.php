@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
+use Bdf\Prime\Types\PhpTypeInterface;
 use MongoDB\BSON\Decimal128;
 
 /**
@@ -54,5 +55,13 @@ class BsonDecimalType extends AbstractPlatformType
         }
 
         return (float) $value;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function phpType()
+    {
+        return PhpTypeInterface::STRING;
     }
 }

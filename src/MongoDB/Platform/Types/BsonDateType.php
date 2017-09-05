@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
+use Bdf\Prime\Types\PhpTypeInterface;
 use MongoDB\BSON\UTCDateTime;
 
 /**
@@ -55,5 +56,13 @@ class BsonDateType extends AbstractPlatformType
         $ts += (int) $value->format('u');
 
         return new UTCDateTime($ts);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function phpType()
+    {
+        return PhpTypeInterface::DATETIME;
     }
 }

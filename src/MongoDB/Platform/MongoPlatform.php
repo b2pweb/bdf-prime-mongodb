@@ -28,23 +28,22 @@ class MongoPlatform implements PlatformInterface
     /**
      * @var AbstractPlatform
      */
-    private $doctrine;
+    private $grammar;
 
     /**
      * @var PlatformTypesRegistry
      */
-    protected $types;
+    private $types;
 
 
     /**
      * MongoPlatform constructor.
      *
-     * @param AbstractPlatform $doctrine
      * @param TypesRegistryInterface $commons
      */
-    public function __construct(AbstractPlatform $doctrine, TypesRegistryInterface $commons)
+    public function __construct(AbstractPlatform $grammar, TypesRegistryInterface $commons)
     {
-        $this->doctrine = $doctrine;
+        $this->grammar = $grammar;
         $this->types = new PlatformTypes(
             $this,
             new PlatformTypesRegistry($this, [
@@ -73,6 +72,14 @@ class MongoPlatform implements PlatformInterface
     /**
      * {@inheritdoc}
      */
+    public function name()
+    {
+        return 'mongodb';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function types()
     {
         return $this->types;
@@ -81,8 +88,8 @@ class MongoPlatform implements PlatformInterface
     /**
      * {@inheritdoc}
      */
-    public function toDoctrinePlatform()
+    public function grammar()
     {
-        return $this->doctrine;
+        return $this->grammar;
     }
 }

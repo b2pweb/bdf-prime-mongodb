@@ -46,9 +46,17 @@ class MongoPlatformTest extends TestCase
     /**
      *
      */
-    public function test_toDoctrinePlatform()
+    public function test_name()
     {
-        $this->assertInstanceOf(\Bdf\Prime\MongoDB\Driver\MongoPlatform::class, $this->platform->toDoctrinePlatform());
+        $this->assertEquals('mongodb', $this->platform->name());
+    }
+
+    /**
+     *
+     */
+    public function test_grammar()
+    {
+        $this->assertInstanceOf(\Bdf\Prime\MongoDB\Driver\MongoPlatform::class, $this->platform->grammar());
     }
 
     /**

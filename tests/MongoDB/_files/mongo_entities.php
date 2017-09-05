@@ -159,7 +159,7 @@ class PersonMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function configure($metadata)
+    public function configure()
     {
         $this->setGenerator(MongoIdGenerator::class);
     }
@@ -310,7 +310,7 @@ class HomeMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function configure($metadata)
+    public function configure()
     {
         $this->setGenerator(MongoIdGenerator::class);
     }

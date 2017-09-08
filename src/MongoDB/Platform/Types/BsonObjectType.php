@@ -12,6 +12,16 @@ use Bdf\Prime\Types\PhpTypeInterface;
 class BsonObjectType extends AbstractPlatformType
 {
     /**
+     * Map the prime type that should be map as array
+     *
+     * @var array
+     */
+    private $arrayTypeMap = [
+        self::ARRAY_OBJECT => true,
+        self::JSON => true,
+    ];
+
+    /**
      * {@inheritdoc}
      */
     public function __construct(PlatformInterface $platform, $name = self::OBJECT)
@@ -36,7 +46,7 @@ class BsonObjectType extends AbstractPlatformType
             return null;
         }
 
-        if ($this->name === self::JSON) {
+        if (isset($this->arrayTypeMap[$this->name])) {
             return (array) $value;
         }
 
@@ -56,7 +66,7 @@ class BsonObjectType extends AbstractPlatformType
      */
     public function phpType()
     {
-        return $this->name === self::JSON
+        return isset($this->arrayTypeMap[$this->name])
             ? PhpTypeInterface::TARRAY
             : PhpTypeInterface::OBJECT;
     }

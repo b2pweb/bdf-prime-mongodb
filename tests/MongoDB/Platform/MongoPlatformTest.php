@@ -80,6 +80,7 @@ class MongoPlatformTest extends TestCase
         $this->assertInstanceOf(BsonIntegerType::class, $types->get(TypeInterface::SMALLINT));
         $this->assertInstanceOf(BsonIntegerType::class, $types->get(TypeInterface::TINYINT));
         $this->assertInstanceOf(BsonLongType::class, $types->get(TypeInterface::BIGINT));
+        $this->assertInstanceOf(BsonObjectType::class, $types->get(TypeInterface::ARRAY_OBJECT));
         $this->assertInstanceOf(BsonObjectType::class, $types->get(TypeInterface::OBJECT));
         $this->assertInstanceOf(BsonObjectType::class, $types->get(TypeInterface::JSON));
         $this->assertInstanceOf(BsonStringType::class, $types->get(TypeInterface::STRING));
@@ -101,8 +102,17 @@ class MongoPlatformTest extends TestCase
      */
     public function test_type_object()
     {
-        $this->assertEquals((object) ['Hello', 'World'], $this->platform->types()->get('object')->toDatabase(['Hello', 'World']));
-        $this->assertEquals((object) ['Hello', 'World'], $this->platform->types()->get('object')->fromDatabase(['Hello', 'World']));
+        $this->assertEquals((object) ['Hello' => 'World'], $this->platform->types()->get('object')->toDatabase(['Hello' => 'World']));
+        $this->assertEquals((object) ['Hello' => 'World'], $this->platform->types()->get('object')->fromDatabase(['Hello' => 'World']));
+    }
+
+    /**
+     *
+     */
+    public function test_type_array_object()
+    {
+        $this->assertEquals((object)['Hello' => 'World'], $this->platform->types()->get('array_object')->toDatabase(['Hello' => 'World']));
+        $this->assertEquals(['Hello' => 'World'], $this->platform->types()->get('array_object')->fromDatabase(['Hello' => 'World']));
     }
 
     /**

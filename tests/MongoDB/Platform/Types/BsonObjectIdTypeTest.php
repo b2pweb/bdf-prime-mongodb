@@ -5,6 +5,7 @@ namespace Bdf\Prime\Types;
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform;
 use Bdf\Prime\MongoDB\Platform\Types\BsonObjectIdType;
+use Bdf\Prime\Schema\ColumnInterface;
 use MongoDB\BSON\ObjectID;
 
 /**
@@ -33,6 +34,15 @@ class BsonObjectIdTypeTest extends TestCase
     {
         $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform(), new TypesRegistry());
         $this->type = new BsonObjectIdType($this->platform);
+    }
+
+    /**
+     *
+     */
+    public function test_declaration()
+    {
+        $column = $this->createMock(ColumnInterface::class);
+        $this->assertEquals('objectId', $this->type->declaration($column));
     }
 
     /**

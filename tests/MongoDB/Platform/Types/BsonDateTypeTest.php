@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform;
+use Bdf\Prime\Schema\ColumnInterface;
 use Bdf\Prime\Types\TypesRegistry;
 use MongoDB\BSON\UTCDateTime;
 
@@ -32,6 +33,15 @@ class BsonDateTypeTest extends TestCase
     {
         $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform(), new TypesRegistry());
         $this->type = new BsonDateType($this->platform);
+    }
+
+    /**
+     *
+     */
+    public function test_declaration()
+    {
+        $column = $this->createMock(ColumnInterface::class);
+        $this->assertEquals('date', $this->type->declaration($column));
     }
 
     /**

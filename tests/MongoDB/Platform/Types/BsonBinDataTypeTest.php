@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform;
 use Bdf\Prime\Platform\Types\PlatformTypeInterface;
+use Bdf\Prime\Schema\ColumnInterface;
 use Bdf\Prime\Types\TypesRegistry;
 use MongoDB\BSON\Binary;
 
@@ -33,6 +34,15 @@ class BsonBinDataTypeTest extends TestCase
     {
         $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform(), new TypesRegistry());
         $this->type = new BsonBinDataType($this->platform);
+    }
+
+    /**
+     *
+     */
+    public function test_declaration()
+    {
+        $column = $this->createMock(ColumnInterface::class);
+        $this->assertEquals('binData', $this->type->declaration($column));
     }
 
     /**

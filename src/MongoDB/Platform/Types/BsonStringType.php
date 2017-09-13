@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Platform\Types;
 
 use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
+use Bdf\Prime\Schema\ColumnInterface;
 use Bdf\Prime\Types\PhpTypeInterface;
 
 /**
@@ -23,7 +24,7 @@ class BsonStringType extends AbstractPlatformType
     /**
      * {@inheritdoc}
      */
-    public function declaration(array $field)
+    public function declaration(ColumnInterface $column)
     {
         return 'string';
     }

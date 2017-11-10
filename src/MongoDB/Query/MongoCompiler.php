@@ -70,6 +70,21 @@ class MongoCompiler extends AbstractCompiler
     }
 
     /**
+     * Compile a aggregate command
+     *
+     * @param Clause $query
+     *
+     * @return array
+     */
+    public function compileAggregate(Clause $query)
+    {
+        return [
+            $query->statements['aggregate'] => $query->statements['collection'],
+            'query' => $this->compileFilters($query->statements['where'])
+        ];
+    }
+
+    /**
      * {@inheritdoc}
      *
      * @return BulkWrite

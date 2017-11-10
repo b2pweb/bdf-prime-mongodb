@@ -192,4 +192,37 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
 
         return isset($result[0]) ? reset($result[0]) : null;
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function paginationCount($columns = null)
+    {
+        return $this->count($columns);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function count($column = null)
+    {
+        return (int)$this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function aggregate($function, $column = null)
+    {
+        $statements = $this->statements;
+
+        $this->statements['aggregate'] = $function;
+
+        $result = $this->connection->runCommand($this->compiler->compileAggregate($this));
+        $aggregate = current($result->toArray())->n;
+
+        $this->statements = $statements;
+
+        return $aggregate;
+    }
 }

@@ -99,6 +99,15 @@ class MongoQueryTest extends TestCase
     /**
      *
      */
+    public function test_count()
+    {
+        $this->assertSame(2, $this->query()->count());
+        $this->assertSame(2, $this->query()->paginationCount());
+    }
+
+    /**
+     *
+     */
     public function test_all()
     {
         $result = $this->query()->all();

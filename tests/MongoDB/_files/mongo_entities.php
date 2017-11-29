@@ -470,3 +470,162 @@ class Address {
         return $this;
     }
 }
+
+/**
+ * Class Home
+ */
+class EntityWithEmbedded extends Model implements InitializableInterface
+{
+    /**
+     * @var mixed
+     */
+    protected $id;
+
+    /**
+     * @var Address
+     */
+    protected $address;
+
+    /**
+     * @var Person
+     */
+    protected $proprietary;
+
+
+    /**
+     * EntityWithEmbedded constructor.
+     *
+     * @param array $attributes
+     */
+    public function __construct(array $attributes)
+    {
+        $this->initialize();
+        $this->import($attributes);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function initialize()
+    {
+        $this->proprietary = new Person();
+        $this->address = new Address();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function id()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @param mixed $id
+     *
+     * @return $this
+     */
+    public function setId($id)
+    {
+        $this->id = $id;
+
+        return $this;
+    }
+
+    /**
+     * @return Address
+     */
+    public function address()
+    {
+        return $this->address;
+    }
+
+    /**
+     * @param Address $address
+     *
+     * @return $this
+     */
+    public function setAddress(Address $address)
+    {
+        $this->address = $address;
+
+        return $this;
+    }
+
+    /**
+     * @return Person
+     */
+    public function proprietary()
+    {
+        return $this->proprietary;
+    }
+
+    /**
+     * @param Person $proprietary
+     *
+     * @return $this
+     */
+    public function setProprietary(Person $proprietary)
+    {
+        $this->proprietary = $proprietary;
+
+        return $this;
+    }
+}
+
+/**
+ * Class EntityWithEmbeddedMapper
+ */
+class EntityWithEmbeddedMapper extends Mapper
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function configure()
+    {
+        $this->setGenerator(MongoIdGenerator::class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function schema()
+    {
+        return [
+            'connection' => 'mongo',
+            'table' => 'embedded_test'
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildFields($builder)
+    {
+        $builder
+            ->string('id')->alias('_id')->primary()
+            ->embedded('address', Address::class, function (FieldBuilder $builder) {
+                $builder
+                    ->string('address')
+                    ->string('city')
+                    ->string('zipCode')
+                    ->string('country')
+                ;
+            })
+            ->embedded('proprietary', Person::class, function (FieldBuilder $builder) {
+                $builder->string('id');
+            })
+        ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildRelations($builder)
+    {
+        $builder
+            ->on('proprietary')
+            ->belongsTo(Person::class, 'proprietary.id')
+        ;
+    }
+}

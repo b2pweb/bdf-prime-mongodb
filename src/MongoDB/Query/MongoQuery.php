@@ -180,7 +180,9 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function postProcessResult($data)
     {
-        return parent::postProcessResult($data->toArray());
+        return parent::postProcessResult(
+            array_map([$this, 'flattenArray'], $data->toArray())
+        );
     }
 
     /**
@@ -188,6 +190,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function inRow($column)
     {
+        // @todo flatten array ?
         $result = $this->limit(1)->execute($column)->toArray();
 
         return isset($result[0]) ? reset($result[0]) : null;
@@ -224,5 +227,30 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
         $this->statements = $statements;
 
         return $aggregate;
+    }
+
+    /**
+     * Convert multi-dimensional array to flat array
+     *
+     * @param array $data
+     * @param string $base
+     *
+     * @return array
+     */
+    protected function flattenArray(array $data, $base = '')
+    {
+        $flatten = [];
+
+        foreach ($data as $k => $v) {
+            $key = empty($base) ? $k : $base.'.'.$k;
+
+            if (is_array($v) && is_string(key($v))) {
+                $flatten = array_merge($flatten, $this->flattenArray($v, $key));
+            } else {
+                $flatten[$key] = $v;
+            }
+        }
+
+        return $flatten;
     }
 }

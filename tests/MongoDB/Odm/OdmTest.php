@@ -8,6 +8,7 @@ use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\MongoDB\Test\Address;
+use Bdf\Prime\MongoDB\Test\EntityWithEmbedded;
 use Bdf\Prime\MongoDB\Test\Home;
 use Bdf\Prime\MongoDB\Test\Person;
 use Bdf\Prime\Prime;
@@ -180,6 +181,71 @@ class OdmTest extends TestCase
             $this->persons['john'],
             $this->persons['napoleon']
         ], $beaufs);
+    }
+
+    /**
+     *
+     */
+    public function test_insert_non_flatten_embedded()
+    {
+        $this->addPersons();
+
+        $entity = new EntityWithEmbedded([
+            'id' => 1,
+            'address' => new Address([
+                'address' => '178 Rue du chanvre',
+                'zipCode' => '39250',
+                'city'    => 'Longcochon',
+                'country' => 'France'
+            ]),
+            'proprietary' => $this->persons['john']
+        ]);
+
+        $entity->insert();
+
+        $data = Prime::connection('mongo')->from('embedded_test')->execute()->toArray();
+
+        $this->assertEquals(
+            [
+                [
+                    '_id'     => 1,
+                    'address' => [
+                        'address' => '178 Rue du chanvre',
+                        'zipCode' => '39250',
+                        'city'    => 'Longcochon',
+                        'country' => 'France'
+                    ],
+                    'proprietary' => [
+                        'id' => $this->persons['john']->id()
+                    ]
+                ]
+            ],
+            $data
+        );
+    }
+
+    /**
+     *
+     */
+    public function test_update_non_flatten_embedded()
+    {
+        $entity = new EntityWithEmbedded([
+            'id' => 1,
+            'address' => new Address([
+                'address' => '178 Rue du chanvre',
+                'zipCode' => '39250',
+                'city'    => 'Longcochon',
+                'country' => 'France'
+            ]),
+            'proprietary' => ['id' => 1]
+        ]);
+
+        $entity->insert();
+
+        $entity->address()->setCountry('FR');
+        $entity->save();
+
+        $this->assertEquals('FR', EntityWithEmbedded::refresh($entity)->address()->country());
     }
 
     /**

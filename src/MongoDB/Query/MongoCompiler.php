@@ -94,7 +94,7 @@ class MongoCompiler extends AbstractCompiler
         $bulk = new BulkWrite();
 
         $bulk->insert(
-            $this->compileUpdateData($query->statements['values']['data'])
+            $this->compileInsertData($query->statements['values']['data'])
         );
 
         return $bulk;
@@ -188,6 +188,37 @@ class MongoCompiler extends AbstractCompiler
 
         foreach ($data as $column => $value) {
             $parsed[$this->preprocessor->field($column)] = $value;
+        }
+
+        return $parsed;
+    }
+
+    /**
+     * Compile document data for insert operation.
+     * Unlike Update, the insert data should not be flatten
+     *
+     * @param array $data
+     *
+     * @return array
+     */
+    protected function compileInsertData(array $data)
+    {
+        $parsed = [];
+
+        foreach ($data as $column => $value) {
+            $field = explode('.', $this->preprocessor->field($column));
+            $count = count($field);
+            $base = &$parsed;
+
+            for ($i = 0; $i < $count - 1; ++$i) {
+                if (!isset($base[$field[$i]])) {
+                    $base[$field[$i]] = [];
+                }
+
+                $base = &$base[$field[$i]];
+            }
+
+            $base[$field[$i]] = $value;
         }
 
         return $parsed;

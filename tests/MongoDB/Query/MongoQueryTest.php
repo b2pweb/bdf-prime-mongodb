@@ -281,6 +281,56 @@ class MongoQueryTest extends TestCase
     }
 
     /**
+     *
+     */
+    public function test_select_will_flatten_result()
+    {
+        $this->query()->insert([
+            '_id'    => '123',
+            'person' => [
+                'name' => 'Michel Sardou',
+                'age' => 70
+            ],
+            'job' => 'singer'
+        ]);
+
+        $this->assertEquals(
+            [
+                '_id'         => '123',
+                'person.name' => 'Michel Sardou',
+                'person.age'  => 70,
+                'job'         => 'singer'
+            ],
+            $this->query()->where('_id', '123')->first()
+        );
+    }
+
+    /**
+     *
+     */
+    public function test_select_where_on_sub_document()
+    {
+        $this->query()->insert([
+            '_id'    => '123',
+            'person' => [
+                'name' => 'Michel Sardou',
+                'age' => 70
+            ],
+            'job' => 'singer'
+        ]);
+
+        $this->assertEquals(
+            [
+                '_id'         => '123',
+                'person.name' => 'Michel Sardou',
+                'person.age'  => 70,
+                'job'         => 'singer'
+            ],
+            $this->query()->where('person.name', 'Michel Sardou')->first()
+        );
+    }
+
+    /**
      * @return array
      */
     public function operatorsDataProvider()

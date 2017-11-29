@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Test;
 
+use Bdf\Prime\Behaviors\Timestampable;
 use Bdf\Prime\Entity\Extensions\ArrayInjector;
 use Bdf\Prime\Entity\InitializableInterface;
 use Bdf\Prime\Entity\Model;
@@ -627,5 +628,138 @@ class EntityWithEmbeddedMapper extends Mapper
             ->on('proprietary')
             ->belongsTo(Person::class, 'proprietary.id')
         ;
+    }
+}
+
+class TimestampableEntity extends Model
+{
+    protected $oid;
+    protected $value;
+    protected $createdAt;
+    protected $updatedAt;
+
+    public function __construct(array $data = [])
+    {
+        $this->import($data);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function oid()
+    {
+        return $this->oid;
+    }
+
+    /**
+     * @param mixed $oid
+     *
+     * @return $this
+     */
+    public function setOid($oid)
+    {
+        $this->oid = $oid;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function value()
+    {
+        return $this->value;
+    }
+
+    /**
+     * @param mixed $value
+     *
+     * @return $this
+     */
+    public function setValue($value)
+    {
+        $this->value = $value;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function createdAt()
+    {
+        return $this->createdAt;
+    }
+
+    /**
+     * @param mixed $createdAt
+     *
+     * @return $this
+     */
+    public function setCreatedAt($createdAt)
+    {
+        $this->createdAt = $createdAt;
+
+        return $this;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function updatedAt()
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * @param mixed $updatedAt
+     *
+     * @return $this
+     */
+    public function setUpdatedAt($updatedAt)
+    {
+        $this->updatedAt = $updatedAt;
+
+        return $this;
+    }
+}
+
+/**
+ * Class TimestampableEntityMapper
+ */
+class TimestampableEntityMapper extends Mapper
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function configure()
+    {
+        $this->setGenerator(MongoIdGenerator::class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function schema()
+    {
+        return [
+            'connection' => 'mongo',
+            'table' => 'timestampable'
+        ];
+    }
+
+    public function buildFields($builder)
+    {
+        $builder
+            ->guid('oid')->alias('_id')->primary()
+            ->string('value')
+        ;
+    }
+
+    public function getDefinedBehaviors()
+    {
+        return [
+            new Timestampable()
+        ];
     }
 }

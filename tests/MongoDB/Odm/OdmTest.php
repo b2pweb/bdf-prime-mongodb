@@ -6,14 +6,16 @@ require_once __DIR__.'/../_files/mongo_entities.php';
 
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
-use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\MongoDB\Test\Address;
 use Bdf\Prime\MongoDB\Test\EntityWithEmbedded;
 use Bdf\Prime\MongoDB\Test\Home;
 use Bdf\Prime\MongoDB\Test\Person;
+use Bdf\Prime\MongoDB\Test\TimestampableEntity;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
+use Bdf\Prime\Query\Expression\Value;
 use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\UTCDateTime;
 
 /**
  * @group Bdf
@@ -175,7 +177,12 @@ class OdmTest extends TestCase
         $this->assertCount(1, $kings);
         $this->assertEquals([$this->persons['louisxvi']], $kings);
 
-        $beaufs = Person::find(['tags' => ['beauf', 'corse']]);
+        /*
+         * @fixme Value vraiment bon ?
+         * Que faire d'un :eq avec un array quand type array ?
+         * OrmPreprocessor:229 => check si type->phpType() !== 'array' ?
+         */
+        $beaufs = Person::find(['tags' => new Value(['beauf', 'corse'])]);
 
         $this->assertEquals([
             $this->persons['john'],
@@ -246,6 +253,39 @@ class OdmTest extends TestCase
         $entity->save();
 
         $this->assertEquals('FR', EntityWithEmbedded::refresh($entity)->address()->country());
+    }
+
+    /**
+     *
+     */
+    public function test_timestampable_entity()
+    {
+        $entity = new TimestampableEntity([
+            'value' => 'foo'
+        ]);
+
+        $entity->insert();
+
+        $data = Prime::connection('mongo')->from('timestampable')->execute()->toArray();
+
+        $this->assertInstanceOf(UTCDateTime::class, $data[0]['created_at']);
+        $this->assertNull($data[0]['updated_at']);
+
+        $this->assertEquals($entity, TimestampableEntity::refresh($entity));
+
+        $entity = TimestampableEntity::refresh($entity);
+        $this->assertInstanceOf(\DateTime::class, $entity->createdAt());
+        $this->assertNull($entity->updatedAt());
+
+        $entity->setValue('foo2')->save();
+
+        $data = Prime::connection('mongo')->from('timestampable')->execute()->toArray();
+        $this->assertInstanceOf(UTCDateTime::class, $data[0]['created_at']);
+        $this->assertInstanceOf(UTCDateTime::class, $data[0]['updated_at']);
+
+        $entity = TimestampableEntity::refresh($entity);
+        $this->assertInstanceOf(\DateTime::class, $entity->createdAt());
+        $this->assertInstanceOf(\DateTime::class, $entity->updatedAt());
     }
 
     /**

@@ -187,7 +187,10 @@ class MongoCompiler extends AbstractCompiler
         $parsed = [];
 
         foreach ($data as $column => $value) {
-            $parsed[$this->preprocessor->field($column)] = $value;
+            $type = isset($data['types'][$column]) ? $data['types'][$column] : true;
+            $field = $this->preprocessor->field($column, $type);
+
+            $parsed[$field] = $this->platform->types()->toDatabase($value, $type);
         }
 
         return $parsed;
@@ -206,7 +209,9 @@ class MongoCompiler extends AbstractCompiler
         $parsed = [];
 
         foreach ($data as $column => $value) {
-            $field = explode('.', $this->preprocessor->field($column));
+            $type = isset($data['types'][$column]) ? $data['types'][$column] : true;
+
+            $field = explode('.', $this->preprocessor->field($column, $type));
             $count = count($field);
             $base = &$parsed;
 
@@ -218,6 +223,7 @@ class MongoCompiler extends AbstractCompiler
                 $base = &$base[$field[$i]];
             }
 
+            $value = $this->platform->types()->toDatabase($value, $type);
             $base[$field[$i]] = $value;
         }
 

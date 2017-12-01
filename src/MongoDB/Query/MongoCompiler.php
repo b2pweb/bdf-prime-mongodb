@@ -503,7 +503,8 @@ class MongoCompiler extends AbstractCompiler
     protected function getLikeOperator($value)
     {
         return [
-            '$regex' => strtr($value, ['%' => '.*', '?' => '.'])
+            '$regex'   => '^'.strtr($value, ['%' => '.*', '?' => '.']).'$',
+            '$options' => 'i'
         ];
     }
 

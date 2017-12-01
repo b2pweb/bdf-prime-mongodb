@@ -331,6 +331,42 @@ class MongoQueryTest extends TestCase
     }
 
     /**
+     *
+     */
+    public function test_like_empty()
+    {
+        $this->insertData();
+
+        $this->assertEmpty($this->query()->where('first_name', ':like', '')->all());
+    }
+
+    /**
+     *
+     */
+    public function test_like_no_joker()
+    {
+        $this->insertData();
+
+        $this->assertEmpty($this->query()->where('first_name', ':like', 'i')->all());
+    }
+
+    /**
+     *
+     */
+    public function test_like_case_insensitive()
+    {
+        $this->insertData();
+
+        $this->assertEquals(
+            [
+                'first_name' => 'John',
+                'last_name'  => 'Doe'
+            ],
+            $this->query()->select(['first_name', 'last_name'])->where('first_name', ':like', 'j%')->first()
+        );
+    }
+
+    /**
      * @return array
      */
     public function operatorsDataProvider()

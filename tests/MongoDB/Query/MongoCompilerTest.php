@@ -204,7 +204,7 @@ class MongoCompilerTest extends TestCase
                         ['age' => ['$gte' => 7]],
                         ['age' => ['$lte' => 77]],
                     ],
-                    'last_name' => ['$regex' => 'A.*']
+                    'last_name' => ['$regex' => '^A.*$', '$options' => 'i']
                 ]
             ]
         ], $filters);
@@ -224,7 +224,7 @@ class MongoCompilerTest extends TestCase
         );
 
         $this->assertEquals([
-            'first_name' => ['$regex' => 'j.*']
+            'first_name' => ['$regex' => '^j.*$', '$options' => 'i']
         ], $filters);
     }
 

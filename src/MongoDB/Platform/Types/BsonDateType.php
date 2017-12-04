@@ -54,7 +54,7 @@ class BsonDateType extends AbstractPlatformType
         }
 
         $ts = $value->getTimestamp() * 1000;
-        $ts += (int) $value->format('u');
+        $ts += (int) $value->format('u') / 1000;
 
         return new UTCDateTime($ts);
     }

@@ -84,4 +84,16 @@ class BsonDateTypeTest extends TestCase
             )
         );
     }
+
+    /**
+     *
+     */
+    public function test_with_milliseconds()
+    {
+        $time = new \DateTime('2017-08-28 15:25:32.145');
+        $db = $this->type->toDatabase($time);
+
+        $this->assertEquals($time, $db->toDateTime());
+        $this->assertEquals($time, $this->type->fromDatabase($db));
+    }
 }

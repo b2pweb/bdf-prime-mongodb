@@ -6,6 +6,7 @@ use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
+use MongoDB\BSON\Javascript;
 use MongoDB\Driver\BulkWrite;
 
 /**
@@ -103,6 +104,36 @@ class MongoQueryTest extends TestCase
     {
         $this->assertSame(2, $this->query()->count());
         $this->assertSame(2, $this->query()->paginationCount());
+    }
+
+    /**
+     *
+     */
+    public function test_count_with_criteria()
+    {
+        $this->assertSame(1, $this->query()->where('first_name', ':like', 'f%')->count());
+    }
+
+    /**
+     *
+     */
+    public function test_count_with_limit()
+    {
+        $this->query()->insert(['first_name' => 'Paul']);
+        $this->query()->insert(['first_name' => 'Claude']);
+
+        $this->assertSame(2, $this->query()->limit(2)->count());
+    }
+
+    /**
+     *
+     */
+    public function test_count_with_offset()
+    {
+        $this->query()->insert(['first_name' => 'Paul']);
+        $this->query()->insert(['first_name' => 'Claude']);
+
+        $this->assertSame(1, $this->query()->offset(3)->count());
     }
 
     /**
@@ -363,6 +394,22 @@ class MongoQueryTest extends TestCase
                 'last_name'  => 'Doe'
             ],
             $this->query()->select(['first_name', 'last_name'])->where('first_name', ':like', 'j%')->first()
+        );
+    }
+
+    /**
+     *
+     */
+    public function test_raw()
+    {
+        $this->assertEquals(
+            [
+                [
+                    'first_name' => 'François',
+                    'last_name'  => 'Dupont'
+                ]
+            ],
+            $this->query()->select(['first_name', 'last_name'])->whereRaw(['$where' => 'this.first_name.length > 5'])->all()
         );
     }
 

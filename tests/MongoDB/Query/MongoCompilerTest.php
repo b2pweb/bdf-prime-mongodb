@@ -6,6 +6,7 @@ use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
+use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\Query\Expression\Like;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\BulkWrite;
@@ -231,6 +232,84 @@ class MongoCompilerTest extends TestCase
     /**
      *
      */
+    public function test_compileFilters_with_array_value()
+    {
+        $query = $this->query()
+            ->where('first_name', '~=', ['John', 'Paul', 'Richard'])
+        ;
+
+        $filters = $this->compiler->compileFilters(
+            $query->statements['where']
+        );
+
+        $this->assertEquals([
+            '$or' => [
+                ['first_name' => ['$regex' => 'John']],
+                ['first_name' => ['$regex' => 'Paul']],
+                ['first_name' => ['$regex' => 'Richard']],
+            ]
+        ], $filters);
+    }
+
+    /**
+     *
+     */
+    public function test_compileFilters_with_empty_array()
+    {
+        $query = $this->query()
+            ->where('first_name', '>', [])
+        ;
+
+        $filters = $this->compiler->compileFilters(
+            $query->statements['where']
+        );
+
+        $this->assertEquals([
+            'first_name' => ['$gt' => null]
+        ], $filters);
+    }
+
+    /**
+     *
+     */
+    public function test_compileFilters_with_singleton_array()
+    {
+        $query = $this->query()
+            ->where('age', '>', [5])
+        ;
+
+        $filters = $this->compiler->compileFilters(
+            $query->statements['where']
+        );
+
+        $this->assertEquals([
+            'age' => ['$gt' => 5]
+        ], $filters);
+    }
+
+    /**
+     *
+     */
+    public function test_compileFilters_with_raw()
+    {
+        $query = $this->query()
+            ->whereRaw([
+                '$where' => 'this.data.length > 15'
+            ])
+        ;
+
+        $filters = $this->compiler->compileFilters(
+            $query->statements['where']
+        );
+
+        $this->assertEquals([
+            '$where' => 'this.data.length > 15'
+        ], $filters);
+    }
+
+    /**
+     *
+     */
     public function test_compileProjection()
     {
         $this->assertEquals([], $this->compiler->compileProjection([['column' => '*']]));
@@ -289,5 +368,30 @@ class MongoCompilerTest extends TestCase
             ['sort' => 'attr', 'order' => 'DESC'],
             ['sort' => 'other', 'order' => 'ASC'],
         ]));
+    }
+
+    /**
+     *
+     */
+    public function test_compileCount()
+    {
+        $query = $this->query()
+            ->where('first_name', ':like', 't%')
+            ->limit(5)
+        ;
+
+        $count = $this->compiler->compileCount($query);
+
+        $this->assertInstanceOf(Count::class, $count);
+        $this->assertEquals([
+            'count' => 'test_collection',
+            'query' => [
+                'first_name' => [
+                    '$regex' => '^t.*$',
+                    '$options' => 'i'
+                ]
+            ],
+            'limit' => 5
+        ], $count->document());
     }
 }

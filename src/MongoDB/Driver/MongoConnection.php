@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Driver;
 
 use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Query\Command\Commands;
 use Bdf\Prime\MongoDB\Schema\MongoSchemaManager as PrimeSchemaManager;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform as PrimePlatform;
 use Bdf\Prime\MongoDB\Query\MongoCompiler;
@@ -197,13 +198,10 @@ class MongoConnection extends Connection implements ConnectionInterface
     {
         $this->connect();
 
-        if (is_array($command)) {
-            $command = new Command($command);
-        } elseif (is_string($command)) {
-            $command = new Command([$command => $arguments]);
-        }
-
-        return $this->_conn->executeCommand($this->getDatabase(), $command);
+        return $this->_conn->executeCommand(
+            $this->getDatabase(),
+            Commands::create($command, $arguments)->get()
+        );
     }
 
     /**

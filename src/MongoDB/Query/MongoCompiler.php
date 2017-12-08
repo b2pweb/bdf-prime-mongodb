@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query;
 
+use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\Query\Clause;
 use Bdf\Prime\Query\Compiler\AbstractCompiler;
 use Bdf\Prime\Query\Expression\ExpressionTransformerInterface;
@@ -70,18 +71,31 @@ class MongoCompiler extends AbstractCompiler
     }
 
     /**
-     * Compile a aggregate command
+     * Compile a count command
      *
      * @param Clause $query
      *
-     * @return array
+     * @return Count
+     *
+     * @link https://docs.mongodb.com/manual/reference/command/count/
      */
-    public function compileAggregate(Clause $query)
+    public function compileCount(Clause $query)
     {
-        return [
-            $query->statements['aggregate'] => $query->statements['collection'],
-            'query' => $this->compileFilters($query->statements['where'])
-        ];
+        $command = new Count($query->statements['collection']);
+
+        if (!empty($query->statements['where'])) {
+            $command->query($this->compileFilters($query->statements['where']));
+        }
+
+        if ($query->statements['limit']) {
+            $command->limit($query->statements['limit']);
+        }
+
+        if ($query->statements['offset']) {
+            $command->skip($query->statements['offset']);
+        }
+
+        return $command;
     }
 
     /**

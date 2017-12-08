@@ -291,6 +291,16 @@ class OdmTest extends TestCase
     /**
      *
      */
+    public function test_count()
+    {
+        $this->addPersons();
+
+        $this->assertEquals(2, Person::count(['firstName :like' => '%e%']));
+    }
+
+    /**
+     *
+     */
     protected function addPersons()
     {
         $this->persons = [

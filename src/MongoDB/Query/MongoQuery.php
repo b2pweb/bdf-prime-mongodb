@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Query;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\Query\AbstractQuery;
 use Bdf\Prime\Query\Compiler\CompilerInterface;
+use Bdf\Prime\Query\Contract\Aggregatable;
 use Bdf\Prime\Query\Contract\Orderable;
 use Bdf\Prime\Query\Contract\Paginable;
 use Bdf\Prime\Query\Extension\LimitableTrait;
@@ -19,7 +20,7 @@ use MongoDB\Driver\Cursor;
  * @property MongoConnection $connection
  * @property MongoCompiler $compiler
  */
-class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable
+class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable/*, Aggregatable*/ // @todo uncomment on #14561
 {
     use PaginableTrait;
     use LimitableTrait;
@@ -209,24 +210,9 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function count($column = null)
     {
-        return (int)$this->aggregate(__FUNCTION__, $column);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function aggregate($function, $column = null)
-    {
-        $statements = $this->statements;
-
-        $this->statements['aggregate'] = $function;
-
-        $result = $this->connection->runCommand($this->compiler->compileAggregate($this));
-        $aggregate = current($result->toArray())->n;
-
-        $this->statements = $statements;
-
-        return $aggregate;
+        return $this->connection->runCommand(
+            $this->compiler->compileCount($this)
+        )->toArray()[0]->n;
     }
 
     /**

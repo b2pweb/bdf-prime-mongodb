@@ -414,6 +414,150 @@ class MongoQueryTest extends TestCase
     }
 
     /**
+     *
+     */
+    public function test_sum()
+    {
+        // Clean collection
+        $this->query()->delete();
+
+        $this->query()->insert([
+            'name' => 'Johnny Hallyday',
+            'age'  => 74
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Charles Azanavour',
+            'age'  => 93
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Michel Sardou',
+            'age'  => 70
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Patrick Fiori',
+            'age'  => 48
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Matt Pokora',
+            'age'  => 32
+        ]);
+
+        $this->assertEquals(317, $this->query()->sum('age'));
+    }
+
+    /**
+     *
+     */
+    public function test_max()
+    {
+        // Clean collection
+        $this->query()->delete();
+
+        $this->query()->insert([
+            'name' => 'Johnny Hallyday',
+            'age'  => 74
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Charles Azanavour',
+            'age'  => 93
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Michel Sardou',
+            'age'  => 70
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Patrick Fiori',
+            'age'  => 48
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Matt Pokora',
+            'age'  => 32
+        ]);
+
+        $this->assertEquals(93, $this->query()->max('age'));
+    }
+
+    /**
+     *
+     */
+    public function test_min()
+    {
+        // Clean collection
+        $this->query()->delete();
+
+        $this->query()->insert([
+            'name' => 'Johnny Hallyday',
+            'age'  => 74
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Charles Azanavour',
+            'age'  => 93
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Michel Sardou',
+            'age'  => 70
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Patrick Fiori',
+            'age'  => 48
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Matt Pokora',
+            'age'  => 32
+        ]);
+
+        $this->assertEquals(32, $this->query()->min('age'));
+    }
+
+    /**
+     *
+     */
+    public function test_avg()
+    {
+        // Clean collection
+        $this->query()->delete();
+
+        $this->query()->insert([
+            'name' => 'Johnny Hallyday',
+            'age'  => 74
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Charles Azanavour',
+            'age'  => 93
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Michel Sardou',
+            'age'  => 70
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Patrick Fiori',
+            'age'  => 48
+        ]);
+
+        $this->query()->insert([
+            'name' => 'Matt Pokora',
+            'age'  => 32
+        ]);
+
+        $this->assertEquals(63.4, $this->query()->avg('age'));
+    }
+
+    /**
      * @return array
      */
     public function operatorsDataProvider()

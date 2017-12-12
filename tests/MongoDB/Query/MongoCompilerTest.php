@@ -7,6 +7,10 @@ use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\MongoDB\Query\Command\Count;
+use Bdf\Prime\MongoDB\Test\Person;
+use Bdf\Prime\Prime;
+use Bdf\Prime\PrimeTestCase;
+use Bdf\Prime\Query\Compiler\Preprocessor\OrmPreprocessor;
 use Bdf\Prime\Query\Expression\Like;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\BulkWrite;
@@ -21,6 +25,8 @@ use MongoDB\Driver\Query;
  */
 class MongoCompilerTest extends TestCase
 {
+    use PrimeTestCase;
+
     /**
      * @var MongoCompiler
      */
@@ -37,18 +43,17 @@ class MongoCompilerTest extends TestCase
      */
     protected function setUp()
     {
-        $manager = new ConnectionManager([
-            'dbConfig' => [
-                'mongo' => [
-                    'driver' => 'mongodb',
-                    'host'   => '127.0.0.1',
-                    'dbname' => 'TEST',
-                ],
-            ]
-        ]);
-        $manager->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
+        $this->primeStart();
 
-        $this->connection = $manager->connection('mongo');
+        Prime::service()->config()->getDbConfig()->merge([
+            'mongo' => [
+                'driver' => 'mongodb',
+                'host'   => '127.0.0.1',
+                'dbname' => 'TEST',
+            ],
+        ]);
+
+        $this->connection = Prime::connection('mongo');
 
         $this->compiler = new MongoCompiler();
 
@@ -393,5 +398,48 @@ class MongoCompilerTest extends TestCase
             ],
             'limit' => 5
         ], $count->document());
+    }
+
+    /**
+     *
+     */
+    public function test_compileExpression_scalar()
+    {
+        $this->assertSame(5, $this->compiler->compileExpression(5));
+    }
+
+    /**
+     *
+     */
+    public function test_compileExpression_datetime()
+    {
+        $compiled = $this->compiler->compileExpression($date = new \DateTime('2017-10-12 15:32:12'));
+
+        $this->assertInstanceOf(UTCDateTime::class, $compiled);
+        $this->assertEquals($date, $compiled->toDatetime());
+    }
+
+    /**
+     *
+     */
+    public function test_compileExpression_field_found()
+    {
+        $this->compiler->setPreprocessor(
+            new OrmPreprocessor(Person::repository())
+        );
+
+        $this->assertEquals('$first_name', $this->compiler->compileExpression('$firstName'));
+    }
+
+    /**
+     *
+     */
+    public function test_compileExpression_field_not_found()
+    {
+        $this->compiler->setPreprocessor(
+            new OrmPreprocessor(Person::repository())
+        );
+
+        $this->assertEquals('$notFound', $this->compiler->compileExpression('$notFound'));
     }
 }

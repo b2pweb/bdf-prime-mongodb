@@ -3,6 +3,7 @@
 namespace Bdf\Prime\MongoDB\Query;
 
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
+use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
 use Bdf\Prime\Query\AbstractQuery;
 use Bdf\Prime\Query\Compiler\CompilerInterface;
 use Bdf\Prime\Query\Contract\Aggregatable;
@@ -20,7 +21,7 @@ use MongoDB\Driver\Cursor;
  * @property MongoConnection $connection
  * @property MongoCompiler $compiler
  */
-class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable/*, Aggregatable*/ // @todo uncomment on #14561
+class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable, Aggregatable
 {
     use PaginableTrait;
     use LimitableTrait;
@@ -202,7 +203,16 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function paginationCount($columns = null)
     {
-        return $this->count($columns);
+        $statements = $this->statements;
+
+        try {
+            $this->statements['limit']  = null;
+            $this->statements['offset'] = null;
+
+            return $this->count($columns);
+        } finally {
+            $this->statements = $statements;
+        }
     }
 
     /**
@@ -213,6 +223,77 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
         return $this->connection->runCommand(
             $this->compiler->compileCount($this)
         )->toArray()[0]->n;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function avg($column = null)
+    {
+        return $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function min($column = null)
+    {
+        return $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function max($column = null)
+    {
+        return $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function sum($column = null)
+    {
+        return $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function aggregate($function, $column = null)
+    {
+        return $this
+            ->group(null, ['aggregate' => [$function => $column]])
+            ->execute()[0]['aggregate']
+        ;
+    }
+
+    /**
+     * Create a new Aggregation pipeline query
+     *
+     * @return Pipeline The new query instance
+     *
+     * @link https://docs.mongodb.com/manual/core/aggregation-pipeline/
+     */
+    public function pipeline()
+    {
+        return new Pipeline($this);
+    }
+
+    /**
+     *
+     *
+     * @param mixed $expression
+     * @param mixed $operations
+     *
+     * @return Pipeline
+     */
+    public function group($expression = null, $operations = null)
+    {
+        return $this
+            ->pipeline()
+            ->group($expression, $operations)
+        ;
     }
 
     /**

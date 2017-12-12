@@ -189,8 +189,8 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * Run a command
      *
-     * @param string $command
-     * @param int $arguments
+     * @param mixed $command
+     * @param mixed $arguments
      *
      * @return \MongoDB\Driver\Cursor
      */

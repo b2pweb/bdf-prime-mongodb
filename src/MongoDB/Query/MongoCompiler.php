@@ -192,6 +192,34 @@ class MongoCompiler extends AbstractCompiler
     }
 
     /**
+     * @param mixed $expression
+     *
+     * @return mixed
+     */
+    public function compileExpression($expression)
+    {
+        if (is_string($expression) && $expression[0] === '$') {
+            return '$'.$this->preprocessor->field(substr($expression, 1));
+        }
+
+        if (is_scalar($expression)) {
+            return $expression;
+        }
+
+        if (is_object($expression)) {
+            return $this->connection->toDatabase(($expression));
+        }
+
+        $compiled = [];
+
+        foreach ($expression as $aliasOrOperator => $subExpression) {
+            $compiled[$aliasOrOperator] = $this->compileExpression($subExpression);
+        }
+
+        return $compiled;
+    }
+
+    /**
      * @param array $data
      *
      * @return array
@@ -309,7 +337,23 @@ class MongoCompiler extends AbstractCompiler
                 return [];
             }
 
-            $projection[$this->preprocessor->field($column['column'])] = true;
+            if (isset($column['expression'])) {
+                $projection[$column['column']] = $this->compileExpression($column['expression']);
+                continue;
+            }
+
+            $field = $this->preprocessor->field($column['column']);
+
+            if (!empty($column['alias'])) {
+                if ($field[0] !== '$') {
+                    $field = '$'.$field;
+                }
+
+                $projection[$column['alias']] = $field;
+                continue;
+            }
+
+            $projection[$field] = true;
         }
 
         //If column has been selected, but not _id => do not select _id

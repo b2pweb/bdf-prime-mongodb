@@ -7,6 +7,7 @@ use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoAssertion;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
+use Bdf\Prime\MongoDB\Query\Command\CreateIndexes;
 use Bdf\Prime\Schema\Bag\Index;
 use Bdf\Prime\Schema\Bag\IndexSet;
 use Bdf\Prime\Schema\Bag\Table;
@@ -289,7 +290,8 @@ class MongoSchemaManagerTest extends TestCase
         $this->assertEquals('table_', $diff->collection());
         $this->assertCount(1, $diff->commands());
 
-        $this->assertCommand([
+        $this->assertInstanceOf(CreateIndexes::class, $diff->commands()[0]);
+        $this->assertEquals([
             'createIndexes' => 'table_',
             'indexes' => [
                 [
@@ -299,6 +301,6 @@ class MongoSchemaManagerTest extends TestCase
                     'name' => 'name'
                 ]
             ]
-        ], $diff->commands()[0]);
+        ], $diff->commands()[0]->document());
     }
 }

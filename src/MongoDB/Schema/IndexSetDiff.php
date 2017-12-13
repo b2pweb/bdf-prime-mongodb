@@ -2,6 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Schema;
 
+use Bdf\Prime\MongoDB\Query\Command\CreateIndexes;
+use Bdf\Prime\MongoDB\Query\Command\DropIndexes;
 use Bdf\Prime\Schema\Comparator\IndexSetComparatorInterface;
 use Bdf\Prime\Schema\Comparator\ReplaceIndexSetComparator;
 use Bdf\Prime\Schema\IndexInterface;
@@ -78,10 +80,10 @@ class IndexSetDiff implements CommandSetInterface
         $commands = [];
 
         foreach ($removed as $index) {
-            $commands[] = new Command([
-                'dropIndexes' => $this->collection,
-                'index'       => $index->name()
-            ]);
+            $commands[] = new DropIndexes(
+                $this->collection,
+                $index->name()
+            );
         }
 
         return $commands;
@@ -100,27 +102,20 @@ class IndexSetDiff implements CommandSetInterface
             return [];
         }
 
-        $indexQuery = [];
+        $command = new CreateIndexes($this->collection);
 
         foreach ($added as $index) {
-             $data = [
-                'key'  => array_fill_keys($index->fields(), 1),
-                'name' => $index->name()
-            ];
+            $command->add(
+                $index->name(),
+                array_fill_keys($index->fields(), 1)
+            );
 
              if ($index->unique()) {
-                 $data['unique'] = 1;
+                 $command->unique();
              }
-
-            $indexQuery[] = $data;
         }
 
-        return [
-            new Command([
-                'createIndexes' => $this->collection,
-                'indexes'       => $indexQuery
-            ])
-        ];
+        return [$command];
     }
 
     /**

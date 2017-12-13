@@ -3,6 +3,11 @@
 namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
+use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
+use Bdf\Prime\MongoDB\Query\Command\Drop;
+use Bdf\Prime\MongoDB\Query\Command\DropDatabase;
+use Bdf\Prime\MongoDB\Query\Command\ListCollections;
+use Bdf\Prime\MongoDB\Query\Command\RenameCollection;
 use Bdf\Prime\Schema\AbstractSchemaManager;
 use Bdf\Prime\Schema\Bag\IndexSet;
 use Bdf\Prime\Schema\Bag\Table;
@@ -10,7 +15,6 @@ use Bdf\Prime\Schema\Comparator\IndexSetComparator;
 use Bdf\Prime\Schema\IndexInterface;
 use Bdf\Prime\Schema\TableInterface;
 use MongoDB\Driver\BulkWrite;
-use MongoDB\Driver\Command;
 
 /**
  * SchemaManager for MongoDB on Prime
@@ -41,7 +45,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     public function flush()
     {
         foreach ($this->pending as $pending) {
-            if ($pending instanceof Command) {
+            if ($pending instanceof CommandInterface) {
                 $this->connection->runCommand($pending);
             } elseif ($pending instanceof \Closure) {
                 $pending($this->connection);
@@ -150,7 +154,7 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function dropDatabase($database)
     {
-        return $this->pushCommand('dropDatabase');
+        return $this->push(new DropDatabase());
     }
 
     /**
@@ -158,12 +162,10 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function hasTable($tableName)
     {
-        $cursor = $this->connection->runCommand([
-            'listCollections' => 1,
-            'filter'          => [
-                'name' => $tableName
-            ]
-        ]);
+        $cursor = $this->connection->runCommand(
+            (new ListCollections())
+                ->byName($tableName)
+        );
 
         return !empty($cursor->toArray());
     }
@@ -185,7 +187,7 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function drop($tableName)
     {
-        return $this->pushCommand('drop', $tableName);
+        return $this->push(new Drop($tableName));
     }
 
     /**
@@ -207,10 +209,10 @@ class MongoSchemaManager extends AbstractSchemaManager
     public function rename($from, $to)
     {
         return $this->push(function (MongoConnection $connection) use($from, $to) {
-            $connection->runAdminCommand([
-                'renameCollection' => $this->connection->getDatabase().'.'.$from,
-                'to'               => $this->connection->getDatabase().'.'.$to
-            ]);
+            $connection->runAdminCommand(new RenameCollection(
+                $this->connection->getDatabase().'.'.$from,
+                $this->connection->getDatabase().'.'.$to
+            ));
         });
     }
 
@@ -253,22 +255,5 @@ class MongoSchemaManager extends AbstractSchemaManager
         }
 
         return $indexes;
-    }
-
-    /**
-     * @param string|array|Command $command
-     * @param mixed $arguments
-     *
-     * @return $this
-     */
-    protected function pushCommand($command, $arguments = 1)
-    {
-        if (is_array($command)) {
-            $command = new Command($command);
-        } elseif (is_string($command)) {
-            $command = new Command([$command => $arguments]);
-        }
-
-        return $this->push($command);
     }
 }

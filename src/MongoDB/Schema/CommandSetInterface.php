@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Schema;
 
-use MongoDB\Driver\Command;
+use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
 
 /**
  * Interface for represent objects which can generate set of commands
@@ -12,7 +12,7 @@ interface CommandSetInterface
     /**
      * Get the commands
      *
-     * @return Command[]
+     * @return CommandInterface[]
      */
     public function commands();
 }

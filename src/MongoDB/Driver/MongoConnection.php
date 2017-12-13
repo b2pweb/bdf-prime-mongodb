@@ -216,13 +216,10 @@ class MongoConnection extends Connection implements ConnectionInterface
     {
         $this->connect();
 
-        if (is_array($command)) {
-            $command = new Command($command);
-        } elseif (is_string($command)) {
-            $command = new Command([$command => $arguments]);
-        }
-
-        return $this->_conn->executeCommand('admin', $command);
+        return $this->_conn->executeCommand(
+            'admin',
+            Commands::create($command, $arguments)->get()
+        );
     }
 
     /**

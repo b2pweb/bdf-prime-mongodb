@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Schema;
 
+use Bdf\Prime\MongoDB\Query\Command\Create;
 use Bdf\Prime\Schema\TableInterface;
 use MongoDB\Driver\Command;
 
@@ -42,9 +43,7 @@ class SchemaCreation implements CommandSetInterface
         $commands = [];
 
         foreach ($this->tables as $table) {
-            $commands[] = new Command([
-                "create" => $table->name()
-            ]);
+            $commands[] = new Create($table->name());
 
             $commands = array_merge(
                 $commands,

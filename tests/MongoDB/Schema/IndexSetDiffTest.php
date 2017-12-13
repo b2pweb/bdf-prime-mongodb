@@ -4,6 +4,8 @@ namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoAssertion;
+use Bdf\Prime\MongoDB\Query\Command\CreateIndexes;
+use Bdf\Prime\MongoDB\Query\Command\DropIndexes;
 use Bdf\Prime\Schema\Bag\Index;
 use Bdf\Prime\Schema\Bag\IndexSet;
 use Bdf\Prime\Schema\Comparator\IndexSetComparator;
@@ -38,8 +40,9 @@ class IndexSetDiffTest extends TestCase
         $commands = $diff->commands();
 
         $this->assertCount(1, $commands);
+        $this->assertInstanceOf(CreateIndexes::class, $commands[0]);
 
-        $this->assertCommand([
+        $this->assertEquals([
             'createIndexes' => 'my_collection',
             'indexes' => [
                 [
@@ -55,7 +58,7 @@ class IndexSetDiffTest extends TestCase
                     'unique' => 1
                 ]
             ]
-        ], $commands[0]);
+        ], $commands[0]->document());
     }
 
     /**
@@ -79,16 +82,17 @@ class IndexSetDiffTest extends TestCase
         $commands = $diff->commands();
 
         $this->assertCount(2, $commands);
+        $this->assertContainsOnly(DropIndexes::class, $commands);
 
-        $this->assertCommand([
+        $this->assertEquals([
             'dropIndexes' => 'my_collection',
             'index'       => 'col'
-        ], $commands[0]);
+        ], $commands[0]->document());
 
-        $this->assertCommand([
+        $this->assertEquals([
             'dropIndexes' => 'my_collection',
             'index'       => 'name'
-        ], $commands[1]);
+        ], $commands[1]->document());
     }
 
     /**
@@ -116,12 +120,14 @@ class IndexSetDiffTest extends TestCase
 
         $this->assertCount(2, $commands);
 
-        $this->assertCommand([
+        $this->assertInstanceOf(DropIndexes::class, $commands[0]);
+        $this->assertEquals([
             'dropIndexes' => 'my_collection',
             'index'       => 'name'
-        ], $commands[0]);
+        ], $commands[0]->document());
 
-        $this->assertCommand([
+        $this->assertInstanceOf(CreateIndexes::class, $commands[1]);
+        $this->assertEquals([
             'createIndexes' => 'my_collection',
             'indexes'       => [
                 [
@@ -133,7 +139,7 @@ class IndexSetDiffTest extends TestCase
                     'unique' => 1
                 ]
             ]
-        ], $commands[1]);
+        ], $commands[1]->document());
     }
 
     /**
@@ -185,17 +191,17 @@ class IndexSetDiffTest extends TestCase
 
         $this->assertCount(3, $commands);
 
-        $this->assertCommand([
+        $this->assertEquals([
             'dropIndexes' => 'my_collection',
             'index'       => 'to_delete'
-        ], $commands[0]);
+        ], $commands[0]->document());
 
-        $this->assertCommand([
+        $this->assertEquals([
             'dropIndexes' => 'my_collection',
             'index'       => 'name'
-        ], $commands[1]);
+        ], $commands[1]->document());
 
-        $this->assertCommand([
+        $this->assertEquals([
             'createIndexes' => 'my_collection',
             'indexes'       => [
                 [
@@ -211,6 +217,6 @@ class IndexSetDiffTest extends TestCase
                     'unique' => 1
                 ]
             ]
-        ], $commands[2]);
+        ], $commands[2]->document());
     }
 }

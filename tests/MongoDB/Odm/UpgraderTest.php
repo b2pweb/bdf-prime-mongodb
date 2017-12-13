@@ -7,15 +7,11 @@ require_once __DIR__.'/../_files/mongo_entities.php';
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoAssertion;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
-use Bdf\Prime\MongoDB\Driver\MongoDriver;
-use Bdf\Prime\MongoDB\Schema\SchemaCreation;
+use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
 use Bdf\Prime\MongoDB\Test\Person;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
 use Bdf\Prime\Schema\Resolver;
-use Doctrine\DBAL\Schema\Index;
-use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Schema\SchemaDiff;
 use MongoDB\Driver\Command;
 
 /**
@@ -102,11 +98,11 @@ class UpgraderTest extends TestCase
         $diffs = $this->resolver->diff(true);
         $this->assertCount(2, $diffs);
 
-        $this->assertContainsOnly(Command::class, $diffs);
+        $this->assertContainsOnly(CommandInterface::class, $diffs);
 
-        $this->assertCommand(['create' => 'person_test'], $diffs[0]);
+        $this->assertEquals(['create' => 'person_test'], $diffs[0]->document());
 
-        $this->assertCommand([
+        $this->assertEquals([
             'createIndexes' => 'person_test',
             'indexes'       => [
                 [
@@ -124,7 +120,7 @@ class UpgraderTest extends TestCase
                     'name' => 'age_sort'
                 ]
             ]
-        ], $diffs[1]);
+        ], $diffs[1]->document());
     }
 
     /**
@@ -160,12 +156,12 @@ class UpgraderTest extends TestCase
 
         $this->assertCount(2, $diffs);
 
-        $this->assertCommand([
+        $this->assertEquals([
             'dropIndexes' => 'person_test',
             'index'       => 'to_delete'
-        ], $diffs[0]);
+        ], $diffs[0]->document());
 
-        $this->assertCommand([
+        $this->assertEquals([
             'createIndexes' => 'person_test',
             'indexes'       => [
                 [
@@ -177,6 +173,6 @@ class UpgraderTest extends TestCase
                     'unique' => 1
                 ]
             ]
-        ], $diffs[1]);
+        ], $diffs[1]->document( ));
     }
 }

@@ -58,8 +58,8 @@ class SchemaCreationTest extends TestCase
 
         $this->assertCount(4, $commands);
 
-        $this->assertCommand(['create' => 'table_'], $commands[0]);
-        $this->assertCommand([
+        $this->assertEquals(['create' => 'table_'], $commands[0]->document());
+        $this->assertEquals([
             'createIndexes' => 'table_',
             'indexes'       => [
                 [
@@ -67,10 +67,10 @@ class SchemaCreationTest extends TestCase
                     'name' => 'name'
                 ]
             ]
-        ], $commands[1]);
+        ], $commands[1]->document());
 
-        $this->assertCommand(['create' => 'other_'], $commands[2]);
-        $this->assertCommand([
+        $this->assertEquals(['create' => 'other_'], $commands[2]->document());
+        $this->assertEquals([
             'createIndexes' => 'other_',
             'indexes'       => [
                 [
@@ -78,6 +78,6 @@ class SchemaCreationTest extends TestCase
                     'name' => 'idx'
                 ]
             ]
-        ], $commands[3]);
+        ], $commands[3]->document());
     }
 }

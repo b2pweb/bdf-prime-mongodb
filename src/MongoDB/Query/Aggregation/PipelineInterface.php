@@ -1,6 +1,7 @@
 <?php
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation;
+use Bdf\Prime\MongoDB\Query\Aggregation\Stage\StageInterface;
 
 /**
  * Interface for handle aggregation pipeline
@@ -105,4 +106,13 @@ interface PipelineInterface
      * @return $this
      */
     public function limit($limit);
+
+    /**
+     * Push a new stage into the pipeline
+     *
+     * @param StageInterface $stage
+     *
+     * @return $this
+     */
+    public function push(StageInterface $stage);
 }

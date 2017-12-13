@@ -11,6 +11,7 @@ use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Match;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Project;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Skip;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Sort;
+use Bdf\Prime\MongoDB\Query\Aggregation\Stage\StageInterface;
 use Bdf\Prime\Query\Clause;
 use Bdf\Prime\Query\Contract\Whereable;
 use Bdf\Prime\Query\Extension\SimpleWhereTrait;
@@ -108,6 +109,15 @@ class Pipeline extends Clause implements PipelineInterface, Whereable
     {
         $this->statements['pipeline'][] = new Skip($skip);
 
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function push(StageInterface $stage)
+    {
+        $this->statements['pipeline'][] = $stage;
         return $this;
     }
 

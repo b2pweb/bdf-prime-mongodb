@@ -75,7 +75,7 @@ class MongoCompilerTest extends TestCase
     {
         $this->assertInstanceOf(Query::class, $this->compiler->compileSelect($this->query()));
         $this->assertInstanceOf(BulkWrite::class, $this->compiler->compileInsert($this->query()->set('attr', 'values')));
-        $this->assertInstanceOf(BulkWrite::class, $this->compiler->compileUpdate($this->query()));
+        $this->assertInstanceOf(BulkWrite::class, $this->compiler->compileUpdate($this->query()->set('attr', 'value')));
         $this->assertInstanceOf(BulkWrite::class, $this->compiler->compileDelete($this->query()));
     }
 

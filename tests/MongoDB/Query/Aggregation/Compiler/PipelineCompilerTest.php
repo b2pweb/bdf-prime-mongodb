@@ -434,7 +434,7 @@ class PipelineCompilerTest extends TestCase
                 'real_name' => '$name',
                 'age' => [
                     '$substract' => [
-                        new UTCDateTime($date->getTimestamp() * 1000),
+                        new UTCDateTime($this->dateTimeToMilliseconds($date)),
                         '$birthdate'
                     ]
                 ],
@@ -483,7 +483,7 @@ class PipelineCompilerTest extends TestCase
                 ]],
                 ['$match' => [
                     'date' => [
-                        '$gt' => new UTCDateTime($now->getTimestamp() * 1000)
+                        '$gt' => new UTCDateTime($this->dateTimeToMilliseconds($now))
                     ]
                 ]],
                 ['$group' => [
@@ -504,5 +504,12 @@ class PipelineCompilerTest extends TestCase
         return new Pipeline(
             $this->manager->connection('mongo')->from('users')
         );
+    }
+
+    private function dateTimeToMilliseconds(\DateTime $dateTime)
+    {
+        $timestamp = (float) $dateTime->format('U.u');
+
+        return (int) ($timestamp * 1000);
     }
 }

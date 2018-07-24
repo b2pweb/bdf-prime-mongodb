@@ -237,14 +237,14 @@ class MongoConnection extends Connection implements ConnectionInterface
     {
         $this->connect();
 
-        $bulk = new BulkWrite();
-        $bulk->update([], [
-            '$inc' => [
-                $this->transactionEmulationStateField => 1
-            ]
-        ], ['multi' => true]);
-
         foreach ($this->getSchemaManager()->listTableNames() as $collection) {
+            $bulk = new BulkWrite();
+            $bulk->update([], [
+                '$inc' => [
+                    $this->transactionEmulationStateField => 1
+                ]
+            ], ['multi' => true]);
+
             $this->executeWrite($collection, $bulk);
         }
 
@@ -276,14 +276,14 @@ class MongoConnection extends Connection implements ConnectionInterface
             throw ConnectionException::noActiveTransaction();
         }
 
-        $bulk = new BulkWrite();
-        $bulk->update([], [
-            '$inc' => [
-                $this->transactionEmulationStateField => -1
-            ]
-        ], ['multi' => true]);
-
         foreach ($this->getSchemaManager()->listTableNames() as $collection) {
+            $bulk = new BulkWrite();
+            $bulk->update([], [
+                '$inc' => [
+                    $this->transactionEmulationStateField => -1
+                ]
+            ], ['multi' => true]);
+
             $this->executeWrite($collection, $bulk);
         }
 
@@ -299,21 +299,21 @@ class MongoConnection extends Connection implements ConnectionInterface
             throw ConnectionException::noActiveTransaction();
         }
 
-        $bulk = new BulkWrite();
-
-        $bulk->delete([
-            '$or' => [
-                [$this->transactionEmulationStateField => ['$exists' => false]],
-                [$this->transactionEmulationStateField => ['$lte'    => 0]]
-            ]
-        ]);
-        $bulk->update([], [
-            '$inc' => [
-                $this->transactionEmulationStateField => -1
-            ]
-        ], ['multi' => true]);
-
         foreach ($this->getSchemaManager()->listTableNames() as $collection) {
+            $bulk = new BulkWrite();
+
+            $bulk->delete([
+                '$or' => [
+                    [$this->transactionEmulationStateField => ['$exists' => false]],
+                    [$this->transactionEmulationStateField => ['$lte'    => 0]]
+                ]
+            ]);
+            $bulk->update([], [
+                '$inc' => [
+                    $this->transactionEmulationStateField => -1
+                ]
+            ], ['multi' => true]);
+
             $this->executeWrite($collection, $bulk);
         }
 

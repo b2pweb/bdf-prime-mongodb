@@ -117,7 +117,7 @@ class MongoConnectionTest extends TestCase
     /**
      *
      */
-    public function test_transation_rollback_emulation()
+    public function test_transaction_rollback_emulation()
     {
         $bulk = new BulkWrite();
         $bulk->insert([
@@ -182,7 +182,7 @@ class MongoConnectionTest extends TestCase
     /**
      *
      */
-    public function test_transation_commit_emulation()
+    public function test_transaction_emulation_multiple_collections()
     {
         $bulk = new BulkWrite();
         $bulk->insert([
@@ -191,6 +191,69 @@ class MongoConnectionTest extends TestCase
         ]);
 
         $this->connection->executeWrite($this->collection, $bulk);
+
+        $bulk = new BulkWrite();
+        $bulk->insert([
+            'value' => 42
+        ]);
+        $this->connection->executeWrite('other', $bulk);
+
+        $this->assertFalse($this->connection->isTransactionActive());
+
+        $this->connection->beginTransaction();
+        {
+            $this->assertTrue($this->connection->isTransactionActive());
+
+            $bulk = new BulkWrite();
+            $bulk->insert([
+                'first_name' => 'François',
+                'last_name'  => 'Dupont'
+            ]);
+
+            $this->connection->executeWrite($this->collection, $bulk);
+
+            $bulk = new BulkWrite();
+            $bulk->insert([
+                'value' => 43
+            ]);
+            $this->connection->executeWrite('other', $bulk);
+
+            $this->assertCount(2, $this->connection->executeSelect($this->collection, new Query([]))->toArray());
+            $this->assertCount(2, $this->connection->executeSelect('other', new Query([]))->toArray());
+        }
+        $this->connection->rollBack();
+
+        $result = $this->connection->executeSelect($this->collection, new Query([]))->toArray();
+        $this->assertCount(1, $result);
+
+        $this->assertEquals('John', $result[0]['first_name']);
+        $this->assertEquals('Doe',  $result[0]['last_name']);
+
+        $result = $this->connection->executeSelect('other', new Query([]))->toArray();
+        $this->assertCount(1, $result);
+
+        $this->assertEquals(42, $result[0]['value']);
+    }
+
+    /**
+     *
+     */
+    public function test_transaction_commit_emulation()
+    {
+        $bulk = new BulkWrite();
+        $bulk->insert([
+            'first_name' => 'John',
+            'last_name'  => 'Doe'
+        ]);
+
+        $this->connection->executeWrite($this->collection, $bulk);
+
+        $bulk = new BulkWrite();
+        $bulk->insert([
+            'value' => 42
+        ]);
+        $this->connection->executeWrite('other', $bulk);
+
 
         $this->assertFalse($this->connection->isTransactionActive());
 
@@ -217,6 +280,8 @@ class MongoConnectionTest extends TestCase
 
         $this->assertEquals('François', $result[1]['first_name']);
         $this->assertEquals('Dupont', $result[1]['last_name']);
+
+        $this->assertCount(1, $this->connection->executeSelect('other', new Query([]))->toArray());
 
         $this->assertFalse($this->connection->isTransactionActive());
     }

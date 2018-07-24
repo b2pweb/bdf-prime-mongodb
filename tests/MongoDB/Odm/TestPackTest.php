@@ -6,6 +6,7 @@ require_once __DIR__ . '/../_files/mongo_entities.php';
 
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Test\Person;
+use Bdf\Prime\MongoDB\Test\TimestampableEntity;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
 
@@ -73,6 +74,9 @@ class TestPackTest extends TestCase
                 'firstName' => 'Napoleone',
                 'lastName' => 'di Buonaparte',
                 'age' => 51
+            ]),
+            'other' => new TimestampableEntity([
+                'value' => 'test'
             ])
         ]);
 
@@ -83,24 +87,37 @@ class TestPackTest extends TestCase
         $this->assertEquals($this->pack()->get('louisxvi'), Person::get(2));
         $this->assertEquals($this->pack()->get('napoleon'), Person::get(3));
 
+        $this->assertEquals([$this->pack()->get('other')], TimestampableEntity::all());
+
         $this->pack()->nonPersist([
             'tmp' => new Person([
                 'id' => 4,
                 'firstName' => 'Temporaire',
                 'lastName' => 'A supprimer'
+            ]),
+            'tmp_other' => new TimestampableEntity([
+                'value' => 'to_delete'
             ])
         ]);
 
         $this->assertCount(4, Person::all());
         $this->assertEquals($this->pack()->get('tmp'), Person::get(4));
 
+        $this->assertEquals([
+            $this->pack()->get('other'),
+            $this->pack()->get('tmp_other')
+        ], TimestampableEntity::all());
+
         $this->pack()->clear();
 
         $this->assertCount(3, Person::all());
         $this->assertNull(Person::get(4));
 
+        $this->assertEquals([$this->pack()->get('other')], TimestampableEntity::all());
+
         $this->pack()->destroy();
 
         $this->assertEmpty(Person::all());
+        $this->assertEmpty(TimestampableEntity::all());
     }
 }

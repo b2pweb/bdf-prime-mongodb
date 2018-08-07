@@ -2,16 +2,11 @@
 
 namespace Bdf\Prime;
 
-use Bdf\Log\Logger;
-use Bdf\Prime\Entity\Hydrator\ArrayHydrator;
-use Bdf\Prime\Entity\Hydrator\HydratorRegistry;
 use Bdf\Prime\Entity\Model;
-use Bdf\Prime\Logger\PsrDecorator;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\Test\TestPack;
 use Bdf\Prime\Types\ArrayType;
-use Bdf\Prime\Types\SearchableArrayType;
 use Bdf\Serializer\Normalizer\ObjectNormalizer;
 use Bdf\Serializer\Normalizer\PaginatorNormalizer;
 use Bdf\Serializer\Normalizer\PrimeCollectionNormalizer;
@@ -62,7 +57,7 @@ trait PrimeTestCase
                 ->build();
 
             $serializer->getLoader()
-                ->addNormalizer(new PrimeCollectionNormalizer())
+                ->addNormalizer(new PrimeCollectionNormalizer(Prime::service()))
                 ->addNormalizer(new PaginatorNormalizer())
                 ->addNormalizer(new ObjectNormalizer())
             ;
@@ -71,6 +66,8 @@ trait PrimeTestCase
             Prime::service()->setSerializer($serializer);
 
             Model::configure(Prime::service());
+
+            Prime::service()->types()->register(new AddressType());
         }
     }
 

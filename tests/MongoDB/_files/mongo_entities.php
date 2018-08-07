@@ -763,3 +763,41 @@ class TimestampableEntityMapper extends Mapper
         ];
     }
 }
+
+class EntityWithComplexArray extends Model
+{
+    public $oid;
+    public $addresses;
+
+    public function __construct(array $attributes = [])
+    {
+        $this->import($attributes);
+    }
+}
+
+class EntityWithComplexArrayMapper extends Mapper
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function configure()
+    {
+        $this->setGenerator(MongoIdGenerator::class);
+    }
+
+    public function schema()
+    {
+        return [
+            'connection' => 'mongo',
+            'table'      => 'with_complex_array',
+        ];
+    }
+
+    public function buildFields($builder)
+    {
+        $builder
+            ->guid('oid')->alias('_id')->primary()
+            ->arrayOf('addresses', 'Address')
+        ;
+    }
+}

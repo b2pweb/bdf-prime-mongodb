@@ -15,7 +15,6 @@ use Bdf\Prime\MongoDB\Platform\Types\BsonObjectType;
 use Bdf\Prime\MongoDB\Platform\Types\BsonStringType;
 use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Platform\PlatformTypes;
-use Bdf\Prime\Platform\PlatformTypesRegistry;
 use Bdf\Prime\Types\TypeInterface;
 use Bdf\Prime\Types\TypesRegistryInterface;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
@@ -31,7 +30,7 @@ class MongoPlatform implements PlatformInterface
     private $grammar;
 
     /**
-     * @var PlatformTypesRegistry
+     * @var PlatformTypes
      */
     private $types;
 
@@ -39,6 +38,7 @@ class MongoPlatform implements PlatformInterface
     /**
      * MongoPlatform constructor.
      *
+     * @param AbstractPlatform $grammar
      * @param TypesRegistryInterface $commons
      */
     public function __construct(AbstractPlatform $grammar, TypesRegistryInterface $commons)
@@ -46,7 +46,7 @@ class MongoPlatform implements PlatformInterface
         $this->grammar = $grammar;
         $this->types = new PlatformTypes(
             $this,
-            new PlatformTypesRegistry($this, [
+            [
                 TypeInterface::TARRAY       => BsonArrayType::class,
                 TypeInterface::BLOB         => BsonBinDataType::class,
                 TypeInterface::BINARY       => BsonBinDataType::class,
@@ -65,7 +65,7 @@ class MongoPlatform implements PlatformInterface
                 TypeInterface::STRING       => BsonStringType::class,
                 TypeInterface::TEXT         => BsonStringType::class,
                 TypeInterface::GUID         => BsonObjectIdType::class,
-            ]),
+            ],
             $commons
         );
     }

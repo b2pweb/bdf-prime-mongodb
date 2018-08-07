@@ -7,6 +7,7 @@ require_once __DIR__.'/../_files/mongo_entities.php';
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Test\Address;
+use Bdf\Prime\MongoDB\Test\EntityWithComplexArray;
 use Bdf\Prime\MongoDB\Test\EntityWithEmbedded;
 use Bdf\Prime\MongoDB\Test\Home;
 use Bdf\Prime\MongoDB\Test\Person;
@@ -296,6 +297,34 @@ class OdmTest extends TestCase
         $this->addPersons();
 
         $this->assertEquals(2, Person::count(['firstName :like' => '%e%']));
+    }
+
+    /**
+     *
+     */
+    public function test_with_complex_array()
+    {
+        $entity = new EntityWithComplexArray([
+            'addresses' => [
+                new Address([
+                    'address' => '178 Rue du chanvre',
+                    'zipCode' => '39250',
+                    'city'    => 'Longcochon',
+                    'country' => 'France'
+                ]),
+                new Address([
+                    'address' => 'Longwood House',
+                    'zipCode' => 'STHL 1ZZ',
+                    'city'    => 'Jamestown',
+                    'country' => 'Sainte-Hélène'
+                ])
+            ]
+        ]);
+
+        $entity->save();
+
+        $this->assertEquals($entity, EntityWithComplexArray::refresh($entity));
+        $this->assertContainsOnlyInstancesOf(Address::class, EntityWithComplexArray::refresh($entity)->addresses);
     }
 
     /**

@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+use Bdf\Prime\Query\CompilableClause;
 
 /**
  *
@@ -25,9 +26,10 @@ interface StageInterface
     /**
      * Compile the current stage
      *
+     * @param CompilableClause $clause
      * @param PipelineCompilerInterface $compiler
      *
      * @return array
      */
-    public function compile(PipelineCompilerInterface $compiler);
+    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler);
 }

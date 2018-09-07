@@ -47,9 +47,7 @@ class PipelineCompilerTest extends TestCase
 
         $this->manager->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
-        $this->compiler = new PipelineCompiler(
-            (new MongoCompiler())->on($this->manager->connection('mongo'))
-        );
+        $this->compiler = new PipelineCompiler(new MongoCompiler($this->manager->connection('mongo')));
     }
 
     /**
@@ -112,6 +110,7 @@ class PipelineCompilerTest extends TestCase
         $this->assertEquals([
             '_id' => null
         ], $this->compiler->compileGroup(
+            $this->query(),
             (new Group(null))->export()
         ));
     }
@@ -121,6 +120,14 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_group_null_with_accumulator()
     {
+        $query = $this->query()->group(null, [
+            'orderCount' => [
+                'sum' => [
+                    '$size' => '$order'
+                ]
+            ]
+        ]);
+
         $this->assertEquals([
             '_id'        => null,
             'orderCount' => [
@@ -130,13 +137,8 @@ class PipelineCompilerTest extends TestCase
             ]
         ],
             $this->compiler->compileGroup(
-                $this->query()->group(null, [
-                    'orderCount' => [
-                        'sum' => [
-                            '$size' => '$order'
-                        ]
-                    ]
-                ])->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -146,11 +148,13 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_group_by_field()
     {
+        $query = $this->query()->group('customer.id');
         $this->assertEquals([
                 '_id' => '$customer.id'
             ],
             $this->compiler->compileGroup(
-                $this->query()->group('customer.id')->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -160,6 +164,12 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_group_by_field_and_accumulator()
     {
+        $query = $this->query()
+        ->group('customer.id', [
+            'orderCount' => [
+                'sum' => ['$size' => '$order']
+            ]
+        ]);
         $this->assertEquals([
             '_id'        => '$customer.id',
             'orderCount' => [
@@ -169,13 +179,8 @@ class PipelineCompilerTest extends TestCase
             ]
         ],
             $this->compiler->compileGroup(
-                $this->query()
-                ->group('customer.id', [
-                    'orderCount' => [
-                        'sum' => ['$size' => '$order']
-                    ]
-                ])
-                ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -185,6 +190,15 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_group_closure()
     {
+        $query = $this->query()
+            ->group('customer.id', function (Group $group) {
+                $group->avg('pricePerArticle', [
+                    '$divide' => [
+                        ['$sum' => '$order.price'],
+                        ['$sum' => '$order.count']
+                    ]
+                ]);
+            });
         $this->assertEquals([
                 '_id'   => '$customer.id',
                 'pricePerArticle' => [
@@ -197,16 +211,8 @@ class PipelineCompilerTest extends TestCase
                 ],
             ],
             $this->compiler->compileGroup(
-                $this->query()
-                ->group('customer.id', function (Group $group) {
-                    $group->avg('pricePerArticle', [
-                        '$divide' => [
-                            ['$sum' => '$order.price'],
-                            ['$sum' => '$order.count']
-                        ]
-                    ]);
-                })
-                ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -216,6 +222,11 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_group_by_multiple_fields()
     {
+        $query = $this->query()
+            ->group([
+                'customer' => 'customer.id',
+                'name'
+            ]);
         $this->assertEquals([
                 '_id' => [
                     'customer' => '$customer.id',
@@ -223,12 +234,8 @@ class PipelineCompilerTest extends TestCase
                 ],
             ],
             $this->compiler->compileGroup(
-                $this->query()
-                ->group([
-                    'customer' => 'customer.id',
-                    'name'
-                ])
-                ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -238,6 +245,17 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_group_by_operation()
     {
+        $query = $this->query()
+            ->group([
+                'nbOrderPair' => [
+                    '$mod' => [
+                        ['$size' => '$order'],
+                        2
+                    ]
+                ]
+            ], [
+                'count' => ['sum' => 1]
+            ]);
         $this->assertEquals([
                 '_id'   => [
                     'nbOrderPair' => [
@@ -250,18 +268,8 @@ class PipelineCompilerTest extends TestCase
                 'count' => ['$sum' => 1],
             ],
             $this->compiler->compileGroup(
-                $this->query()
-                    ->group([
-                        'nbOrderPair' => [
-                            '$mod' => [
-                                ['$size' => '$order'],
-                                2
-                            ]
-                        ]
-                    ], [
-                        'count' => ['sum' => 1]
-                    ])
-                    ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -271,6 +279,8 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_match_with_3_parameters()
     {
+        $query = $this->query()
+            ->match('name', '>=', 'Pa');
         $this->assertEquals(
             [
                 'name' => [
@@ -278,9 +288,8 @@ class PipelineCompilerTest extends TestCase
                 ]
             ],
             $this->compiler->compileMatch(
-                $this->query()
-                    ->match('name', '>=', 'Pa')
-                    ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -290,14 +299,15 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_match_with_2_parameters()
     {
+        $query = $this->query()
+            ->match('name', 'Paul');
         $this->assertEquals(
             [
                 'name' => 'Paul'
             ],
             $this->compiler->compileMatch(
-                $this->query()
-                    ->match('name', 'Paul')
-                    ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -307,6 +317,8 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_match_with_array()
     {
+        $query = $this->query()
+            ->match(['name :gte' => 'Pa']);
         $this->assertEquals(
             [
                 'name' => [
@@ -314,9 +326,8 @@ class PipelineCompilerTest extends TestCase
                 ]
             ],
             $this->compiler->compileMatch(
-                $this->query()
-                    ->match(['name :gte' => 'Pa'])
-                    ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -326,6 +337,11 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_match_with_closure()
     {
+        $query = $this->query()
+            ->match(function(Whereable $clause) {
+                $clause->where('name', '>=', 'Pa');
+                $clause->where('name', '>', 'Claude');
+            });
         $this->assertEquals(
             [
 
@@ -343,12 +359,8 @@ class PipelineCompilerTest extends TestCase
                 ]
             ],
             $this->compiler->compileMatch(
-                $this->query()
-                    ->match(function(Whereable $clause) {
-                        $clause->where('name', '>=', 'Pa');
-                        $clause->where('name', '>', 'Claude');
-                    })
-                    ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -358,6 +370,13 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_match_with_nested_closure()
     {
+        $query = $this->query()
+            ->match(function(Whereable $clause) {
+                $clause->where('name', '>=', 'Pa');
+                $clause->where(function(Whereable $clause) {
+                    $clause->where('id', '>', 10);
+                });
+            });
         $this->assertSame(
             [
                 'name' => [
@@ -368,14 +387,8 @@ class PipelineCompilerTest extends TestCase
                 ]
             ],
             $this->compiler->compileMatch(
-                $this->query()
-                    ->match(function(Whereable $clause) {
-                        $clause->where('name', '>=', 'Pa');
-                        $clause->where(function(Whereable $clause) {
-                            $clause->where('id', '>', 10);
-                        });
-                    })
-                    ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -385,6 +398,16 @@ class PipelineCompilerTest extends TestCase
      */
     public function test_match_with_closure_array()
     {
+        $query = $this->query()
+            ->match(function(Whereable $clause) {
+                $clause->where([
+                    'name >=' => 'Pa',
+                    'name >'  => 'Claude'
+                ]);
+                $clause->orWhere([
+                    'id >' => 5
+                ]);
+            });
         $this->assertSame(
             [
                 '$or' => [
@@ -410,17 +433,8 @@ class PipelineCompilerTest extends TestCase
                 ]
             ],
             $this->compiler->compileMatch(
-                $this->query()
-                    ->match(function(Whereable $clause) {
-                        $clause->where([
-                            'name >=' => 'Pa',
-                            'name >'  => 'Claude'
-                        ]);
-                        $clause->orWhere([
-                            'id >' => 5
-                        ]);
-                    })
-                    ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }
@@ -428,6 +442,13 @@ class PipelineCompilerTest extends TestCase
     public function test_project_with_closure()
     {
         $date = new \DateTime();
+        $query = $this->query()
+            ->project(function(Project $project) use($date) {
+                $project->add('name', 'real_name');
+                $project->evaluate('age', '$substract', [
+                    $date, '$birthdate'
+                ]);
+            });
 
         $this->assertEquals(
             [
@@ -441,14 +462,8 @@ class PipelineCompilerTest extends TestCase
                 '_id' => false
             ],
             $this->compiler->compileProject(
-                $this->query()
-                    ->project(function(Project $project) use($date) {
-                        $project->add('name', 'real_name');
-                        $project->evaluate('age', '$substract', [
-                            $date, '$birthdate'
-                        ]);
-                    })
-                    ->statements['pipeline'][0]->export()
+                $query,
+                $query->statements['pipeline'][0]->export()
             )
         );
     }

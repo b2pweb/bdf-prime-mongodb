@@ -3,6 +3,7 @@
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
 use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+use Bdf\Prime\Query\CompilableClause;
 
 /**
  * Match operator
@@ -38,9 +39,9 @@ class Match implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
     {
-        return $compiler->compileMatch($this->export());
+        return $compiler->compileMatch($clause, $this->export());
     }
 
     /**

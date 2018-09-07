@@ -3,7 +3,7 @@
 namespace Bdf\Prime\MongoDB\Query;
 
 use Bdf\Prime\MongoDB\Query\Command\Count;
-use Bdf\Prime\Query\Clause;
+use Bdf\Prime\Query\CompilableClause;
 use Bdf\Prime\Query\Compiler\AbstractCompiler;
 use Bdf\Prime\Query\Expression\ExpressionTransformerInterface;
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
@@ -41,50 +41,29 @@ class MongoCompiler extends AbstractCompiler
         ':not' => '$ne',
     ];
 
-
     /**
      * {@inheritdoc}
      */
-    public function reset($parts = [])
+    public function getBindings(CompilableClause $query)
     {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function useQuoteIdentifier($flag = true)
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBindings()
-    {
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBindTypes()
-    {
+        return [];
     }
 
     /**
      * Compile a count command
      *
-     * @param Clause $query
+     * @param CompilableClause $query
      *
      * @return Count
      *
      * @link https://docs.mongodb.com/manual/reference/command/count/
      */
-    public function compileCount(Clause $query)
+    public function compileCount(CompilableClause $query)
     {
         $command = new Count($query->statements['collection']);
 
         if (!empty($query->statements['where'])) {
-            $command->query($this->compileFilters($query->statements['where']));
+            $command->query($this->compileFilters($query, $query->statements['where']));
         }
 
         if ($query->statements['limit']) {
@@ -103,12 +82,12 @@ class MongoCompiler extends AbstractCompiler
      *
      * @return BulkWrite
      */
-    protected function doCompileInsert(Clause $query)
+    protected function doCompileInsert(CompilableClause $query)
     {
         $bulk = new BulkWrite();
 
         $bulk->insert(
-            $this->compileInsertData($query->statements['values']['data'])
+            $this->compileInsertData($query, $query->statements['values']['data'])
         );
 
         return $bulk;
@@ -119,14 +98,14 @@ class MongoCompiler extends AbstractCompiler
      *
      * @return BulkWrite
      */
-    protected function doCompileUpdate(Clause $query)
+    protected function doCompileUpdate(CompilableClause $query)
     {
         $bulk = new BulkWrite();
 
         if ($query->statements['replace']) {
             $bulk->update(
-                $this->compileFilters($query->statements['where']),
-                $this->compileUpdateData($query->statements['values']['data']),
+                $this->compileFilters($query, $query->statements['where']),
+                $this->compileUpdateData($query, $query->statements['values']['data']),
                 [
                     'upsert' => true,
                     'multi'  => false
@@ -134,8 +113,8 @@ class MongoCompiler extends AbstractCompiler
             );
         } else {
             $bulk->update(
-                $this->compileFilters($query->statements['where']),
-                $this->compileUpdateOperators($query->statements),
+                $this->compileFilters($query, $query->statements['where']),
+                $this->compileUpdateOperators($query, $query->statements),
                 [
                     'multi' => true
                 ]
@@ -150,12 +129,12 @@ class MongoCompiler extends AbstractCompiler
      *
      * @return BulkWrite
      */
-    protected function doCompileDelete(Clause $query)
+    protected function doCompileDelete(CompilableClause $query)
     {
         $bulk = new BulkWrite();
 
         $bulk->delete(
-            $this->compileFilters($query->statements['where'])
+            $this->compileFilters($query, $query->statements['where'])
         );
 
         return $bulk;
@@ -166,12 +145,12 @@ class MongoCompiler extends AbstractCompiler
      *
      * @return Query
      */
-    protected function doCompileSelect(Clause $query)
+    protected function doCompileSelect(CompilableClause $query)
     {
         $options = [];
 
         if ($query->statements['columns']) {
-            $options['projection'] = $this->compileProjection($query->statements['columns']);
+            $options['projection'] = $this->compileProjection($query, $query->statements['columns']);
         }
 
         if ($query->statements['limit']) {
@@ -183,23 +162,24 @@ class MongoCompiler extends AbstractCompiler
         }
 
         if ($query->statements['orders']) {
-            $options['sort'] = $this->compileSort($query->statements['orders']);
+            $options['sort'] = $this->compileSort($query, $query->statements['orders']);
         }
 
-        $filters = $this->compileFilters($query->statements['where']);
+        $filters = $this->compileFilters($query, $query->statements['where']);
 
         return new Query($filters, $options);
     }
 
     /**
+     * @param CompilableClause $query
      * @param mixed $expression
      *
      * @return mixed
      */
-    public function compileExpression($expression)
+    public function compileExpression(CompilableClause $query, $expression)
     {
         if (is_string($expression) && $expression[0] === '$') {
-            return '$'.$this->preprocessor->field(substr($expression, 1));
+            return '$'.$query->preprocessor()->field(substr($expression, 1));
         }
 
         if (is_scalar($expression)) {
@@ -213,24 +193,25 @@ class MongoCompiler extends AbstractCompiler
         $compiled = [];
 
         foreach ($expression as $aliasOrOperator => $subExpression) {
-            $compiled[$aliasOrOperator] = $this->compileExpression($subExpression);
+            $compiled[$aliasOrOperator] = $this->compileExpression($query, $subExpression);
         }
 
         return $compiled;
     }
 
     /**
+     * @param CompilableClause $query
      * @param array $data
      *
      * @return array
      */
-    protected function compileUpdateData(array $data)
+    protected function compileUpdateData(CompilableClause $query, array $data)
     {
         $parsed = [];
 
         foreach ($data as $column => $value) {
-            $type = isset($data['types'][$column]) ? $data['types'][$column] : true;
-            $field = $this->preprocessor->field($column, $type);
+            $type = $data['types'][$column] ?? true;
+            $field = $query->preprocessor()->field($column, $type);
 
             $parsed[$field] = $this->platform->types()->toDatabase($value, $type);
         }
@@ -242,18 +223,19 @@ class MongoCompiler extends AbstractCompiler
      * Compile document data for insert operation.
      * Unlike Update, the insert data should not be flatten
      *
+     * @param CompilableClause $query
      * @param array $data
      *
      * @return array
      */
-    protected function compileInsertData(array $data)
+    protected function compileInsertData(CompilableClause $query, array $data)
     {
         $parsed = [];
 
         foreach ($data as $column => $value) {
-            $type = isset($data['types'][$column]) ? $data['types'][$column] : true;
+            $type = $data['types'][$column] ?? true;
 
-            $field = explode('.', $this->preprocessor->field($column, $type));
+            $field = explode('.', $query->preprocessor()->field($column, $type));
             $count = count($field);
             $base = &$parsed;
 
@@ -273,11 +255,12 @@ class MongoCompiler extends AbstractCompiler
     }
 
     /**
+     * @param CompilableClause $query
      * @param array $filters
      *
      * @return array
      */
-    public function compileFilters(array $filters)
+    public function compileFilters(CompilableClause $query, array $filters)
     {
         if (empty($filters)) {
             return [];
@@ -287,7 +270,7 @@ class MongoCompiler extends AbstractCompiler
         $and = [];
 
         foreach ($filters as $filter) {
-            $expression = $this->compileSingleFilter($filter);
+            $expression = $this->compileSingleFilter($query, $filter);
 
             // OR a un priorité plus basse que AND
             // Quand on rencontre OR, il sépare la condition en deux parties
@@ -324,11 +307,12 @@ class MongoCompiler extends AbstractCompiler
     }
 
     /**
+     * @param CompilableClause $query
      * @param array $columns
      *
      * @return array
      */
-    public function compileProjection(array $columns)
+    public function compileProjection(CompilableClause $query, array $columns)
     {
         $projection = [];
 
@@ -338,11 +322,11 @@ class MongoCompiler extends AbstractCompiler
             }
 
             if (isset($column['expression'])) {
-                $projection[$column['column']] = $this->compileExpression($column['expression']);
+                $projection[$column['column']] = $this->compileExpression($query, $column['expression']);
                 continue;
             }
 
-            $field = $this->preprocessor->field($column['column']);
+            $field = $query->preprocessor()->field($column['column']);
 
             if (!empty($column['alias'])) {
                 if ($field[0] !== '$') {
@@ -365,32 +349,34 @@ class MongoCompiler extends AbstractCompiler
     }
 
     /**
+     * @param CompilableClause $query
      * @param array $statements
      *
      * @return array
      */
-    public function compileUpdateOperators(array $statements)
+    public function compileUpdateOperators(CompilableClause $query, array $statements)
     {
         $operators = $statements['update'];
 
         if (!empty($statements['values'])) {
-            $operators['$set'] = $this->compileUpdateData($statements['values']['data']);
+            $operators['$set'] = $this->compileUpdateData($query, $statements['values']['data']);
         }
 
         return $operators;
     }
 
     /**
+     * @param CompilableClause $query
      * @param array $orders
      *
      * @return array
      */
-    public function compileSort(array $orders)
+    public function compileSort(CompilableClause $query, array $orders)
     {
         $sort = [];
 
         foreach ($orders as $order) {
-            $sort[$this->preprocessor->field($order['sort'])] = $order['order'] === 'ASC' ? 1 : -1;
+            $sort[$query->preprocessor()->field($order['sort'])] = $order['order'] === 'ASC' ? 1 : -1;
         }
 
         return $sort;
@@ -399,16 +385,17 @@ class MongoCompiler extends AbstractCompiler
     /**
      * Build one filter entry
      *
+     * @param CompilableClause $query
      * @param array $filter
      *
      * @return array|mixed
      */
-    protected function compileSingleFilter(array $filter)
+    protected function compileSingleFilter(CompilableClause $query, array $filter)
     {
-        $filter = $this->preprocessor->expression($filter);
+        $filter = $query->preprocessor()->expression($filter);
 
         if (isset($filter['nested'])) {
-            return $this->compileFilters($filter['nested']);
+            return $this->compileFilters($query, $filter['nested']);
         } elseif (isset($filter['raw'])) {
             return $filter['raw'];
         } else {
@@ -416,7 +403,7 @@ class MongoCompiler extends AbstractCompiler
                 $filter['column'],
                 $filter['operator'],
                 $filter['value'],
-                isset($filter['converted']) ? $filter['converted'] : false
+                $filter['converted'] ?? false
             );
         }
     }
@@ -597,7 +584,7 @@ class MongoCompiler extends AbstractCompiler
     /**
      * {@inheritdoc}
      */
-    public function quoteIdentifier($column)
+    public function quoteIdentifier(CompilableClause $query, $column)
     {
         return $column;
     }

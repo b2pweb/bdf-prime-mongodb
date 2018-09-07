@@ -3,6 +3,7 @@
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
 use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+use Bdf\Prime\Query\CompilableClause;
 
 /**
  * Class Sort
@@ -35,9 +36,9 @@ class Sort implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
     {
-        return $compiler->compileSort($this->export());
+        return $compiler->compileSort($clause, $this->export());
     }
 
     /**

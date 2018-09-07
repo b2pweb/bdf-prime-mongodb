@@ -6,6 +6,8 @@ use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
 use Bdf\Prime\Query\AbstractQuery;
 use Bdf\Prime\Query\Compiler\CompilerInterface;
+use Bdf\Prime\Query\Compiler\Preprocessor\DefaultPreprocessor;
+use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
 use Bdf\Prime\Query\Contract\Aggregatable;
 use Bdf\Prime\Query\Contract\Orderable;
 use Bdf\Prime\Query\Contract\Paginable;
@@ -32,11 +34,11 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      * MongoQuery constructor.
      *
      * @param MongoConnection $connection
-     * @param CompilerInterface $compiler
+     * @param PreprocessorInterface|null $preprocessor
      */
-    public function __construct(MongoConnection $connection, CompilerInterface $compiler = null)
+    public function __construct(MongoConnection $connection, PreprocessorInterface $preprocessor = null)
     {
-        parent::__construct($connection, $compiler ?: new MongoCompiler());
+        parent::__construct($connection, $preprocessor ?: new DefaultPreprocessor());
 
         $this->statements = [
             'collection' => null,

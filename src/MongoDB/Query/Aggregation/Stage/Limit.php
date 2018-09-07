@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
 
 use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+use Bdf\Prime\Query\CompilableClause;
 
 /**
  * Limits the number of documents passed to the next stage in the pipeline.
@@ -47,8 +48,8 @@ class Limit implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
     {
-        return $compiler->compileLimit($this->export());
+        return $compiler->compileLimit($clause, $this->export());
     }
 }

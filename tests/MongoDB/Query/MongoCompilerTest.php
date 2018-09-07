@@ -55,9 +55,7 @@ class MongoCompilerTest extends TestCase
 
         $this->connection = Prime::connection('mongo');
 
-        $this->compiler = new MongoCompiler();
-
-        $this->compiler->on($this->connection);
+        $this->compiler = new MongoCompiler($this->connection);
     }
 
     /**
@@ -87,6 +85,7 @@ class MongoCompilerTest extends TestCase
         $query = $this->query()->where('first_name', 'John');
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -103,6 +102,7 @@ class MongoCompilerTest extends TestCase
         $query = $this->query()->where('created_at', $date = new \DateTime('2017-07-10 15:45:32'));
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -122,6 +122,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -142,6 +143,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -166,6 +168,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -199,6 +202,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -226,6 +230,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -244,6 +249,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -266,6 +272,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -284,6 +291,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -304,6 +312,7 @@ class MongoCompilerTest extends TestCase
         ;
 
         $filters = $this->compiler->compileFilters(
+            $query,
             $query->statements['where']
         );
 
@@ -317,13 +326,13 @@ class MongoCompilerTest extends TestCase
      */
     public function test_compileProjection()
     {
-        $this->assertEquals([], $this->compiler->compileProjection([['column' => '*']]));
+        $this->assertEquals([], $this->compiler->compileProjection($this->query(), [['column' => '*']]));
 
         $this->assertEquals([
             'attr1' => true,
             'attr2' => true,
             '_id'   => false
-        ], $this->compiler->compileProjection([
+        ], $this->compiler->compileProjection($this->query(), [
             ['column' => 'attr1'],
             ['column' => 'attr2']
         ]));
@@ -331,7 +340,7 @@ class MongoCompilerTest extends TestCase
         $this->assertEquals([
             'attr' => true,
             '_id'  => true
-        ], $this->compiler->compileProjection([
+        ], $this->compiler->compileProjection($this->query(), [
             ['column' => 'attr'],
             ['column' => '_id']
         ]));
@@ -358,7 +367,7 @@ class MongoCompilerTest extends TestCase
             '$mul' => [
                 'az' => 3
             ]
-        ], $this->compiler->compileUpdateOperators($query->statements));
+        ], $this->compiler->compileUpdateOperators($query, $query->statements));
     }
 
     /**
@@ -369,7 +378,7 @@ class MongoCompilerTest extends TestCase
         $this->assertEquals([
             'attr' => -1,
             'other' => 1
-        ], $this->compiler->compileSort([
+        ], $this->compiler->compileSort($this->query(), [
             ['sort' => 'attr', 'order' => 'DESC'],
             ['sort' => 'other', 'order' => 'ASC'],
         ]));
@@ -405,7 +414,7 @@ class MongoCompilerTest extends TestCase
      */
     public function test_compileExpression_scalar()
     {
-        $this->assertSame(5, $this->compiler->compileExpression(5));
+        $this->assertSame(5, $this->compiler->compileExpression($this->query(), 5));
     }
 
     /**
@@ -413,7 +422,7 @@ class MongoCompilerTest extends TestCase
      */
     public function test_compileExpression_datetime()
     {
-        $compiled = $this->compiler->compileExpression($date = new \DateTime('2017-10-12 15:32:12'));
+        $compiled = $this->compiler->compileExpression($this->query(), $date = new \DateTime('2017-10-12 15:32:12'));
 
         $this->assertInstanceOf(UTCDateTime::class, $compiled);
         $this->assertEquals($date, $compiled->toDatetime());
@@ -424,11 +433,9 @@ class MongoCompilerTest extends TestCase
      */
     public function test_compileExpression_field_found()
     {
-        $this->compiler->setPreprocessor(
-            new OrmPreprocessor(Person::repository())
-        );
+        $query = Person::builder();
 
-        $this->assertEquals('$first_name', $this->compiler->compileExpression('$firstName'));
+        $this->assertEquals('$first_name', $this->compiler->compileExpression($query, '$firstName'));
     }
 
     /**
@@ -436,10 +443,8 @@ class MongoCompilerTest extends TestCase
      */
     public function test_compileExpression_field_not_found()
     {
-        $this->compiler->setPreprocessor(
-            new OrmPreprocessor(Person::repository())
-        );
+        $query = Person::builder();
 
-        $this->assertEquals('$notFound', $this->compiler->compileExpression('$notFound'));
+        $this->assertEquals('$notFound', $this->compiler->compileExpression($query, '$notFound'));
     }
 }

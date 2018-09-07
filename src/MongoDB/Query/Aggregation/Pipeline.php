@@ -13,6 +13,7 @@ use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Skip;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Sort;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\StageInterface;
 use Bdf\Prime\Query\Clause;
+use Bdf\Prime\Query\CompilableClause;
 use Bdf\Prime\Query\Contract\Whereable;
 use Bdf\Prime\Query\Extension\SimpleWhereTrait;
 use Bdf\Prime\Query\QueryInterface;
@@ -26,7 +27,7 @@ use Doctrine\DBAL\Query\Expression\CompositeExpression;
  * @todo implements QueryInterface ?
  * @todo use pagination
  */
-class Pipeline extends Clause implements PipelineInterface, Whereable
+class Pipeline extends CompilableClause implements PipelineInterface, Whereable
 {
     use SimpleWhereTrait;
 
@@ -48,6 +49,8 @@ class Pipeline extends Clause implements PipelineInterface, Whereable
      */
     public function __construct(QueryInterface $query)
     {
+        parent::__construct($query->preprocessor(), $query->state());
+
         $this->connection    = $query->connection();
         $this->compiler      = new PipelineCompiler($query->compiler());
         $this->statements    = $query->statements + ['pipeline' => []];

@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
 use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
 use Bdf\Prime\MongoDB\Query\Aggregation\PipelineInterface;
+use Bdf\Prime\Query\CompilableClause;
 
 /**
  * Perform a group aggregation
@@ -44,9 +45,9 @@ class Group implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
     {
-        return $compiler->compileGroup($this->export());
+        return $compiler->compileGroup($clause, $this->export());
     }
 
     /**

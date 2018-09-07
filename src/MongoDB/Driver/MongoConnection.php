@@ -9,6 +9,7 @@ use Bdf\Prime\MongoDB\Schema\MongoSchemaManager as PrimeSchemaManager;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform as PrimePlatform;
 use Bdf\Prime\MongoDB\Query\MongoCompiler;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
+use Bdf\Prime\Query\Compiler\CompilerInterface;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
 use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Connection;
@@ -56,6 +57,11 @@ class MongoConnection extends Connection implements ConnectionInterface
      * @var PrimePlatform
      */
     protected $platform;
+
+    /**
+     * @var MongoCompiler
+     */
+    private $compiler;
 
 
     /**
@@ -325,7 +331,19 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     public function builder(PreprocessorInterface $preprocessor = null)
     {
-        return new MongoQuery($this, new MongoCompiler($preprocessor));
+        return new MongoQuery($this, $preprocessor);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function compiler()
+    {
+        if (!$this->compiler) {
+            return $this->compiler = new MongoCompiler($this);
+        }
+
+        return $this->compiler;
     }
 
     /**

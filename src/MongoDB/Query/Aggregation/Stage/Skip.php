@@ -3,6 +3,7 @@
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
 use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+use Bdf\Prime\Query\CompilableClause;
 
 /**
  * Skips over the specified number of documents that pass into the stage and passes the remaining documents to the next stage in the pipeline.
@@ -46,8 +47,8 @@ class Skip implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
     {
-        return $compiler->compileSkip($this->export());
+        return $compiler->compileSkip($clause, $this->export());
     }
 }

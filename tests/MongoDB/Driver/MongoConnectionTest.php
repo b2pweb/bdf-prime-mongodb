@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Driver;
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Query\MongoCompiler;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Query;
@@ -314,5 +315,14 @@ class MongoConnectionTest extends TestCase
         );
 
         var_dump($this->connection->executeWrite('test', $bulk));
+    }
+
+    /**
+     *
+     */
+    public function test_compiler()
+    {
+        $this->assertInstanceOf(MongoCompiler::class, $this->connection->compiler());
+        $this->assertSame($this->connection->compiler(), $this->connection->compiler());
     }
 }

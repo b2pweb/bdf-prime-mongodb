@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
 use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
 use Bdf\Prime\MongoDB\Query\Aggregation\PipelineInterface;
+use Bdf\Prime\Query\CompilableClause;
 
 /**
  * Aggregation projection
@@ -50,10 +51,11 @@ class Project implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
     {
-        return $compiler->compileProject($this->export());
+        return $compiler->compileProject($clause, $this->export());
     }
+
     /**
      * Add a new field to the projection
      *

@@ -7,6 +7,8 @@ use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\MongoDB\Query\Command\Count;
+use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
+use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
 use Bdf\Prime\MongoDB\Test\Person;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
@@ -71,10 +73,38 @@ class MongoCompilerTest extends TestCase
      */
     public function test_compile_instances()
     {
-        $this->assertInstanceOf(Query::class, $this->compiler->compileSelect($this->query()));
-        $this->assertInstanceOf(BulkWrite::class, $this->compiler->compileInsert($this->query()->set('attr', 'values')));
-        $this->assertInstanceOf(BulkWrite::class, $this->compiler->compileUpdate($this->query()->set('attr', 'value')));
-        $this->assertInstanceOf(BulkWrite::class, $this->compiler->compileDelete($this->query()));
+        $this->assertInstanceOf(ReadQuery::class, $this->compiler->compileSelect($this->query()));
+        $this->assertInstanceOf(WriteQuery::class, $this->compiler->compileInsert($this->query()->set('attr', 'values')));
+        $this->assertInstanceOf(WriteQuery::class, $this->compiler->compileUpdate($this->query()->set('attr', 'value')));
+        $this->assertInstanceOf(WriteQuery::class, $this->compiler->compileDelete($this->query()));
+    }
+
+    /**
+     *
+     */
+    public function test_compileSelect()
+    {
+        $query = $this->query()
+            ->where('first_name', 'John')
+            ->where('last_name', 'like', '%D%')
+            ->order('birth_date')
+        ;
+
+        $compiled = $this->compiler->compileSelect($query);
+
+        $this->assertEquals(
+            new ReadQuery(
+                'test_collection',
+                [
+                    'first_name' => 'John',
+                    'last_name' => ['$regex' => '^.*D.*$', '$options' => 'i']
+                ],
+                [
+                    'sort' => ['birth_date' => 1]
+                ]
+            ),
+            $compiled
+        );
     }
 
     /**

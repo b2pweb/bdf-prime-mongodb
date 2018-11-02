@@ -5,8 +5,13 @@ namespace Bdf\Prime\MongoDB\Driver;
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\MongoCompiler;
+use Bdf\Prime\MongoDB\Query\MongoInsertQuery;
+use Bdf\Prime\MongoDB\Query\MongoKeyValueQuery;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
+use Bdf\Prime\Query\Contract\Query\InsertQueryInterface;
+use Bdf\Prime\Query\Contract\Query\KeyValueQueryInterface;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Query;
 
@@ -86,7 +91,7 @@ class MongoConnectionTest extends TestCase
     /**
      *
      */
-    public function test_insert_select()
+    public function test_executeWrite_insert_select()
     {
         $bulk = new BulkWrite();
 
@@ -101,6 +106,34 @@ class MongoConnectionTest extends TestCase
         ]);
 
         $this->connection->executeWrite($this->collection, $bulk);
+
+        $result = $this->connection->executeSelect($this->collection, new Query([]));
+
+        $array = $result->toArray();
+
+        $this->assertCount(2, $array);
+
+        $this->assertEquals('John', $array[0]['first_name']);
+        $this->assertEquals('Doe',  $array[0]['last_name']);
+
+        $this->assertEquals('François', $array[1]['first_name']);
+        $this->assertEquals('Dupont',   $array[1]['last_name']);
+    }
+
+    /**
+     *
+     */
+    public function test_insert_select()
+    {
+        $this->connection->insert($this->collection, [
+            'first_name' => 'John',
+            'last_name'  => 'Doe'
+        ]);
+
+        $this->connection->insert($this->collection, [
+            'first_name' => 'François',
+            'last_name'  => 'Dupont'
+        ]);
 
         $result = $this->connection->executeSelect($this->collection, new Query([]));
 
@@ -314,15 +347,24 @@ class MongoConnectionTest extends TestCase
             ]
         );
 
-        var_dump($this->connection->executeWrite('test', $bulk));
+        $this->connection->executeWrite('test', $bulk);
     }
 
     /**
      *
      */
-    public function test_compiler()
+    public function test_factory()
     {
-        $this->assertInstanceOf(MongoCompiler::class, $this->connection->compiler());
-        $this->assertSame($this->connection->compiler(), $this->connection->compiler());
+        $this->assertInstanceOf(MongoCompiler::class, $this->connection->factory()->compiler(MongoQuery::class));
+        $this->assertSame($this->connection->factory()->compiler(MongoQuery::class), $this->connection->factory()->compiler(MongoQuery::class));
+    }
+
+    /**
+     *
+     */
+    public function test_make()
+    {
+        $this->assertInstanceOf(MongoInsertQuery::class, $this->connection->make(InsertQueryInterface::class));
+        $this->assertInstanceOf(MongoKeyValueQuery::class, $this->connection->make(KeyValueQueryInterface::class));
     }
 }

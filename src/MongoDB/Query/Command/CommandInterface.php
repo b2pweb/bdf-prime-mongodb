@@ -2,12 +2,13 @@
 
 namespace Bdf\Prime\MongoDB\Query\Command;
 
+use Bdf\Prime\MongoDB\Query\SelfExecutable;
 use MongoDB\Driver\Command;
 
 /**
  * Base interface for Prime mongo commands
  */
-interface CommandInterface
+interface CommandInterface extends SelfExecutable
 {
     /**
      * Get the command name

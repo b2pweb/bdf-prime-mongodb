@@ -4,20 +4,35 @@ namespace Bdf\Prime\MongoDB\Driver;
 
 use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Exception\DBALException;
-use Bdf\Prime\MongoDB\Query\Command\Commands;
-use Bdf\Prime\MongoDB\Schema\MongoSchemaManager as PrimeSchemaManager;
+use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform as PrimePlatform;
+use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
+use Bdf\Prime\MongoDB\Query\Command\Commands;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoInsertCompiler;
+use Bdf\Prime\MongoDB\Query\MongoInsertQuery;
 use Bdf\Prime\MongoDB\Query\MongoCompiler;
+use Bdf\Prime\MongoDB\Query\MongoKeyValueQuery;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoKeyValueCompiler;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
-use Bdf\Prime\Query\Compiler\CompilerInterface;
+use Bdf\Prime\MongoDB\Query\SelfExecutable;
+use Bdf\Prime\MongoDB\Schema\MongoSchemaManager as PrimeSchemaManager;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
+use Bdf\Prime\Query\Contract\Compilable;
+use Bdf\Prime\Query\Contract\Query\InsertQueryInterface;
+use Bdf\Prime\Query\Contract\Query\KeyValueQueryInterface;
+use Bdf\Prime\Query\Factory\DefaultQueryFactory;
+use Bdf\Prime\Query\Factory\QueryFactoryInterface;
+use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Cache\QueryCacheProfile;
+use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ConnectionException;
+use Doctrine\DBAL\Driver;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Manager;
 use MongoDB\Driver\Query;
+use MongoDB\Driver\WriteConcern;
 
 /**
  * Connection for mongoDb
@@ -59,10 +74,27 @@ class MongoConnection extends Connection implements ConnectionInterface
     protected $platform;
 
     /**
-     * @var MongoCompiler
+     * @var QueryFactoryInterface
      */
-    private $compiler;
+    private $factory;
 
+    public function __construct($params, Driver $driver, Configuration $config = null, EventManager $eventManager = null)
+    {
+        parent::__construct($params, $driver, $config, $eventManager);
+
+        $this->factory = new DefaultQueryFactory(
+            $this,
+            new MongoCompiler($this),
+            [
+                MongoKeyValueQuery::class => MongoKeyValueCompiler::class,
+                MongoInsertQuery::class   => MongoInsertCompiler::class
+            ],
+            [
+                KeyValueQueryInterface::class => MongoKeyValueQuery::class,
+                InsertQueryInterface::class   => MongoInsertQuery::class,
+            ]
+        );
+    }
 
     /**
      * {@inheritdoc}
@@ -110,6 +142,22 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
+    public function make($query, PreprocessorInterface $preprocessor = null)
+    {
+        return $this->factory->make($query, $preprocessor);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function factory()
+    {
+        return $this->factory;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function from($table)
     {
         return $this->builder()->from($table);
@@ -121,6 +169,14 @@ class MongoConnection extends Connection implements ConnectionInterface
     public function select($query, array $bindings = [], array $types = [])
     {
         throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function insert($tableExpression, array $data, array $types = [])
+    {
+        return $this->builder()->from($tableExpression)->insert($data);
     }
 
     /**
@@ -331,19 +387,25 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     public function builder(PreprocessorInterface $preprocessor = null)
     {
-        return new MongoQuery($this, $preprocessor);
+        return $this->factory->make(MongoQuery::class, $preprocessor);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function compiler()
+    public function execute(Compilable $query)
     {
-        if (!$this->compiler) {
-            return $this->compiler = new MongoCompiler($this);
+        $compiled = $query->compile();
+
+        if ($compiled instanceof SelfExecutable) {
+            return $compiled->execute($this);
         }
 
-        return $this->compiler;
+        if ($compiled instanceof CommandInterface || $compiled instanceof Command) {
+            return new CursorResultSet($this->runCommand($compiled));
+        }
+
+        throw new \InvalidArgumentException('Unsupported compiled query type '.get_class($compiled));
     }
 
     /**

@@ -2,6 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Query\Command;
 
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
+use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use MongoDB\Driver\Command;
 
 /**
@@ -49,5 +51,13 @@ class DriverCommand implements CommandInterface
     public function get()
     {
         return $this->command;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(MongoConnection $connection)
+    {
+        return new CursorResultSet($connection->runCommand($this));
     }
 }

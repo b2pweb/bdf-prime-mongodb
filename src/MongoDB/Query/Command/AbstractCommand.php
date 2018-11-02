@@ -2,6 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Query\Command;
 
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
+use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use MongoDB\Driver\Command;
 
 /**
@@ -25,6 +27,14 @@ abstract class AbstractCommand implements CommandInterface
     public function get()
     {
         return new Command($this->document());
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function execute(MongoConnection $connection)
+    {
+        return new CursorResultSet($connection->runCommand($this));
     }
 
     /**

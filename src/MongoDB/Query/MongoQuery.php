@@ -2,10 +2,10 @@
 
 namespace Bdf\Prime\MongoDB\Query;
 
+use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
 use Bdf\Prime\Query\AbstractQuery;
-use Bdf\Prime\Query\Compiler\CompilerInterface;
 use Bdf\Prime\Query\Compiler\Preprocessor\DefaultPreprocessor;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
 use Bdf\Prime\Query\Contract\Aggregatable;
@@ -15,7 +15,6 @@ use Bdf\Prime\Query\Extension\LimitableTrait;
 use Bdf\Prime\Query\Extension\OrderableTrait;
 use Bdf\Prime\Query\Extension\PaginableTrait;
 use Bdf\Prime\Query\QueryInterface;
-use MongoDB\Driver\Cursor;
 
 /**
  * MongoQuery
@@ -55,8 +54,6 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
 
     /**
      * {@inheritdoc}
-     *
-     * @return Cursor
      */
     public function execute($columns = null)
     {
@@ -64,10 +61,13 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
             $this->select($columns);
         }
 
-        return $this->connection->executeSelect(
-            $this->statements['collection'],
-            $this->compiler->compileSelect($this)
-        );
+        $this->setType(self::TYPE_SELECT);
+
+        return $this->connection
+            ->execute($this)
+            ->fetchMode(ResultSetInterface::FETCH_ASSOC)
+            ->all()
+        ;
     }
 
     /**
@@ -85,10 +85,9 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function delete()
     {
-        return $this->connection->executeWrite(
-            $this->statements['collection'],
-            $this->compiler->compileDelete($this)
-        )->getDeletedCount();
+        $this->setType(self::TYPE_DELETE);
+
+        return $this->connection->execute($this)->count();
     }
 
     /**
@@ -103,10 +102,9 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
             ];
         }
 
-        return $this->connection->executeWrite(
-            $this->statements['collection'],
-            $this->compiler->compileUpdate($this)
-        )->getModifiedCount();
+        $this->setType(self::TYPE_UPDATE);
+
+        return $this->connection->execute($this)->count();
     }
 
     /**
@@ -120,10 +118,9 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
             ];
         }
 
-        return $this->connection->executeWrite(
-            $this->statements['collection'],
-            $this->compiler->compileInsert($this)
-        )->getInsertedCount();
+        $this->setType(self::TYPE_INSERT);
+
+        return $this->connection->execute($this)->count();
     }
 
     /**
@@ -139,10 +136,9 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
             ];
         }
 
-        return $this->connection->executeWrite(
-            $this->statements['collection'],
-            $this->compiler->compileUpdate($this)
-        )->getUpsertedCount();
+        $this->setType(self::TYPE_UPDATE);
+
+        return $this->connection->execute($this)->count();
     }
 
     /**
@@ -175,29 +171,6 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
         $this->statements['update']['$mul'][$attribute] = $number;
 
         return $this;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @param Cursor $data
-     */
-    public function postProcessResult($data)
-    {
-        return parent::postProcessResult(
-            array_map([$this, 'flattenArray'], $data->toArray())
-        );
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function inRow($column)
-    {
-        // @todo flatten array ?
-        $result = $this->limit(1)->execute($column)->toArray();
-
-        return isset($result[0]) ? reset($result[0]) : null;
     }
 
     /**
@@ -299,27 +272,10 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     }
 
     /**
-     * Convert multi-dimensional array to flat array
-     *
-     * @param array $data
-     * @param string $base
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    protected function flattenArray(array $data, $base = '')
+    protected function cacheKey()
     {
-        $flatten = [];
-
-        foreach ($data as $k => $v) {
-            $key = empty($base) ? $k : $base.'.'.$k;
-
-            if (is_array($v) && is_string(key($v))) {
-                $flatten = array_merge($flatten, $this->flattenArray($v, $key));
-            } else {
-                $flatten[$key] = $v;
-            }
-        }
-
-        return $flatten;
+        return null;
     }
 }

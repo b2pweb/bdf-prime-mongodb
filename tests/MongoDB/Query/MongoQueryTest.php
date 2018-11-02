@@ -165,10 +165,10 @@ class MongoQueryTest extends TestCase
      */
     public function test_insert()
     {
-        $this->query()->insert([
+        $this->assertEquals(1, $this->query()->insert([
             'first_name' => 'Paul',
             'last_name'  => 'Richard'
-        ]);
+        ]));
 
         $this->assertCount(3, $this->query()->all());
     }
@@ -210,12 +210,12 @@ class MongoQueryTest extends TestCase
      */
     public function test_update()
     {
-        $this->query()
+        $this->assertEquals(1, $this->query()
             ->where('first_name', 'John')
             ->update([
                 'age' => 35
             ])
-        ;
+        );
 
         $this->assertEquals(35, $this->query()->where('first_name', 'John')->inRow('age'));
     }
@@ -225,10 +225,10 @@ class MongoQueryTest extends TestCase
      */
     public function test_delete()
     {
-        $this->query()
+        $this->assertEquals(1, $this->query()
             ->where('first_name', 'John')
             ->delete()
-        ;
+        );
 
         $this->assertCount(1, $this->query()->all());
     }
@@ -238,12 +238,12 @@ class MongoQueryTest extends TestCase
      */
     public function test_replace()
     {
-        $this->query()
+        $this->assertEquals(1, $this->query()
             ->where('first_name', 'John')
             ->replace([
                 'name' => 'John Doe'
             ])
-        ;
+        );
 
         $this->assertNull($this->query()->where('first_name', 'John')->first());
         $this->assertEquals(['name' => 'John Doe'], $this->query()->where('name', ':like', 'John%')->first('name'));

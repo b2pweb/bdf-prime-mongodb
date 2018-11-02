@@ -3,12 +3,12 @@
 namespace Bdf\Prime\MongoDB\Query;
 
 use Bdf\Prime\MongoDB\Query\Command\Count;
+use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
+use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
 use Bdf\Prime\Query\CompilableClause;
 use Bdf\Prime\Query\Compiler\AbstractCompiler;
 use Bdf\Prime\Query\Expression\ExpressionTransformerInterface;
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
-use MongoDB\Driver\BulkWrite;
-use MongoDB\Driver\Query;
 
 /**
  * MongoCompiler
@@ -80,11 +80,11 @@ class MongoCompiler extends AbstractCompiler
     /**
      * {@inheritdoc}
      *
-     * @return BulkWrite
+     * @return WriteQuery
      */
     protected function doCompileInsert(CompilableClause $query)
     {
-        $bulk = new BulkWrite();
+        $bulk = new WriteQuery($query->statements['collection']);
 
         $bulk->insert(
             $this->compileInsertData($query, $query->statements['values']['data'])
@@ -96,11 +96,11 @@ class MongoCompiler extends AbstractCompiler
     /**
      * {@inheritdoc}
      *
-     * @return BulkWrite
+     * @return WriteQuery
      */
     protected function doCompileUpdate(CompilableClause $query)
     {
-        $bulk = new BulkWrite();
+        $bulk = new WriteQuery($query->statements['collection']);
 
         if ($query->statements['replace']) {
             $bulk->update(
@@ -127,11 +127,11 @@ class MongoCompiler extends AbstractCompiler
     /**
      * {@inheritdoc}
      *
-     * @return BulkWrite
+     * @return WriteQuery
      */
     protected function doCompileDelete(CompilableClause $query)
     {
-        $bulk = new BulkWrite();
+        $bulk = new WriteQuery($query->statements['collection']);
 
         $bulk->delete(
             $this->compileFilters($query, $query->statements['where'])
@@ -143,7 +143,7 @@ class MongoCompiler extends AbstractCompiler
     /**
      * {@inheritdoc}
      *
-     * @return Query
+     * @return ReadQuery
      */
     protected function doCompileSelect(CompilableClause $query)
     {
@@ -167,7 +167,7 @@ class MongoCompiler extends AbstractCompiler
 
         $filters = $this->compileFilters($query, $query->statements['where']);
 
-        return new Query($filters, $options);
+        return new ReadQuery($query->statements['collection'], $filters, $options);
     }
 
     /**
@@ -473,6 +473,7 @@ class MongoCompiler extends AbstractCompiler
                 }
                 return [$column => $value];
 
+            case 'like':
             case ':like':
                 return [$column => $this->getLikeOperator($value)];
 

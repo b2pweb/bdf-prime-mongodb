@@ -1,22 +1,18 @@
 <?php
 
-namespace Bdf\Prime\MongoDB\Query;
+namespace Bdf\Prime\MongoDB\Query\Compiler;
 
 use Bdf\PHPUnit\TestCase;
-use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
-use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
 use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
+use Bdf\Prime\MongoDB\Query\MongoQuery;
 use Bdf\Prime\MongoDB\Test\Person;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
-use Bdf\Prime\Query\Compiler\Preprocessor\OrmPreprocessor;
 use Bdf\Prime\Query\Expression\Like;
 use MongoDB\BSON\UTCDateTime;
-use MongoDB\Driver\BulkWrite;
-use MongoDB\Driver\Query;
 
 /**
  * @group Bdf

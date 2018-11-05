@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query\Compiler;
 
+use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
 use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
@@ -15,6 +16,24 @@ use Bdf\Prime\Query\Compiler\AbstractCompiler;
 class MongoKeyValueCompiler extends AbstractCompiler
 {
     /**
+     * @var MongoGrammar
+     */
+    private $grammar;
+
+
+    /**
+     * MongoKeyValueCompiler constructor.
+     *
+     * @param ConnectionInterface $connection
+     */
+    public function __construct(ConnectionInterface $connection)
+    {
+        parent::__construct($connection);
+
+        $this->grammar = new MongoGrammar($connection->platform());
+    }
+
+    /**
      * {@inheritdoc}
      */
     protected function doCompileInsert(CompilableClause $query)
@@ -27,11 +46,11 @@ class MongoKeyValueCompiler extends AbstractCompiler
      */
     protected function doCompileUpdate(CompilableClause $query)
     {
-        $bulk = new WriteQuery($query->statements['table']);
+        $bulk = new WriteQuery($query->statements['collection']);
 
         $bulk->update(
             $this->compileFilters($query, $query->statements['where']),
-            $this->compileUpdateOperators($query, $query->statements),
+            $this->grammar->set($query, $query->statements['values']['data'], $query->statements['values']['types']),
             [
                 'multi' => true
             ]
@@ -45,7 +64,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
      */
     protected function doCompileDelete(CompilableClause $query)
     {
-        $bulk = new WriteQuery($query->statements['table']);
+        $bulk = new WriteQuery($query->statements['collection']);
 
         $bulk->delete($this->compileFilters($query, $query->statements['where']));
 
@@ -60,7 +79,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
         $options = [];
 
         if ($query->statements['columns']) {
-            $options['projection'] = $this->compileProjection($query, $query->statements['columns']);
+            $options['projection'] = $this->grammar->projection($query, $query->statements['columns']);
         }
 
         if ($query->statements['limit']) {
@@ -72,7 +91,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
         }
 
         return new ReadQuery(
-            $query->statements['table'],
+            $query->statements['collection'],
             $this->compileFilters($query, $query->statements['where']),
             $options
         );
@@ -89,7 +108,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
      */
     public function compileCount(CompilableClause $query)
     {
-        $command = new Count($query->statements['table']);
+        $command = new Count($query->statements['collection']);
 
         if (!empty($query->statements['where'])) {
             $command->query($this->compileFilters($query, $query->statements['where']));
@@ -104,48 +123,6 @@ class MongoKeyValueCompiler extends AbstractCompiler
         }
 
         return $command;
-    }
-
-    /**
-     * @param CompilableClause $query
-     * @param array $data
-     * @param array $types
-     *
-     * @return array
-     *
-     * @todo refactor
-     */
-    protected function compileUpdateData(CompilableClause $query, array $data, array $types)
-    {
-        $parsed = [];
-
-        foreach ($data as $column => $value) {
-            $type = $types[$column] ?? true;
-            $field = $query->preprocessor()->field($column, $type);
-
-            $parsed[$field] = $this->platform->types()->toDatabase($value, $type);
-        }
-
-        return $parsed;
-    }
-
-    /**
-     * @param CompilableClause $query
-     * @param array $statements
-     *
-     * @return array
-     *
-     * @todo refactor
-     */
-    public function compileUpdateOperators(CompilableClause $query, array $statements)
-    {
-        $operators = $statements['update'] ?? [];
-
-        if (!empty($statements['values'])) {
-            $operators['$set'] = $this->compileUpdateData($query, $statements['values']['data'], $statements['values']['types']);
-        }
-
-        return $operators;
     }
 
     /**
@@ -186,35 +163,5 @@ class MongoKeyValueCompiler extends AbstractCompiler
         }
 
         return $compiled;
-    }
-
-    /**
-     * @param CompilableClause $query
-     * @param array $columns
-     *
-     * @return array
-     *
-     * @todo refactor
-     * @fixme do not supports alias
-     */
-    public function compileProjection(CompilableClause $query, array $columns)
-    {
-        $projection = [];
-
-        foreach ($columns as $column) {
-            if ($column['column'] === '*') {
-                return [];
-            }
-
-            $field = $query->preprocessor()->field($column['column']);
-            $projection[$field] = true;
-        }
-
-        //If column has been selected, but not _id => do not select _id
-        if (!isset($projection['_id'])) {
-            $projection['_id'] = false;
-        }
-
-        return $projection;
     }
 }

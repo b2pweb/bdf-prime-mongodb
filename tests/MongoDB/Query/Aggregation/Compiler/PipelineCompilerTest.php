@@ -10,7 +10,7 @@ use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Group;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Project;
 use Bdf\Prime\MongoDB\Query\Command\Aggregate;
-use Bdf\Prime\MongoDB\Query\MongoCompiler;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoCompiler;
 use Bdf\Prime\Query\Contract\Whereable;
 use MongoDB\BSON\UTCDateTime;
 

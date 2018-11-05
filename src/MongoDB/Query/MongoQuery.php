@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Query;
 use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoCompiler;
 use Bdf\Prime\Query\AbstractQuery;
 use Bdf\Prime\Query\Compiler\Preprocessor\DefaultPreprocessor;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
@@ -269,13 +270,5 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
             ->pipeline()
             ->group($expression, $operations)
         ;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function cacheKey()
-    {
-        return null;
     }
 }

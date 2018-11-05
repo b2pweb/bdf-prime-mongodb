@@ -6,7 +6,7 @@ use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\Exception\DBALException;
 use Bdf\Prime\MongoDB\Query\Command\Count;
-use Bdf\Prime\MongoDB\Query\MongoCompiler;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoCompiler;
 use Bdf\Prime\MongoDB\Query\MongoInsertQuery;
 use Bdf\Prime\MongoDB\Query\MongoKeyValueQuery;
 use Bdf\Prime\MongoDB\Query\MongoQuery;

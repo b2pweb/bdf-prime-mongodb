@@ -64,10 +64,28 @@ class MongoInsertCompiler extends AbstractCompiler
         $columns = $this->resolveColumns($query, $query->statements['columns']);
 
         foreach ($query->statements['values'] as $data) {
-            $bulk->update([], $this->compileInsertData($data, $columns), [
-                'upsert' => true,
-                'multi'  => false
-            ]);
+            $data = $this->compileInsertData($data, $columns);
+
+            if (!isset($data['_id'])) {
+                $bulk->insert($data);
+                continue;
+            }
+
+            $filter = ['_id' => $data['_id']];
+
+            unset($data['_id']);
+
+            $bulk->update(
+                $filter,
+                [
+                    '$set' => $data,
+                    '$setOnInsert' => $filter
+                ],
+                [
+                    'upsert' => true,
+                    'multi'  => false
+                ]
+            );
         }
 
         return $bulk;

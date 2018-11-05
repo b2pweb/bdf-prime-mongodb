@@ -40,16 +40,16 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
         parent::__construct($connection, $preprocessor ?: new DefaultPreprocessor());
 
         $this->statements = [
-            'where'     => [],
-            'table'     => null,
-            'columns'   => [],
-            'aggregate' => null,
-            'limit'     => null,
-            'offset'    => null,
-            'values'    => [
+            'where'      => [],
+            'collection' => null,
+            'columns'    => [],
+            'aggregate'  => null,
+            'limit'      => null,
+            'offset'     => null,
+            'values'     => [
                 'data'  => [],
-                'types' => []
-            ]
+                'types' => [],
+            ],
         ];
     }
 
@@ -58,9 +58,9 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
      */
     public function from($table, $alias = null)
     {
-        if ($this->statements['table'] !== $table) {
+        if ($this->statements['collection'] !== $table) {
             $this->compilerState->invalidate();
-            $this->statements['table'] = $table;
+            $this->statements['collection'] = $table;
         }
 
         return $this;
@@ -213,15 +213,5 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     public function getBindings()
     {
         return [];
-    }
-
-    /**
-     * Get the cache key
-     *
-     * @return string
-     */
-    protected function cacheKey()
-    {
-        return null;
     }
 }

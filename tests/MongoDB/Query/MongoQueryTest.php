@@ -7,6 +7,7 @@ use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use MongoDB\BSON\Javascript;
+use MongoDB\BSON\ObjectId;
 use MongoDB\Driver\BulkWrite;
 
 /**
@@ -238,15 +239,51 @@ class MongoQueryTest extends TestCase
      */
     public function test_replace()
     {
-        $this->assertEquals(1, $this->query()
-            ->where('first_name', 'John')
-            ->replace([
-                'name' => 'John Doe'
-            ])
-        );
+        $data = $this->data[0];
+        $data['first_name'] = 'new name';
 
-        $this->assertNull($this->query()->where('first_name', 'John')->first());
-        $this->assertEquals(['name' => 'John Doe'], $this->query()->where('name', ':like', 'John%')->first('name'));
+        $this->assertEquals(1, $this->query()->replace($data));
+
+        $this->assertEquals($data, $this->query()->where('_id', $data['_id'])->first());
+    }
+
+    /**
+     *
+     */
+    public function test_replace_with_embedded()
+    {
+        $this->assertEquals(1, $this->query()->replace([
+            '_id'        => 5,
+            'name.first' => 'Paul',
+            'name.last'  => 'Richard',
+            'birth'      => '1965-11-05'
+        ]));
+
+        $this->assertEquals([
+            '_id'        => 5,
+            'name.first' => 'Paul',
+            'name.last'  => 'Richard',
+            'birth'      => '1965-11-05'
+        ], $this->query()->where('_id', 5)->first());
+
+
+        $this->assertCount(3, $this->query()->all());
+    }
+
+    /**
+     *
+     */
+    public function test_replace_without_id()
+    {
+        $this->assertEquals(1, $this->query()->replace([
+            'first_name' => 'Alan',
+            'last_name'  => 'Smith',
+        ]));
+
+        $this->assertEquals([
+            'first_name' => 'Alan',
+            'last_name'  => 'Smith',
+        ], $this->query()->where('first_name', 'Alan')->first(['first_name', 'last_name']));
     }
 
     /**

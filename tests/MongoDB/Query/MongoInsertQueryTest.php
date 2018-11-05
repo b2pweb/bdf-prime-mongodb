@@ -241,8 +241,38 @@ class MongoInsertQueryTest extends TestCase
     /**
      *
      */
+    public function test_replace_without_id()
+    {
+        $this->assertEquals(1, $this->query()
+            ->replace()
+            ->values([
+                'name.first' => 'John',
+                'name.last'  => 'Doe',
+                'birth'      => '1986-02-25'
+            ])
+            ->execute()
+        );
+
+        $entity = $this->connection->builder()->from($this->collection)->where('name.first', 'John')->first();
+
+        $this->assertInstanceOf(ObjectId::class, $entity['_id']);
+        $this->assertEquals('John', $entity['name.first']);
+        $this->assertEquals('Doe', $entity['name.last']);
+        $this->assertEquals('1986-02-25', $entity['birth']);
+    }
+
+    /**
+     *
+     */
     public function test_replace_not_exists()
     {
+        $this->connection->insert($this->collection, [
+            '_id'        => 2,
+            'name.first' => 'Alan',
+            'name.last'  => 'Smith',
+            'birth'      => '1945-03-30'
+        ]);
+
         $this->assertEquals(1, $this->query()
             ->replace()
             ->values([

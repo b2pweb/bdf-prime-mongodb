@@ -10,7 +10,7 @@ use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
 use Bdf\Prime\MongoDB\Query\Command\Commands;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoInsertCompiler;
 use Bdf\Prime\MongoDB\Query\MongoInsertQuery;
-use Bdf\Prime\MongoDB\Query\MongoCompiler;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoCompiler;
 use Bdf\Prime\MongoDB\Query\MongoKeyValueQuery;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoKeyValueCompiler;
 use Bdf\Prime\MongoDB\Query\MongoQuery;

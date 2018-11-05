@@ -111,15 +111,28 @@ class MongoInsertCompilerTest extends TestCase
     /**
      *
      */
-    public function test_compileUpdate_replace()
+    public function test_compileUpdate_replace_without_id()
     {
         $this->assertEquals(
-            (new WriteQuery('test'))
-                ->update([], ['value' => 42, 'name' => 'response'], ['upsert' => true, 'multi' => false])
-            ,
+            (new WriteQuery('test'))->insert(['value' => 42, 'name' => 'response']),
             $this->compiler->compileUpdate($this->query()
                 ->replace()
                 ->values(['value' => 42, 'name' => 'response']))
+        );
+    }
+
+    /**
+     *
+     */
+    public function test_compileUpdate_replace_with_id()
+    {
+        $this->assertEquals(
+            (new WriteQuery('test'))
+                ->update(['_id' => 1], ['$set' => ['value' => 42, 'name' => 'response'], '$setOnInsert' => ['_id' => 1]], ['upsert' => true, 'multi' => false])
+            ,
+            $this->compiler->compileUpdate($this->query()
+                ->replace()
+                ->values(['_id' => 1, 'value' => 42, 'name' => 'response']))
         );
     }
 

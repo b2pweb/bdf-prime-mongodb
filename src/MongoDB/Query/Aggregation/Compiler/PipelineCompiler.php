@@ -4,7 +4,7 @@ namespace Bdf\Prime\MongoDB\Query\Aggregation\Compiler;
 
 use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
 use Bdf\Prime\MongoDB\Query\Command\Aggregate;
-use Bdf\Prime\MongoDB\Query\MongoCompiler;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoCompiler;
 use Bdf\Prime\Query\CompilableClause;
 
 /**

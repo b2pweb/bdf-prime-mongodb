@@ -11,6 +11,8 @@ use MongoDB\Driver\Cursor;
  */
 final class CursorResultSet extends \IteratorIterator implements ResultSetInterface
 {
+    const FETCH_RAW_ARRAY = 'raw_array';
+
     /**
      * @var Cursor
      */
@@ -67,6 +69,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
                 }
                 // No break
 
+            case self::FETCH_RAW_ARRAY:
             case self::FETCH_ASSOC:
             case self::FETCH_NUM:
             case self::FETCH_COLUMN:

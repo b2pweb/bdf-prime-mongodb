@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Query;
 use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
 use Bdf\Prime\Query\AbstractReadCommand;
 use Bdf\Prime\Query\Compiler\Preprocessor\DefaultPreprocessor;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
@@ -148,7 +149,36 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
      */
     public function aggregate($function, $column = null)
     {
-        throw new \BadMethodCallException(__METHOD__.' not implemented yet');
+        return $this
+            ->pipeline()
+            ->group(null, ['aggregate' => [$function => $column]])
+            ->execute()[0]['aggregate']
+        ;
+    }
+
+    /**
+     * Create a new Aggregation pipeline query
+     *
+     * @return Pipeline The new query instance
+     *
+     * @link https://docs.mongodb.com/manual/core/aggregation-pipeline/
+     */
+    public function pipeline()
+    {
+        $pipeline = new Pipeline($this->connection(), $this->preprocessor(), $this->state());
+
+        $pipeline->setCustomFilters($this->customFilters);
+
+        $pipeline->statements['collection'] = $this->statements['collection'];
+        $pipeline->statements['columns'] = $this->statements['columns'];
+        $pipeline->statements['limit'] = $this->statements['limit'];
+        $pipeline->statements['offset'] = $this->statements['offset'];
+
+        if ($this->statements['where']) {
+            $pipeline->where($this->statements['where']);
+        }
+
+        return $pipeline;
     }
 
     /**

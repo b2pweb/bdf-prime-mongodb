@@ -321,6 +321,23 @@ class MongoKeyValueQueryTest extends TestCase
     }
 
     /**
+     *
+     */
+    public function test_aggregates()
+    {
+        $this->connection->insert('aggregate', ['value' => 13]);
+        $this->connection->insert('aggregate', ['value' => 42]);
+        $this->connection->insert('aggregate', ['value' => 55]);
+        $this->connection->insert('aggregate', ['value' => 22]);
+
+        $this->assertEquals(13, $this->query()->from('aggregate')->min('value'));
+        $this->assertEquals(55, $this->query()->from('aggregate')->max('value'));
+        $this->assertEquals(132, $this->query()->from('aggregate')->sum('value'));
+        $this->assertEquals(33, $this->query()->from('aggregate')->avg('value'));
+        $this->assertEquals([13, 42, 55, 22], $this->query()->from('aggregate')->aggregate('push', 'value'));
+    }
+
+    /**
      * @return MongoKeyValueQuery
      */
     private function query()

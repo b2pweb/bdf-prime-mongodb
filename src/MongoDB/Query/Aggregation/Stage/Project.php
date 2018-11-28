@@ -2,8 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
-use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
 use Bdf\Prime\MongoDB\Query\Aggregation\PipelineInterface;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoGrammar;
 use Bdf\Prime\Query\CompilableClause;
 
 /**
@@ -51,9 +51,9 @@ class Project implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, MongoGrammar $grammar)
     {
-        return $compiler->compileProject($clause, $this->export());
+        return $grammar->projection($clause, $this->expression);
     }
 
     /**

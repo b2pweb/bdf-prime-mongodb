@@ -2,8 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
-use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
 use Bdf\Prime\MongoDB\Query\Aggregation\PipelineInterface;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoGrammar;
 use Bdf\Prime\Query\CompilableClause;
 
 /**
@@ -45,9 +45,15 @@ class Group implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, MongoGrammar $grammar)
     {
-        return $compiler->compileGroup($clause, $this->export());
+        $compiled = ['_id' => $this->compileGroupId($clause, $grammar)];
+
+        foreach ($this->fields as $field => $expression) {
+            $compiled[$field] = $grammar->expression($clause, $expression);
+        }
+
+        return $compiled;
     }
 
     /**
@@ -232,6 +238,42 @@ class Group implements StageInterface
     public function export()
     {
         return ['_id' => $this->id] + $this->fields;
+    }
+
+    /**
+     * Compile the $group _id expression
+     *
+     * @param CompilableClause $clause
+     * @param MongoGrammar $grammar
+     *
+     * @return mixed
+     */
+    private function compileGroupId(CompilableClause $clause, MongoGrammar $grammar)
+    {
+        if ($this->id === null) {
+            return null;
+        }
+
+        if (is_string($this->id)) {
+            return '$'.$clause->preprocessor()->field($this->id);
+        }
+
+        $compiled = [];
+
+        foreach ($grammar->projection($clause, $this->id) as $field => $subExpression) {
+            if ($subExpression === false) {
+                continue;
+            }
+
+            if (($subExpression === true || $subExpression === 1) && $field[0] !== '$') {
+                $compiled[$field] = '$'.$field;
+                continue;
+            }
+
+            $compiled[$field] = $subExpression;
+        }
+
+        return $compiled;
     }
 
     /**

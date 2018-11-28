@@ -1,7 +1,8 @@
 <?php
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
-use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+
+use Bdf\Prime\MongoDB\Query\Compiler\MongoGrammar;
 use Bdf\Prime\Query\CompilableClause;
 
 /**
@@ -27,9 +28,9 @@ interface StageInterface
      * Compile the current stage
      *
      * @param CompilableClause $clause
-     * @param PipelineCompilerInterface $compiler
+     * @param MongoGrammar $grammar
      *
      * @return array
      */
-    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler);
+    public function compile(CompilableClause $clause, MongoGrammar $grammar);
 }

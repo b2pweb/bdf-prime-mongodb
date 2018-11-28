@@ -6,6 +6,9 @@ use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Exception\DBALException;
 use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform as PrimePlatform;
+use Bdf\Prime\MongoDB\Query\Aggregation\PipelineCompiler;
+use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
+use Bdf\Prime\MongoDB\Query\Aggregation\PipelineInterface;
 use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
 use Bdf\Prime\MongoDB\Query\Command\Commands;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoInsertCompiler;
@@ -87,11 +90,13 @@ class MongoConnection extends Connection implements ConnectionInterface
             new MongoCompiler($this),
             [
                 MongoKeyValueQuery::class => MongoKeyValueCompiler::class,
-                MongoInsertQuery::class   => MongoInsertCompiler::class
+                MongoInsertQuery::class   => MongoInsertCompiler::class,
+                Pipeline::class           => PipelineCompiler::class,
             ],
             [
                 KeyValueQueryInterface::class => MongoKeyValueQuery::class,
                 InsertQueryInterface::class   => MongoInsertQuery::class,
+                PipelineInterface::class      => Pipeline::class,
             ]
         );
     }

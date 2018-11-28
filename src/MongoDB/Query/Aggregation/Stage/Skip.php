@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
-use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoGrammar;
 use Bdf\Prime\Query\CompilableClause;
 
 /**
@@ -47,8 +47,8 @@ class Skip implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, MongoGrammar $grammar)
     {
-        return $compiler->compileSkip($clause, $this->export());
+        return $this->skip;
     }
 }

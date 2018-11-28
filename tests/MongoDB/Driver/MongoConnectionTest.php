@@ -5,6 +5,8 @@ namespace Bdf\Prime\MongoDB\Driver;
 use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
+use Bdf\Prime\MongoDB\Query\Aggregation\PipelineInterface;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoCompiler;
 use Bdf\Prime\MongoDB\Query\MongoInsertQuery;
@@ -366,5 +368,6 @@ class MongoConnectionTest extends TestCase
     {
         $this->assertInstanceOf(MongoInsertQuery::class, $this->connection->make(InsertQueryInterface::class));
         $this->assertInstanceOf(MongoKeyValueQuery::class, $this->connection->make(KeyValueQueryInterface::class));
+        $this->assertInstanceOf(Pipeline::class, $this->connection->make(PipelineInterface::class));
     }
 }

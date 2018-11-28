@@ -3,6 +3,11 @@
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
 use Bdf\PHPUnit\TestCase;
+use Bdf\Prime\ConnectionManager;
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
+use Bdf\Prime\MongoDB\Driver\MongoDriver;
+use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoGrammar;
 
 /**
  * @group Bdf
@@ -15,6 +20,37 @@ use Bdf\PHPUnit\TestCase;
  */
 class GroupTest extends TestCase
 {
+    /**
+     * @var MongoGrammar
+     */
+    protected $grammar;
+
+    /**
+     * @var ConnectionManager
+     */
+    protected $manager;
+
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setUp()
+    {
+        $this->manager = new ConnectionManager([
+            'dbConfig' => [
+                'mongo' => [
+                    'driver' => 'mongodb',
+                    'host'   => '127.0.0.1',
+                    'dbname' => 'TEST',
+                ],
+            ]
+        ]);
+
+        $this->manager->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
+
+        $this->grammar = new MongoGrammar($this->manager->connection('mongo')->platform());
+    }
+
     /**
      *
      */
@@ -87,5 +123,154 @@ class GroupTest extends TestCase
             [['_id' => null, 'agg' => ['$stdDevPop' => '$field']], null, ['agg' => ['stdDevPop' => 'field']]],
             [['_id' => null, 'agg' => ['$stdDevSamp' => '$field']], null, ['agg' => ['stdDevSamp' => 'field']]],
         ];
+    }
+
+    /**
+     *
+     */
+    public function test_compile_null()
+    {
+        $this->assertEquals(['_id' => null], (new Group(null))->compile($this->query(), $this->grammar));
+    }
+
+    /**
+     *
+     */
+    public function test_compile_null_with_accumulator()
+    {
+        $group = Group::make(null, [
+            'orderCount' => [
+                'sum' => [
+                    '$size' => '$order'
+                ]
+            ]
+        ]);
+
+        $this->assertEquals([
+            '_id'        => null,
+            'orderCount' => [
+                '$sum' => [
+                    '$size' => '$order'
+                ]
+            ]
+        ],
+            $group->compile($this->query(), $this->grammar)
+        );
+    }
+
+    /**
+     *
+     */
+    public function test_compile_by_field()
+    {
+        $group = Group::make('customer.id', []);
+        $this->assertEquals(['_id' => '$customer.id'], $group->compile($this->query(), $this->grammar));
+    }
+
+    /**
+     *
+     */
+    public function test_compile_by_field_and_accumulator()
+    {
+        $group = Group::make('customer.id', [
+            'orderCount' => [
+                'sum' => ['$size' => '$order']
+            ]
+        ]);
+        $this->assertEquals([
+            '_id'        => '$customer.id',
+            'orderCount' => [
+                '$sum' => [
+                    '$size' => '$order'
+                ]
+            ]
+        ],
+            $group->compile($this->query(), $this->grammar)
+        );
+    }
+
+    /**
+     *
+     */
+    public function test_compile_closure()
+    {
+        $group = Group::make('customer.id', function (Group $group) {
+                $group->avg('pricePerArticle', [
+                    '$divide' => [
+                        ['$sum' => '$order.price'],
+                        ['$sum' => '$order.count']
+                    ]
+                ]);
+            });
+        $this->assertEquals([
+            '_id'   => '$customer.id',
+            'pricePerArticle' => [
+                '$avg' => [
+                    '$divide' => [
+                        ['$sum' => '$order.price'],
+                        ['$sum' => '$order.count']
+                    ]
+                ]
+            ],
+        ],
+            $group->compile($this->query(), $this->grammar)
+        );
+    }
+
+    /**
+     *
+     */
+    public function test_compile_by_multiple_fields()
+    {
+        $group = Group::make([
+            'customer' => 'customer.id',
+            'name'
+        ], null);
+        $this->assertEquals([
+            '_id' => [
+                'customer' => '$customer.id',
+                'name' => '$name'
+            ],
+        ],
+            $group->compile($this->query(), $this->grammar)
+        );
+    }
+
+    /**
+     *
+     */
+    public function test_compile_by_operation()
+    {
+        $group = Group::make([
+            'nbOrderPair' => [
+                '$mod' => [
+                    ['$size' => '$order'],
+                    2
+                ]
+            ]
+        ], [
+            'count' => ['sum' => 1]
+        ]);
+        $this->assertEquals([
+            '_id'   => [
+                'nbOrderPair' => [
+                    '$mod' => [
+                        ['$size' => '$order'],
+                        2
+                    ]
+                ]
+            ],
+            'count' => ['$sum' => 1],
+        ],
+            $group->compile($this->query(), $this->grammar)
+        );
+    }
+
+    /**
+     * @return Pipeline
+     */
+    protected function query()
+    {
+        return (new Pipeline($this->manager->connection('mongo')))->from('users');
     }
 }

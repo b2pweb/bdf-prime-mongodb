@@ -2,9 +2,9 @@
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation;
 
+use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
-use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompiler;
-use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Group;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Limit;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Match;
@@ -12,11 +12,15 @@ use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Project;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Skip;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Sort;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\StageInterface;
-use Bdf\Prime\Query\Clause;
+use Bdf\Prime\Query\CommandInterface;
 use Bdf\Prime\Query\CompilableClause;
+use Bdf\Prime\Query\Compiler\CompilerInterface;
+use Bdf\Prime\Query\Compiler\CompilerState;
+use Bdf\Prime\Query\Compiler\Preprocessor\DefaultPreprocessor;
+use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
+use Bdf\Prime\Query\Contract\Compilable;
 use Bdf\Prime\Query\Contract\Whereable;
 use Bdf\Prime\Query\Extension\SimpleWhereTrait;
-use Bdf\Prime\Query\QueryInterface;
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
 
 /**
@@ -24,10 +28,9 @@ use Doctrine\DBAL\Query\Expression\CompositeExpression;
  *
  * @link https://docs.mongodb.com/manual/core/aggregation-pipeline/
  *
- * @todo implements QueryInterface ?
  * @todo use pagination
  */
-class Pipeline extends CompilableClause implements PipelineInterface, Whereable
+class Pipeline extends CompilableClause implements PipelineInterface, Whereable, CommandInterface, Compilable
 {
     use SimpleWhereTrait;
 
@@ -37,7 +40,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable
     private $connection;
 
     /**
-     * @var PipelineCompilerInterface
+     * @var PipelineCompiler
      */
     private $compiler;
 
@@ -45,16 +48,69 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable
     /**
      * Pipeline constructor.
      *
-     * @param QueryInterface $query
+     * @param ConnectionInterface $connection
+     * @param PreprocessorInterface|null $preprocessor
+     * @param CompilerState|null $state
      */
-    public function __construct(QueryInterface $query)
+    public function __construct(ConnectionInterface $connection, PreprocessorInterface $preprocessor = null, CompilerState $state = null)
     {
-        parent::__construct($query->preprocessor(), $query->state());
+        parent::__construct($preprocessor ?: new DefaultPreprocessor(), $state ?: new CompilerState());
 
-        $this->connection    = $query->connection();
-        $this->compiler      = new PipelineCompiler($query->compiler());
-        $this->statements    = $query->statements + ['pipeline' => []];
-        $this->customFilters = $query->getCustomFilters();
+        $this->on($connection);
+        $this->statements = [
+            'collection' => null,
+            'columns'    => [],
+            'where'      => [],
+            'orders'     => null,
+            'limit'      => null,
+            'offset'     => null,
+            'pipeline'   => [],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function compiler()
+    {
+        return $this->compiler;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setCompiler(CompilerInterface $compiler)
+    {
+        $this->compiler = $compiler;
+
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function connection()
+    {
+        return $this->connection;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function on(ConnectionInterface $connection)
+    {
+        $this->connection = $connection;
+        $this->compiler   = $connection->factory()->compiler(static::class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function from($from, $alias = null)
+    {
+        $this->statements['collection'] = $from;
+
+        return $this;
     }
 
     /**
@@ -88,9 +144,9 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable
     /**
      * {@inheritdoc}
      */
-    public function sort($fields, $order = 'asc')
+    public function sort($fields, $order = null)
     {
-        $this->statements['pipeline'][] = Sort::make($fields, $order);
+        $this->statements['pipeline'][] = Sort::make($fields, $order ?: 'asc');
 
         return $this;
     }
@@ -125,16 +181,17 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable
     }
 
     /**
-     * Execute the aggregation request
-     *
-     * @return array
+     * {@inheritdoc}
      */
-    public function execute()
+    public function execute($columns = null)
     {
-        $cursor = $this->connection->runCommand($this->compiler->compileAggregate($this));
-        $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+        if ($columns !== null) {
+            $this->project($columns);
+        }
 
-        return $cursor->toArray()[0]['result'];
+        foreach ($this->connection->execute($this)->fetchMode(CursorResultSet::FETCH_RAW_ARRAY) as $result) {
+            return $result['result'];
+        }
     }
 
     /**
@@ -177,5 +234,29 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable
         $this->statements = $statements;
 
         return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function compile($forceRecompile = false)
+    {
+        return $this->compiler->compileAggregate($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getBindings()
+    {
+        return [];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function type()
+    {
+        return self::TYPE_SELECT;
     }
 }

@@ -253,16 +253,33 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function pipeline()
     {
-        return new Pipeline($this);
+        $pipeline = new Pipeline($this->connection(), $this->preprocessor(), $this->state());
+
+        $pipeline->setCustomFilters($this->customFilters);
+        $pipeline->statements = $this->statements + $pipeline->statements;
+
+        return $pipeline;
     }
 
     /**
+     * Perform a group aggregation
      *
+     * <code>
+     * // Select users with name starting with a, grouping by their customer id
+     * $query
+     *     ->from('users')
+     *     ->where('name', 'like', 'a%')
+     *     ->group('customer.id')
+     *     ->execute()
+     * ;
+     * </code>
      *
      * @param mixed $expression
      * @param mixed $operations
      *
      * @return Pipeline
+     *
+     * @see Pipeline::group()
      */
     public function group($expression = null, $operations = null)
     {

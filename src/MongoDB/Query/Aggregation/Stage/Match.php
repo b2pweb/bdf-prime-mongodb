@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
-use Bdf\Prime\MongoDB\Query\Aggregation\Compiler\PipelineCompilerInterface;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoGrammar;
 use Bdf\Prime\Query\CompilableClause;
 
 /**
@@ -39,9 +39,9 @@ class Match implements StageInterface
     /**
      * {@inheritdoc}
      */
-    public function compile(CompilableClause $clause, PipelineCompilerInterface $compiler)
+    public function compile(CompilableClause $clause, MongoGrammar $grammar)
     {
-        return $compiler->compileMatch($clause, $this->export());
+        return $grammar->filters($clause, $this->statements['where']);
     }
 
     /**

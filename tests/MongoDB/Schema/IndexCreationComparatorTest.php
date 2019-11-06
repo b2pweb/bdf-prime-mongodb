@@ -21,7 +21,7 @@ class IndexCreationComparatorTest extends TestCase
     public function test_changed_removed()
     {
         $comparator = new IndexSetCreationComparator(new IndexSet([
-            new Index(['col_'], Index::TYPE_SIMPLE, 'name')
+            new Index(['col_' => []], Index::TYPE_SIMPLE, 'name')
         ]));
 
         $this->assertEmpty($comparator->removed());
@@ -33,8 +33,8 @@ class IndexCreationComparatorTest extends TestCase
     public function test_added()
     {
         $comparator = new IndexSetCreationComparator(new IndexSet([
-            $index = new Index(['col_'], Index::TYPE_SIMPLE, 'name'),
-            new Index(['_id'], Index::TYPE_PRIMARY, '_id_'),
+            $index = new Index(['col_' => []], Index::TYPE_SIMPLE, 'name'),
+            new Index(['_id' => []], Index::TYPE_PRIMARY, '_id_'),
         ]));
 
         $this->assertEquals([$index], $comparator->added());

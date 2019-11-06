@@ -31,7 +31,7 @@ class BsonDoubleType extends AbstractPlatformType
     /**
      * {@inheritdoc}
      */
-    public function fromDatabase($value)
+    public function fromDatabase($value, array $fieldOptions = [])
     {
         return $value === null ? null : (double) $value;
     }

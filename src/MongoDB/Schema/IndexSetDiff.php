@@ -105,10 +105,23 @@ class IndexSetDiff implements CommandSetInterface
         $command = new CreateIndexes($this->collection);
 
         foreach ($added as $index) {
-            $command->add(
-                $index->name(),
-                array_fill_keys($index->fields(), 1)
-            );
+            $fields = [];
+
+            foreach ($index->fields() as $field) {
+                $options = $index->fieldOptions($field);
+
+                $type = 1;
+
+                if (isset($options['order']) && strtoupper($options['order']) === 'DESC') {
+                    $type = -1;
+                } elseif (isset($options['type'])) {
+                    $type = $options['type'];
+                }
+
+                $fields[$field] = $type;
+            }
+
+            $command->add($index->name(), $fields, $index->options());
 
              if ($index->unique()) {
                  $command->unique();

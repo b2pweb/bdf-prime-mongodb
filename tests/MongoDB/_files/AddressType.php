@@ -7,7 +7,7 @@ use Bdf\Prime\Types\TypeInterface;
 
 class AddressType implements TypeInterface
 {
-    public function fromDatabase($value)
+    public function fromDatabase($value, array $fieldOptions = [])
     {
         return $value ? new Address($value) : null;
     }

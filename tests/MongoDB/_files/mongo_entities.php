@@ -7,6 +7,7 @@ use Bdf\Prime\Entity\Extensions\ArrayInjector;
 use Bdf\Prime\Entity\InitializableInterface;
 use Bdf\Prime\Entity\Model;
 use Bdf\Prime\Mapper\Builder\FieldBuilder;
+use Bdf\Prime\Mapper\Builder\IndexBuilder;
 use Bdf\Prime\Mapper\Mapper;
 use Bdf\Prime\MongoDB\Odm\MongoIdGenerator;
 
@@ -179,11 +180,9 @@ class PersonMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function indexes()
+    public function buildIndexes(IndexBuilder $builder)
     {
-        return [
-            'age_sort' => ['age']
-        ];
+        $builder->add('age_sort')->on('age');
     }
 
     /**
@@ -356,6 +355,22 @@ class HomeMapper extends Mapper
         $builder
             ->on('proprietary')
             ->belongsTo(Person::class, 'proprietary.id')
+        ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function buildIndexes(IndexBuilder $builder)
+    {
+        $builder
+            ->add('search')
+                ->on('address', ['type' => 'text'])
+                ->on('city', ['type' => 'text'])
+                ->option('weights', [
+                    'city' => 2,
+                    'address' => 1,
+                ])
         ;
     }
 }

@@ -8,6 +8,7 @@ use Bdf\PHPUnit\TestCase;
 use Bdf\Prime\MongoAssertion;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
+use Bdf\Prime\MongoDB\Test\Home;
 use Bdf\Prime\MongoDB\Test\Person;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
@@ -81,12 +82,12 @@ class UpgraderTest extends TestCase
         $this->assertEquals('_id_', $indexes[0]->name);
         $this->assertEquals(1, $indexes[0]->key->_id);
 
-        $this->assertEquals('search_name', $indexes[1]->name);
-        $this->assertEquals(1, $indexes[1]->key->first_name);
-        $this->assertEquals(1, $indexes[1]->key->last_name);
+        $this->assertEquals('age_sort', $indexes[1]->name);
+        $this->assertEquals(1, $indexes[1]->key->age);
 
-        $this->assertEquals('age_sort', $indexes[2]->name);
-        $this->assertEquals(1, $indexes[2]->key->age);
+        $this->assertEquals('search_name', $indexes[2]->name);
+        $this->assertEquals(1, $indexes[2]->key->first_name);
+        $this->assertEquals(1, $indexes[2]->key->last_name);
     }
 
     /**
@@ -107,18 +108,18 @@ class UpgraderTest extends TestCase
             'indexes'       => [
                 [
                     'key' => [
+                        'age' => 1
+                    ],
+                    'name' => 'age_sort'
+                ],
+                [
+                    'key' => [
                         'first_name' => 1,
                         'last_name'  => 1
                     ],
                     'name'   => 'search_name',
                     'unique' => 1
                 ],
-                [
-                    'key' => [
-                        'age' => 1
-                    ],
-                    'name' => 'age_sort'
-                ]
             ]
         ], $diffs[1]->document());
     }
@@ -173,6 +174,40 @@ class UpgraderTest extends TestCase
                     'unique' => 1
                 ]
             ]
-        ], $diffs[1]->document( ));
+        ], $diffs[1]->document());
+    }
+
+    /**
+     *
+     */
+    public function test_with_index_options()
+    {
+        $this->resolver = Home::repository()->schema();
+
+        /** @var Command $diffs[] */
+        $diffs = $this->resolver->diff(true);
+        $this->assertCount(2, $diffs);
+
+        $this->assertEquals([
+            'createIndexes' => 'home_test',
+            'indexes'       => [
+                [
+                    'key' => [
+                        'address' => 'text',
+                        'city' => 'text',
+                    ],
+                    'name' => 'search',
+                    'weights' => [
+                        'city' => 2,
+                        'address' => 1,
+                    ],
+                ],
+            ]
+        ], $diffs[1]->document());
+
+        $this->resolver->migrate();
+
+        // @fixme Diff do not works on text index
+        //$this->assertEmpty($this->resolver->diff(true));
     }
 }

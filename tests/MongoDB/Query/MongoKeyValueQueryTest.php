@@ -290,6 +290,18 @@ class MongoKeyValueQueryTest extends TestCase
     /**
      *
      */
+    public function test_paginationCount()
+    {
+        $this->assertEquals(2, $this->query()->paginationCount());
+        $this->assertEquals(1, $this->query()->where('name.first', 'John')->paginationCount());
+        $this->assertEquals(0, $this->query()->where('name.first', 'Not found')->paginationCount());
+        $this->assertEquals(2, $this->query()->limit(1)->paginationCount());
+        $this->assertEquals(2, $this->query()->offset(1)->paginationCount());
+    }
+
+    /**
+     *
+     */
     public function test_execute_error()
     {
         $this->expectException(DBALException::class);

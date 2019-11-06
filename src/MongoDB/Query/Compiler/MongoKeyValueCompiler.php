@@ -157,7 +157,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
             $type = true;
 
             $field = $query->preprocessor()->field($field, $type);
-            $value = $this->platform->types()->toDatabase($value, $type === true ? null : $type);
+            $value = $this->platform()->types()->toDatabase($value, $type === true ? null : $type);
 
             $compiled[$field] = $value;
         }

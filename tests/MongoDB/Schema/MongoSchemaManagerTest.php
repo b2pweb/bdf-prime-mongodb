@@ -281,7 +281,7 @@ class MongoSchemaManagerTest extends TestCase
     {
         $table = new Table('table_', [], new IndexSet([]));
         $table2 = new Table('table_', [], new IndexSet([
-            new Index(['name_'], Index::TYPE_SIMPLE, 'name')
+            new Index(['name_' => []], Index::TYPE_SIMPLE, 'name')
         ]));
 
         $diff = $this->schema->diff($table2, $table);

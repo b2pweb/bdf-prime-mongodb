@@ -41,7 +41,7 @@ class BsonObjectType extends AbstractPlatformType
     /**
      * {@inheritdoc}
      */
-    public function fromDatabase($value)
+    public function fromDatabase($value, array $fieldOptions = [])
     {
         if ($value === null) {
             return null;

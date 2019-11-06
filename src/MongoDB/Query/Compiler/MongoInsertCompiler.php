@@ -137,7 +137,7 @@ class MongoInsertCompiler extends AbstractCompiler
                 $base = &$base[$field[$i]];
             }
 
-            $value = $this->platform->types()->toDatabase($data[$key] ?? null, $column['type']);
+            $value = $this->platform()->types()->toDatabase($data[$key] ?? null, $column['type']);
             $base[$field[$i]] = $value;
         }
 

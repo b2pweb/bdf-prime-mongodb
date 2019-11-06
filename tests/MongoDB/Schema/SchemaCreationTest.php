@@ -26,10 +26,10 @@ class SchemaCreationTest extends TestCase
     {
         $tables = [
             new Table('table_', [], new IndexSet([
-                new Index(['col_'], Index::TYPE_SIMPLE, 'name')
+                new Index(['col_' => []], Index::TYPE_SIMPLE, 'name')
             ])),
             new Table('other_', [], new IndexSet([
-                new Index(['attr_'], Index::TYPE_SIMPLE, 'idx')
+                new Index(['attr_' => []], Index::TYPE_SIMPLE, 'idx')
             ]))
         ];
 
@@ -45,10 +45,10 @@ class SchemaCreationTest extends TestCase
     {
         $tables = [
             new Table('table_', [], new IndexSet([
-                new Index(['col_'], Index::TYPE_SIMPLE, 'name')
+                new Index(['col_' => []], Index::TYPE_SIMPLE, 'name')
             ])),
             new Table('other_', [], new IndexSet([
-                new Index(['attr_'], Index::TYPE_SIMPLE, 'idx')
+                new Index(['attr_' => []], Index::TYPE_SIMPLE, 'idx')
             ]))
         ];
 

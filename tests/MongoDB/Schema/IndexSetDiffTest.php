@@ -28,8 +28,8 @@ class IndexSetDiffTest extends TestCase
     public function test_for_creation()
     {
         $comparator = new IndexSetCreationComparator(new IndexSet([
-            new Index(['col_'], Index::TYPE_SIMPLE, 'col'),
-            new Index(['first_name', 'last_name'], Index::TYPE_UNIQUE, 'name'),
+            new Index(['col_' => []], Index::TYPE_SIMPLE, 'col'),
+            new Index(['first_name' => [], 'last_name' => []], Index::TYPE_UNIQUE, 'name'),
         ]));
 
         $diff = new IndexSetDiff('my_collection', $comparator);
@@ -68,8 +68,8 @@ class IndexSetDiffTest extends TestCase
     {
         $comparator = new IndexSetComparator(
             new IndexSet([
-                new Index(['col_'], Index::TYPE_SIMPLE, 'col'),
-                new Index(['first_name', 'last_name'], Index::TYPE_UNIQUE, 'name'),
+                new Index(['col_' => []], Index::TYPE_SIMPLE, 'col'),
+                new Index(['first_name' => [], 'last_name' => []], Index::TYPE_UNIQUE, 'name'),
             ]),
             new IndexSet([])
         );
@@ -102,12 +102,12 @@ class IndexSetDiffTest extends TestCase
     {
         $comparator = new IndexSetComparator(
             new IndexSet([
-                new Index(['col_'], Index::TYPE_SIMPLE, 'col'),
-                new Index(['first_name', 'last_name'], Index::TYPE_SIMPLE, 'name'),
+                new Index(['col_' => []], Index::TYPE_SIMPLE, 'col'),
+                new Index(['first_name' => [], 'last_name' => []], Index::TYPE_SIMPLE, 'name'),
             ]),
             new IndexSet([
-                new Index(['col_'], Index::TYPE_SIMPLE, 'col'),
-                new Index(['first_name', 'last_name'], Index::TYPE_UNIQUE, 'name'),
+                new Index(['col_' => []], Index::TYPE_SIMPLE, 'col'),
+                new Index(['first_name' => [], 'last_name' => []], Index::TYPE_UNIQUE, 'name'),
             ])
         );
 
@@ -149,7 +149,7 @@ class IndexSetDiffTest extends TestCase
     {
         $comparator = new IndexSetComparator(
             new IndexSet([
-                new Index(['_id'], Index::TYPE_PRIMARY, '_id_'),
+                new Index(['_id' => []], Index::TYPE_PRIMARY, '_id_'),
             ]),
             new IndexSet([])
         );
@@ -171,14 +171,14 @@ class IndexSetDiffTest extends TestCase
     {
         $comparator = new IndexSetComparator(
             new IndexSet([
-                new Index(['col_'], Index::TYPE_SIMPLE, 'col'),
-                new Index(['deprecated_'], Index::TYPE_SIMPLE, 'to_delete'),
-                new Index(['first_name', 'last_name'], Index::TYPE_SIMPLE, 'name'),
+                new Index(['col_' => []], Index::TYPE_SIMPLE, 'col'),
+                new Index(['deprecated_' => []], Index::TYPE_SIMPLE, 'to_delete'),
+                new Index(['first_name' => [], 'last_name' => []], Index::TYPE_SIMPLE, 'name'),
             ]),
             new IndexSet([
-                new Index(['col_'], Index::TYPE_SIMPLE, 'col'),
-                new Index(['first_name', 'last_name'], Index::TYPE_UNIQUE, 'name'),
-                new Index(['added_'], Index::TYPE_SIMPLE, 'to_add'),
+                new Index(['col_' => []], Index::TYPE_SIMPLE, 'col'),
+                new Index(['first_name' => [], 'last_name' => []], Index::TYPE_UNIQUE, 'name'),
+                new Index(['added_' => []], Index::TYPE_SIMPLE, 'to_add'),
             ])
         );
 

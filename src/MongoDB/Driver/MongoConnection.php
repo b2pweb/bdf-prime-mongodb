@@ -187,9 +187,9 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function fromDatabase($value, $type)
+    public function fromDatabase($value, $type, array $fieldOptions = [])
     {
-        return $this->platform()->types()->fromDatabase($value, $type);
+        return $this->platform()->types()->fromDatabase($value, $type, $fieldOptions);
     }
 
     /**

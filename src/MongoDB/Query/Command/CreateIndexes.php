@@ -72,16 +72,17 @@ class CreateIndexes extends AbstractCommand
      *
      * @param string $name The index name
      * @param array $keys The index keys
+     * @param array $options The index options
      *
      * @return $this
      */
-    public function add($name, array $keys)
+    public function add($name, array $keys, array $options = [])
     {
         $this->current = count($this->indexes);
         $this->indexes[] = [
             'key'  => $keys,
             'name' => $name,
-        ];
+        ] + $options;
 
         return $this;
     }

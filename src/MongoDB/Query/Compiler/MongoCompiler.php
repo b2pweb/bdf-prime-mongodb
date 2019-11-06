@@ -30,7 +30,7 @@ class MongoCompiler extends AbstractCompiler
         parent::__construct($connection);
 
         // @todo Save grammar on platform
-        $this->grammar = new MongoGrammar($this->platform);
+        $this->grammar = new MongoGrammar($this->platform());
     }
 
     /**
@@ -220,7 +220,7 @@ class MongoCompiler extends AbstractCompiler
                 $base = &$base[$field[$i]];
             }
 
-            $value = $this->platform->types()->toDatabase($value, $type);
+            $value = $this->platform()->types()->toDatabase($value, $type);
             $base[$field[$i]] = $value;
         }
 

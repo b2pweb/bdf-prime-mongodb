@@ -100,4 +100,42 @@ class MongoIndexTest extends TestCase
 
         $this->assertEquals(['first_name', 'last_name'], $index->fields());
     }
+
+    /**
+     *
+     */
+    public function test_options()
+    {
+        $index = new MongoIndex([
+            'name' => 'uniq_',
+            'key'  => [
+                'first_name' => 1,
+                'last_name'  => 1
+            ],
+            'unique' => 1,
+            'foo' => 'bar',
+        ]);
+
+        $this->assertEquals(['foo' => 'bar'], $index->options());
+    }
+
+    /**
+     *
+     */
+    public function test_fieldOptions()
+    {
+        $index = new MongoIndex([
+            'name' => 'uniq_',
+            'key'  => [
+                'first_name' => -1,
+                'last_name'  => 1,
+                'search' => 'text',
+            ],
+            'unique' => 1,
+        ]);
+
+        $this->assertEquals(['order' => 'DESC'], $index->fieldOptions('first_name'));
+        $this->assertEquals([], $index->fieldOptions('last_name'));
+        $this->assertEquals(['type' => 'text'], $index->fieldOptions('search'));
+    }
 }

@@ -60,4 +60,36 @@ class MongoIndex extends AbstractIndex
     {
         return array_keys($this->data['key']);
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function options()
+    {
+        return array_diff_key($this->data, [
+            'key' => true,
+            'unique' => true,
+            'name' => true,
+            'v' => true,
+            'ns' => true,
+        ]);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function fieldOptions($field)
+    {
+        $options = [];
+
+        if ($this->data['key'][$field] === -1) {
+            $options['order'] = 'DESC';
+        }
+
+        if (is_string($this->data['key'][$field])) {
+            $options['type'] = $this->data['key'][$field];
+        }
+
+        return $options;
+    }
 }

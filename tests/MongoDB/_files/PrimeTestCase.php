@@ -5,11 +5,11 @@ namespace Bdf\Prime;
 use Bdf\Prime\Entity\Model;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
+use Bdf\Prime\Serializer\PaginatorNormalizer;
+use Bdf\Prime\Serializer\PrimeCollectionNormalizer;
 use Bdf\Prime\Test\TestPack;
 use Bdf\Prime\Types\ArrayType;
 use Bdf\Serializer\Normalizer\ObjectNormalizer;
-use Bdf\Serializer\Normalizer\PaginatorNormalizer;
-use Bdf\Serializer\Normalizer\PrimeCollectionNormalizer;
 use Bdf\Serializer\SerializerBuilder;
 
 /**

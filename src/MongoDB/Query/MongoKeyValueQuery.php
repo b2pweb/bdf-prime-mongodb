@@ -115,6 +115,25 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
+    public function paginationCount($column = null)
+    {
+        // Backup statements
+        $statements = $this->statements;
+
+        // Remove pagination parameters
+        $this->statements['limit'] = null;
+        $this->statements['offset'] = null;
+
+        try {
+            return $this->count($column);
+        } finally {
+            $this->statements = $statements;
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function avg($column = null)
     {
         return (float) $this->aggregate(__FUNCTION__, $column);

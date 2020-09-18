@@ -79,10 +79,30 @@ class BsonDateTypeTest extends TestCase
 
         $this->assertEquals(
             $time,
-            $this->type->fromDatabase(
+            $from = $this->type->fromDatabase(
                 $this->type->toDatabase($time)
             )
         );
+
+        $this->assertEquals('2017-08-28 15:25:32', $from->format('Y-m-d H:i:s'));
+    }
+
+    /**
+     *
+     */
+    public function test_to_from_database_with_timezone()
+    {
+        $time = new \DateTime('2017-08-28 15:25:32');
+
+        $this->assertEquals(
+            $time,
+            $from = $this->type->fromDatabase(
+                $this->type->toDatabase($time),
+                ['timezone' => 'Asia/Nicosia']
+            )
+        );
+
+        $this->assertEquals('2017-08-28 16:25:32', $from->format('Y-m-d H:i:s'));
     }
 
     /**

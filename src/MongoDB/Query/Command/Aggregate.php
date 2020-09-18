@@ -121,7 +121,7 @@ class Aggregate extends AbstractCommand
      */
     public function cursor(array $cursor)
     {
-        $this->fields['cursor'] = $cursor;
+        $this->fields['cursor'] = (object) $cursor;
 
         return $this;
     }

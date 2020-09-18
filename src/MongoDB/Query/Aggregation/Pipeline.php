@@ -189,9 +189,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
             $this->project($columns);
         }
 
-        foreach ($this->connection->execute($this)->fetchMode(CursorResultSet::FETCH_RAW_ARRAY) as $result) {
-            return $result['result'];
-        }
+        return $this->connection->execute($this)->fetchMode(CursorResultSet::FETCH_RAW_ARRAY)->all();
     }
 
     /**

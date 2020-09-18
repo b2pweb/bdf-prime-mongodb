@@ -64,6 +64,8 @@ class PipelineCompiler
             $command->add(['$skip' => $clause->statements['offset']]);
         }
 
+        $command->cursor([]);
+
         return $command;
     }
 

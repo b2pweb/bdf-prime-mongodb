@@ -92,8 +92,8 @@ class PipelineCompilerTest extends TestCase
                             ]
                         ]
                     ]
-
-                ]
+                ],
+                'cursor' => new \stdClass(),
             ],
             $command->document()
         );
@@ -138,7 +138,8 @@ class PipelineCompilerTest extends TestCase
                         '$push' => '$user.name'
                     ]
                 ]]
-            ]
+            ],
+            'cursor' => new \stdClass(),
         ], $compiled->document());
     }
 

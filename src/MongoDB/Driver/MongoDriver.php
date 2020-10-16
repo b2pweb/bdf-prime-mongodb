@@ -16,13 +16,15 @@ class MongoDriver implements Driver
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = [])
     {
-        $uri = 'mongodb://'.$params['host'];
-
-        if (!empty($params['port'])) {
-            $uri .= ':'.$params['port'];
+        if (!empty($username)) {
+            $params['username'] = $username;
         }
 
-        return new Manager($uri);
+        if (!empty($password)) {
+            $params['password'] = $password;
+        }
+
+        return new Manager($this->buildDsn($params), $params, $driverOptions);
     }
 
     /**
@@ -55,5 +57,28 @@ class MongoDriver implements Driver
     public function getDatabase(Connection $conn)
     {
         return $conn->getParams()['dbname'];
+    }
+
+    private function buildDsn(array $params): string
+    {
+        $uri = 'mongodb://';
+
+        if (isset($params['host'])) {
+            $uri .= $params['host'];
+
+            if (!empty($params['port'])) {
+                $uri .= ':' . $params['port'];
+            }
+
+            return $uri;
+        }
+
+        if (isset($params['hosts'])) {
+            $uri .= implode(',', $params['hosts']);
+
+            return $uri;
+        }
+
+        throw new \InvalidArgumentException('Cannot build mongodb DSN');
     }
 }

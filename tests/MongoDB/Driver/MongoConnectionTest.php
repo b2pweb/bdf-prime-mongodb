@@ -15,7 +15,9 @@ use Bdf\Prime\MongoDB\Query\MongoQuery;
 use Bdf\Prime\Query\Contract\Query\InsertQueryInterface;
 use Bdf\Prime\Query\Contract\Query\KeyValueQueryInterface;
 use MongoDB\Driver\BulkWrite;
+use MongoDB\Driver\Manager;
 use MongoDB\Driver\Query;
+use MongoDB\Driver\ReadPreference;
 
 /**
  * @group Bdf
@@ -72,6 +74,39 @@ class MongoConnectionTest extends TestCase
         $this->assertInstanceOf(MongoConnection::class, $this->connection);
         $this->assertInstanceOf(MongoDriver::class, $this->connection->getDriver());
         $this->assertInstanceOf(MongoPlatform::class, $this->connection->getDatabasePlatform());
+    }
+
+    /**
+     *
+     */
+    public function test_with_replica()
+    {
+        $manager = new ConnectionManager([
+            'dbConfig' => [
+                'replica' => [
+                    'driver' => 'mongodb',
+                    'hosts'   => [
+                        'mongo1.example.com:1234',
+                        'mongo2.example.com:4567',
+                    ],
+                    'user' => 'my_user',
+                    'password' => 'my_password',
+                    'replicaSet' => 'my_set',
+                ],
+            ]
+        ]);
+
+        $manager->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
+
+        /** @var MongoConnection $connection */
+        $connection = $manager->connection('replica');
+        $connection->connect();
+
+        /** @var Manager $innerConnection */
+        $innerConnection = ((array)$connection)["\0*\0_conn"];
+
+        $this->assertInstanceOf(Manager::class, $innerConnection);
+        $this->assertContains('mongodb://mongo1.example.com:1234,mongo2.example.com:4567', print_r($innerConnection, true));
     }
 
     /**

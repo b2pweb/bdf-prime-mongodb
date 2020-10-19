@@ -24,7 +24,11 @@ class MongoDriver implements Driver
             $params['password'] = $password;
         }
 
-        return new Manager($this->buildDsn($params), $params, $driverOptions);
+        if (!empty($params['noAuth'])) {
+            unset($params['username'], $params['password']);
+        }
+
+        return new Manager($this->buildDsn($params), array_filter($params), $driverOptions);
     }
 
     /**

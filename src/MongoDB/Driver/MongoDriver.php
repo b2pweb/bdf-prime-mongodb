@@ -67,7 +67,7 @@ class MongoDriver implements Driver
     {
         $uri = 'mongodb://';
 
-        if (isset($params['host'])) {
+        if (!empty($params['host'])) {
             $uri .= $params['host'];
 
             if (!empty($params['port'])) {
@@ -77,7 +77,7 @@ class MongoDriver implements Driver
             return $uri;
         }
 
-        if (isset($params['hosts'])) {
+        if (!empty($params['hosts'])) {
             $uri .= implode(',', $params['hosts']);
 
             return $uri;

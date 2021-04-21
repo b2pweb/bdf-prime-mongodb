@@ -136,6 +136,19 @@ class MongoPlatformTest extends TestCase
     /**
      *
      */
+    public function test_type_bigint()
+    {
+        $this->assertSame(123000000000, $this->platform->types()->get('bigint')->toDatabase(123000000000));
+        $this->assertSame(123000000000, $this->platform->types()->get('bigint')->toDatabase('123000000000'));
+        $this->assertNull($this->platform->types()->get('bigint')->toDatabase(null));
+        $this->assertSame(123000000000, $this->platform->types()->get('bigint')->fromDatabase(123000000000));
+        $this->assertSame(123000000000, $this->platform->types()->get('bigint')->fromDatabase('123000000000'));
+        $this->assertNull($this->platform->types()->get('bigint')->fromDatabase(null));
+    }
+
+    /**
+     *
+     */
     public function test_type_float()
     {
         $this->assertEquals(12.3, $this->platform->types()->get('float')->toDatabase(12.3));

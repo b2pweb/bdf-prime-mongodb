@@ -47,9 +47,17 @@ class BsonLongType extends AbstractPlatformType
     /**
      * {@inheritdoc}
      */
-    public function toDatabase($value)
+    public function toDatabase($value, array $fieldOptions = [])
     {
-        return $value;
+        if ($value === null) {
+            return null;
+        }
+
+        if (PHP_INT_SIZE < 8) {
+            return (string) $value;
+        } else {
+            return (int) $value;
+        }
     }
 
     /**

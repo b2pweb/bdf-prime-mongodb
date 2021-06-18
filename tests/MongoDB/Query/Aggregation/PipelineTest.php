@@ -82,7 +82,7 @@ class PipelineTest extends TestCase
      */
     public function test_project_one_attribute()
     {
-        $this->assertEquals(
+        $this->assertEqualsCanonicalizing(
             [
                 ['name' => 'Paul'],
                 ['name' => 'Jean'],
@@ -97,7 +97,7 @@ class PipelineTest extends TestCase
      */
     public function test_project_with_alias()
     {
-        $this->assertEquals(
+        $this->assertEqualsCanonicalizing(
             [
                 ['name' => 'Paul',   'customer' => '123'],
                 ['name' => 'Jean',   'customer' => '741'],
@@ -112,7 +112,7 @@ class PipelineTest extends TestCase
      */
     public function test_project_with_evaluation()
     {
-        $this->assertEquals(
+        $this->assertEqualsCanonicalizing(
             [
                 ['name' => 'Paul',   'orderCount' => 2],
                 ['name' => 'Jean',   'orderCount' => 3],
@@ -132,7 +132,7 @@ class PipelineTest extends TestCase
      */
     public function test_project_with_closure()
     {
-        $this->assertEquals(
+        $this->assertEqualsCanonicalizing(
             [
                 ['name' => 'Paul',   'customer' => '123', 'orderCount' => 2],
                 ['name' => 'Jean',   'customer' => '741', 'orderCount' => 3],
@@ -197,7 +197,7 @@ class PipelineTest extends TestCase
      */
     public function test_group_by_field()
     {
-        $this->assertEquals([
+        $this->assertEqualsCanonicalizing([
             ['_id'   => '741'],
             ['_id'   => '123'],
         ], $this->query()->group('customer.id')->execute());
@@ -208,7 +208,7 @@ class PipelineTest extends TestCase
      */
     public function test_group_by_field_and_accumulator()
     {
-        $this->assertEquals([
+        $this->assertEqualsCanonicalizing([
             ['_id'   => '741', 'orderCount' => 4],
             ['_id'   => '123', 'orderCount' => 2],
         ], $this->query()
@@ -239,7 +239,7 @@ class PipelineTest extends TestCase
                 ]);
             })
             ->execute(),
-            '', 0.001
+            '', 0.001, 10, true
         );
     }
 

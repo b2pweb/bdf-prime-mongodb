@@ -88,7 +88,7 @@ class Group implements StageInterface
     public function accumulator($field, $operator, $expression)
     {
         // If expression is a string, it represents (only on $group context) a field name
-        if (is_string($expression) && $expression{0} !== '$') {
+        if (is_string($expression) && $expression[0] !== '$') {
             $expression = '$' . $expression;
         }
 

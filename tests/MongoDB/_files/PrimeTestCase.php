@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime;
 
+use Bdf\Prime\Connection\Factory\ConnectionFactory;
 use Bdf\Prime\Entity\Model;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
@@ -51,7 +52,7 @@ trait PrimeTestCase
                     ]
                 ]
             ]);
-            Prime::service()->connections()->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
+            ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
             $serializer = SerializerBuilder::create()
                 ->build();

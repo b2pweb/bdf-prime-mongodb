@@ -40,6 +40,6 @@ final class Commands
             return new SimpleCommand($command, $argument);
         }
 
-        throw new \InvalidArgumentException('Invalid command type '.gettype($command));
+        throw new \InvalidArgumentException('Invalid command type ' . gettype($command));
     }
 }

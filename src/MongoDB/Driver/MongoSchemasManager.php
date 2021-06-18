@@ -13,6 +13,7 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
  */
 class MongoSchemasManager extends AbstractSchemaManager
 {
+    // phpcs:disable
     /**
      * Gets Table Column Definition.
      *
@@ -20,7 +21,10 @@ class MongoSchemasManager extends AbstractSchemaManager
      *
      * @return \Doctrine\DBAL\Schema\Column
      */
-    protected function _getPortableTableColumnDefinition($tableColumn) {}
+    protected function _getPortableTableColumnDefinition($tableColumn)
+    {
+    }
+    // phpcs:enable
 
     /**
      * {@inheritdoc}

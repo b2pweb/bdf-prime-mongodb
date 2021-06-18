@@ -17,42 +17,60 @@ class MongoPlatform extends AbstractPlatform
     /**
      * {@inheritdoc}
      */
-    public function getBooleanTypeDeclarationSQL(array $columnDef) {}
+    public function getBooleanTypeDeclarationSQL(array $columnDef)
+    {
+    }
 
     /**
      * {@inheritdoc}
      */
-    public function getIntegerTypeDeclarationSQL(array $columnDef) {}
+    public function getIntegerTypeDeclarationSQL(array $columnDef)
+    {
+    }
 
     /**
      * {@inheritdoc}
      */
-    public function getBigIntTypeDeclarationSQL(array $columnDef) {}
+    public function getBigIntTypeDeclarationSQL(array $columnDef)
+    {
+    }
 
     /**
      * {@inheritdoc}
      */
-    public function getSmallIntTypeDeclarationSQL(array $columnDef) {}
+    public function getSmallIntTypeDeclarationSQL(array $columnDef)
+    {
+    }
+
+    // phpcs:disable
+    /**
+     * {@inheritdoc}
+     */
+    protected function _getCommonIntegerTypeDeclarationSQL(array $columnDef)
+    {
+    }
+    // phpcs:enable
 
     /**
      * {@inheritdoc}
      */
-    protected function _getCommonIntegerTypeDeclarationSQL(array $columnDef) {}
+    protected function initializeDoctrineTypeMappings()
+    {
+    }
 
     /**
      * {@inheritdoc}
      */
-    protected function initializeDoctrineTypeMappings() {}
+    public function getClobTypeDeclarationSQL(array $field)
+    {
+    }
 
     /**
      * {@inheritdoc}
      */
-    public function getClobTypeDeclarationSQL(array $field) {}
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBlobTypeDeclarationSQL(array $field) {}
+    public function getBlobTypeDeclarationSQL(array $field)
+    {
+    }
 
     /**
      * {@inheritdoc}
@@ -73,5 +91,7 @@ class MongoPlatform extends AbstractPlatform
     /**
      * {@inheritdoc}
      */
-    public function getCreateTableSQL(Table $table, $createFlags = self::CREATE_INDEXES) {}
+    public function getCreateTableSQL(Table $table, $createFlags = self::CREATE_INDEXES)
+    {
+    }
 }

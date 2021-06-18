@@ -4,7 +4,7 @@ namespace Bdf\Prime\MongoDB\Orm;
 
 require_once __DIR__ . '/../_files/mongo_entities.php';
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Test\Person;
 use Bdf\Prime\MongoDB\Test\TimestampableEntity;
 use Bdf\Prime\Prime;
@@ -29,12 +29,10 @@ class TestPackTest extends TestCase
     {
         $this->configurePrime();
 
-        Prime::service()->config()->getDbConfig()->merge([
-            'mongo' => [
-                'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
-                'dbname' => 'TEST',
-            ],
+        Prime::service()->connections()->declareConnection('mongo', [
+            'driver' => 'mongodb',
+            'host'   => '127.0.0.1',
+            'dbname' => 'TEST',
         ]);
 
         if ($this->pack()->isInitialized()) {

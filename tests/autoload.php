@@ -5,6 +5,3 @@ include_once __DIR__.'/MongoDB/_files/PrimeTestCase.php';
 include_once __DIR__.'/MongoDB/_files/MongoAssertion.php';
 include_once __DIR__.'/MongoDB/_files/mongo_entities.php';
 include_once __DIR__.'/MongoDB/_files/AddressType.php';
-
-Bdf\Exception\DeprecationErrorHandler::register();
-SebastianBergmann\Comparator\Factory::getInstance()->register(new \Bdf\PHPUnit\Comparator\DateTimeComparator());

@@ -3,7 +3,7 @@
 namespace Bdf\Prime\MongoDB\Query\Command;
 
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 
 /**
  * @group Bdf

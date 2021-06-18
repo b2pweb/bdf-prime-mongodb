@@ -1,0 +1,16 @@
+build:
+  environment:
+    php: 7.2.24
+    timezone: Europe/Paris
+
+  nodes:
+    tests:
+      services:
+        mongo: 4
+
+      tests:
+        override:
+          - command: composer run tests-with-coverage
+            coverage:
+              file: coverage.xml
+              format: clover

@@ -123,9 +123,9 @@ class IndexSetDiff implements CommandSetInterface
 
             $command->add($index->name(), $fields, $index->options());
 
-             if ($index->unique()) {
-                 $command->unique();
-             }
+            if ($index->unique()) {
+                $command->unique();
+            }
         }
 
         return [$command];

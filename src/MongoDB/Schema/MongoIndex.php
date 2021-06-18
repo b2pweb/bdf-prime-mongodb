@@ -11,7 +11,7 @@ use Bdf\Prime\Schema\Adapter\AbstractIndex;
  */
 class MongoIndex extends AbstractIndex
 {
-    const PRIMARY = '_id_';
+    public const PRIMARY = '_id_';
 
     /**
      * @var array

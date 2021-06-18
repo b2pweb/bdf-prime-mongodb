@@ -89,7 +89,7 @@ class Group implements StageInterface
     {
         // If expression is a string, it represents (only on $group context) a field name
         if (is_string($expression) && $expression{0} !== '$') {
-            $expression = '$'.$expression;
+            $expression = '$' . $expression;
         }
 
         $this->fields[$field] = [
@@ -255,7 +255,7 @@ class Group implements StageInterface
         }
 
         if (is_string($this->id)) {
-            return '$'.$clause->preprocessor()->field($this->id);
+            return '$' . $clause->preprocessor()->field($this->id);
         }
 
         $compiled = [];
@@ -266,7 +266,7 @@ class Group implements StageInterface
             }
 
             if (($subExpression === true || $subExpression === 1) && $field[0] !== '$') {
-                $compiled[$field] = '$'.$field;
+                $compiled[$field] = '$' . $field;
                 continue;
             }
 

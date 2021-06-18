@@ -2,7 +2,6 @@
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
-
 use Bdf\Prime\MongoDB\Query\Compiler\MongoGrammar;
 use Bdf\Prime\Query\CompilableClause;
 

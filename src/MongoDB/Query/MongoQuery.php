@@ -10,6 +10,7 @@ use Bdf\Prime\Query\AbstractQuery;
 use Bdf\Prime\Query\Compiler\Preprocessor\DefaultPreprocessor;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
 use Bdf\Prime\Query\Contract\Aggregatable;
+use Bdf\Prime\Query\Contract\Limitable;
 use Bdf\Prime\Query\Contract\Orderable;
 use Bdf\Prime\Query\Contract\Paginable;
 use Bdf\Prime\Query\Extension\LimitableTrait;
@@ -23,7 +24,7 @@ use Bdf\Prime\Query\QueryInterface;
  * @property MongoConnection $connection
  * @property MongoCompiler $compiler
  */
-class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable, Aggregatable
+class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable, Aggregatable, Limitable
 {
     use PaginableTrait;
     use LimitableTrait;

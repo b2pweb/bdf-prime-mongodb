@@ -3,7 +3,7 @@
 namespace Bdf\Prime\MongoDB\Platform;
 
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Platform\Types\BsonArrayType;
 use Bdf\Prime\MongoDB\Platform\Types\BsonBinDataType;
 use Bdf\Prime\MongoDB\Platform\Types\BsonBooleanType;

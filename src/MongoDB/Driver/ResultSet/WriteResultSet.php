@@ -29,7 +29,9 @@ final class WriteResultSet extends \EmptyIterator implements ResultSetInterface
     /**
      * {@inheritdoc}
      */
-    public function fetchMode($mode, $options = null) {}
+    public function fetchMode($mode, $options = null)
+    {
+    }
 
     /**
      * {@inheritdoc}

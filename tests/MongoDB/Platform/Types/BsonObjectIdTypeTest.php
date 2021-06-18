@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\Types;
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform;
 use Bdf\Prime\MongoDB\Platform\Types\BsonObjectIdType;
 use Bdf\Prime\Schema\ColumnInterface;

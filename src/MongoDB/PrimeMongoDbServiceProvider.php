@@ -20,9 +20,9 @@ class PrimeMongoDbServiceProvider implements ServiceProviderInterface
         /**
          * ConnectionManager
          */
-        $app->extend('prime-connectionManager', function($connections, $app) {
+        $app->extend('prime-connectionManager', function ($connections, $app) {
             $connections->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
-            
+
             return $connections;
         });
     }

@@ -1,6 +1,7 @@
 <?php
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation;
+
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\StageInterface;
 
 /**

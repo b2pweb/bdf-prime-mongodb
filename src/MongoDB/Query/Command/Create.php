@@ -10,16 +10,16 @@ namespace Bdf\Prime\MongoDB\Query\Command;
 class Create extends AbstractCommand
 {
     /** No validation for inserts or updates. */
-    const VALIDATION_LEVEL_OFF = 'off';
+    public const VALIDATION_LEVEL_OFF = 'off';
     /** Default. Apply validation rules to all inserts and all updates. */
-    const VALIDATION_LEVEL_STRICT = 'strict';
+    public const VALIDATION_LEVEL_STRICT = 'strict';
     /** Apply validation rules to inserts and to updates on existing valid documents. Do not apply rules to updates on existing invalid documents. */
-    const VALIDATION_LEVEL_MODERATE = 'moderate';
+    public const VALIDATION_LEVEL_MODERATE = 'moderate';
 
     /** Default. Documents must pass validation before the write occurs. Otherwise, the write operation fails */
-    const VALIDATION_ACTION_ERROR = 'error';
+    public const VALIDATION_ACTION_ERROR = 'error';
     /** Documents do not have to pass validation. If the document fails validation, the write operation logs the validation failure. */
-    const VALIDATION_ACTION_WARN  = 'warn';
+    public const VALIDATION_ACTION_WARN  = 'warn';
 
     /**
      * @var string

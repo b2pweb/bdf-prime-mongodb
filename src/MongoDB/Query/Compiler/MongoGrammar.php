@@ -56,12 +56,24 @@ class MongoGrammar implements CompilerInterface
     }
 
     // Add compiler methods for compatibility with ExpressionTransformerInterface::setContext()
-    public function compileInsert(CompilableClause $query) {}
-    public function compileUpdate(CompilableClause $query) {}
-    public function compileDelete(CompilableClause $query) {}
-    public function compileSelect(CompilableClause $query) {}
-    public function quoteIdentifier(CompilableClause $query, $column) {}
-    public function getBindings(CompilableClause $query) {}
+    public function compileInsert(CompilableClause $query)
+    {
+    }
+    public function compileUpdate(CompilableClause $query)
+    {
+    }
+    public function compileDelete(CompilableClause $query)
+    {
+    }
+    public function compileSelect(CompilableClause $query)
+    {
+    }
+    public function quoteIdentifier(CompilableClause $query, $column)
+    {
+    }
+    public function getBindings(CompilableClause $query)
+    {
+    }
 
     /**
      * {@inheritdoc}
@@ -100,7 +112,7 @@ class MongoGrammar implements CompilerInterface
     public function expression(CompilableClause $query, $expression)
     {
         if (is_string($expression) && $expression[0] === '$') {
-            return '$'.$query->preprocessor()->field(substr($expression, 1));
+            return '$' . $query->preprocessor()->field(substr($expression, 1));
         }
 
         if (is_scalar($expression)) {
@@ -157,7 +169,7 @@ class MongoGrammar implements CompilerInterface
 
             if (!empty($column['alias'])) {
                 if ($field[0] !== '$') {
-                    $field = '$'.$field;
+                    $field = '$' . $field;
                 }
 
                 $projection[$column['alias']] = $field;
@@ -357,7 +369,7 @@ class MongoGrammar implements CompilerInterface
             $value = $this->convert($value);
         }
 
-        if (isset ($this->operatorsMap[$operator])) {
+        if (isset($this->operatorsMap[$operator])) {
             return $this->simpleOperator($column, $this->operatorsMap[$operator], $value);
         }
 
@@ -372,6 +384,14 @@ class MongoGrammar implements CompilerInterface
 
             case 'like':
             case ':like':
+                if (is_array($value)) {
+                    return [
+                    '$or' => array_map(function ($value) use ($column, $operator) {
+                        return [$column => $this->like($value)];
+                    }, $value)
+                    ];
+                }
+
                 return [$column => $this->like($value)];
 
             case 'in':
@@ -400,6 +420,10 @@ class MongoGrammar implements CompilerInterface
                         [$column => ['$gt' => $value[1]]],
                     ]
                 ];
+
+            // Cannot use simple operator here : the value is always an array and should not be interpreted as OR
+            case '$elemMatch':
+                return [$column => ['$elemMatch' => $value]];
 
             default:
                 return $this->simpleOperator($column, $operator, $value);
@@ -454,7 +478,7 @@ class MongoGrammar implements CompilerInterface
     private function like($value)
     {
         return [
-            '$regex'   => '^'.strtr($value, ['%' => '.*', '?' => '.']).'$',
+            '$regex'   => '^' . strtr($value, ['%' => '.*', '?' => '.']) . '$',
             '$options' => 'i'
         ];
     }

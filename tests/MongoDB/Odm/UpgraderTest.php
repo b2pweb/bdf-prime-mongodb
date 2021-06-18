@@ -4,7 +4,7 @@ namespace Bdf\Prime\MongoDB\Odm;
 
 require_once __DIR__.'/../_files/mongo_entities.php';
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoAssertion;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
@@ -43,12 +43,10 @@ class UpgraderTest extends TestCase
     {
         $this->primeStart();
 
-        Prime::service()->config()->getDbConfig()->merge([
-            'mongo' => [
-                'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
-                'dbname' => 'TEST',
-            ],
+        Prime::service()->connections()->declareConnection('mongo', [
+            'driver' => 'mongodb',
+            'host'   => '127.0.0.1',
+            'dbname' => 'TEST',
         ]);
 
         $this->resolver = Person::repository()->schema();

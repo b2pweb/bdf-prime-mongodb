@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query\Compiler;
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
@@ -41,12 +41,10 @@ class MongoGrammarTest extends TestCase
     {
         $this->primeStart();
 
-        Prime::service()->config()->getDbConfig()->merge([
-            'mongo' => [
-                'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
-                'dbname' => 'TEST',
-            ],
+        Prime::service()->connections()->declareConnection('mongo', [
+            'driver' => 'mongodb',
+            'host'   => '127.0.0.1',
+            'dbname' => 'TEST',
         ]);
 
         $this->connection = Prime::connection('mongo');
@@ -242,6 +240,29 @@ class MongoGrammarTest extends TestCase
     /**
      *
      */
+    public function test_filters_transformer_expression_or_like()
+    {
+        $query = $this->query()
+            ->where('first_name', (new Like(['j', 'f', 'k']))->startsWith())
+        ;
+
+        $filters = $this->compiler->filters(
+            $query,
+            $query->statements['where']
+        );
+
+        $this->assertEquals([
+            '$or' => [
+                ['first_name' => ['$regex' => '^j.*$', '$options' => 'i']],
+                ['first_name' => ['$regex' => '^f.*$', '$options' => 'i']],
+                ['first_name' => ['$regex' => '^k.*$', '$options' => 'i']],
+            ]
+        ], $filters);
+    }
+
+    /**
+     *
+     */
     public function test_filters_with_array_value()
     {
         $query = $this->query()
@@ -407,6 +428,26 @@ class MongoGrammarTest extends TestCase
 
         $this->assertEquals([
             'age' => ['$undefined' => 42]
+        ], $filters);
+    }
+
+    /**
+     *
+     */
+    public function test_filters_elemMatch()
+    {
+        $query = $this->query()->where('person', '$elemMatch', ['firstName' => 'John', 'lastName' => 'Doe']);
+
+        $filters = $this->compiler->filters(
+            $query,
+            $query->statements['where']
+        );
+
+        $this->assertEquals([
+            'person' => ['$elemMatch' => [
+                'firstName' => 'John',
+                'lastName' => 'Doe',
+            ]],
         ], $filters);
     }
 

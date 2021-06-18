@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Schema;
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoAssertion;
 use Bdf\Prime\MongoDB\Query\Command\CreateIndexes;
 use Bdf\Prime\MongoDB\Query\Command\DropIndexes;

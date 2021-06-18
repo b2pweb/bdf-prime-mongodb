@@ -2,7 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Driver\ResultSet;
 
-use Bdf\PHPUnit\TestCase;
+use Bdf\Prime\Connection\ConnectionRegistry;
+use Bdf\Prime\Connection\Factory\ConnectionFactory;
 use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\Entity\Extensions\ArrayInjector;
@@ -11,6 +12,7 @@ use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use MongoDB\BSON\Unserializable;
 use MongoDB\BSON\UTCDateTime;
 use MongoDB\Driver\Query;
+use PHPUnit\Framework\TestCase;
 
 /**
  * Class CursorResultSetTest
@@ -33,16 +35,14 @@ class CursorResultSetTest extends TestCase
      */
     protected function setUp()
     {
-        $manager = new ConnectionManager([
-            'dbConfig' => [
-                'mongo' => [
-                    'driver' => 'mongodb',
-                    'host'   => '127.0.0.1',
-                    'dbname' => 'TEST',
-                ],
-            ]
-        ]);
-        $manager->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
+        $manager = new ConnectionManager(new ConnectionRegistry([
+            'mongo' => [
+                'driver' => 'mongodb',
+                'host'   => '127.0.0.1',
+                'dbname' => 'TEST',
+            ],
+        ]));
+        ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
         $this->connection = $manager->connection('mongo');
 

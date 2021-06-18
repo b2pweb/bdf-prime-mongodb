@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query\Compiler;
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
@@ -39,12 +39,10 @@ class MongoKeyValueCompilerTest extends TestCase
     {
         $this->primeStart();
 
-        Prime::service()->config()->getDbConfig()->merge([
-            'mongo' => [
-                'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
-                'dbname' => 'TEST',
-            ],
+        Prime::service()->connections()->declareConnection('mongo', [
+            'driver' => 'mongodb',
+            'host'   => '127.0.0.1',
+            'dbname' => 'TEST',
         ]);
 
         $this->connection = Prime::connection('mongo');

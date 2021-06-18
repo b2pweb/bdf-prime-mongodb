@@ -221,7 +221,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
         $statements['pipeline'][] = new Match([
             'where' => [
                 [
-                    'nested' => array_map(function(Match $match) {
+                    'nested' => array_map(function (Match $match) {
                         return $match->export()[0];
                     }, $this->statements['pipeline']),
                     'glue'   => $type,

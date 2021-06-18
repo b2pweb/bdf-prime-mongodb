@@ -4,7 +4,7 @@ namespace Bdf\Prime\MongoDB\Odm;
 
 require_once __DIR__.'/../_files/mongo_entities.php';
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Test\Address;
 use Bdf\Prime\MongoDB\Test\EntityWithComplexArray;
@@ -45,12 +45,10 @@ class OdmTest extends TestCase
     {
         $this->primeStart();
 
-        Prime::service()->config()->getDbConfig()->merge([
-            'mongo' => [
-                'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
-                'dbname' => 'TEST',
-            ],
+        Prime::service()->connections()->declareConnection('mongo', [
+            'driver' => 'mongodb',
+            'host'   => '127.0.0.1',
+            'dbname' => 'TEST',
         ]);
     }
 
@@ -273,7 +271,7 @@ class OdmTest extends TestCase
         $this->assertInstanceOf(UTCDateTime::class, $data[0]['created_at']);
         $this->assertNull($data[0]['updated_at']);
 
-        $this->assertEquals($entity, TimestampableEntity::refresh($entity));
+        $this->assertEqualsWithDelta($entity, TimestampableEntity::refresh($entity), 1);
 
         $entity = TimestampableEntity::refresh($entity);
         $this->assertInstanceOf(\DateTime::class, $entity->createdAt());

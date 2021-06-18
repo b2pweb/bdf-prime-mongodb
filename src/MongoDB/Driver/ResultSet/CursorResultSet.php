@@ -11,7 +11,7 @@ use MongoDB\Driver\Cursor;
  */
 final class CursorResultSet extends \IteratorIterator implements ResultSetInterface
 {
-    const FETCH_RAW_ARRAY = 'raw_array';
+    public const FETCH_RAW_ARRAY = 'raw_array';
 
     /**
      * @var Cursor
@@ -140,7 +140,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
         $flatten = [];
 
         foreach ($data as $k => $v) {
-            $key = empty($base) ? $k : $base.'.'.$k;
+            $key = empty($base) ? $k : $base . '.' . $k;
 
             if (is_array($v) && is_string(key($v))) {
                 $flatten = array_merge($flatten, $this->toFlatArray($v, $key));

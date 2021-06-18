@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query\Command;
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoAssertion;
 use MongoDB\Driver\Command;
 

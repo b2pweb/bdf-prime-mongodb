@@ -4,7 +4,7 @@ namespace Bdf\Prime\MongoDB;
 
 use Bdf\Config\Config;
 use Bdf\Config\ConfigLoader;
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
 use Bdf\Prime\PrimeServiceProvider;
@@ -25,6 +25,10 @@ class PrimeMongoDbServiceProviderTest extends TestCase
      */
     protected function setUp()
     {
+        if (!class_exists(Application::class)) {
+            $this->markTestSkipped();
+        }
+
         $this->container = new Application([
             'config'         => $this->config = new Config(),
             'config.loader'  => new ConfigLoader(),

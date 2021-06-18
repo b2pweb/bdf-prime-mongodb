@@ -195,7 +195,7 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function truncate($tableName, $cascade = false)
     {
-        return $this->push(function (MongoConnection $connection) use($tableName) {
+        return $this->push(function (MongoConnection $connection) use ($tableName) {
             $bulk = new BulkWrite();
             $bulk->delete([]);
 
@@ -208,10 +208,10 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function rename($from, $to)
     {
-        return $this->push(function (MongoConnection $connection) use($from, $to) {
+        return $this->push(function (MongoConnection $connection) use ($from, $to) {
             $connection->runAdminCommand(new RenameCollection(
-                $this->connection->getDatabase().'.'.$from,
-                $this->connection->getDatabase().'.'.$to
+                $this->connection->getDatabase() . '.' . $from,
+                $this->connection->getDatabase() . '.' . $to
             ));
         });
     }

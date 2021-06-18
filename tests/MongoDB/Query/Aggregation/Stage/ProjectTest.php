@@ -2,6 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 
+use Bdf\Prime\Connection\ConnectionRegistry;
+use Bdf\Prime\Connection\Factory\ConnectionFactory;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\MongoDriver;
@@ -37,17 +39,15 @@ class ProjectTest extends TestCase
      */
     public function setUp()
     {
-        $this->manager = new ConnectionManager([
-            'dbConfig' => [
-                'mongo' => [
-                    'driver' => 'mongodb',
-                    'host'   => '127.0.0.1',
-                    'dbname' => 'TEST',
-                ],
-            ]
-        ]);
+        $this->manager = new ConnectionManager(new ConnectionRegistry([
+            'mongo' => [
+                'driver' => 'mongodb',
+                'host'   => '127.0.0.1',
+                'dbname' => 'TEST',
+            ],
+        ]));
 
-        $this->manager->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
+        ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
         $this->grammar = new MongoGrammar($this->manager->connection('mongo')->platform());
     }

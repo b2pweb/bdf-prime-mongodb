@@ -2,6 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Query;
 
+use Bdf\Prime\Connection\ConnectionRegistry;
+use Bdf\Prime\Connection\Factory\ConnectionFactory;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\Exception\DBALException;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
@@ -32,16 +34,14 @@ class MongoInsertQueryTest extends TestCase
      */
     protected function setUp()
     {
-        $manager = new ConnectionManager([
-            'dbConfig' => [
-                'mongo' => [
-                    'driver' => 'mongodb',
-                    'host'   => '127.0.0.1',
-                    'dbname' => 'TEST',
-                ],
-            ]
-        ]);
-        $manager->registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
+        $manager = new ConnectionManager(new ConnectionRegistry([
+            'mongo' => [
+                'driver' => 'mongodb',
+                'host'   => '127.0.0.1',
+                'dbname' => 'TEST',
+            ],
+        ]));
+        ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
         $this->connection = $manager->connection('mongo');
     }

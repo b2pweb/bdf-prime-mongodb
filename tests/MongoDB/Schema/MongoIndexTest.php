@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Schema;
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\Schema\IndexInterface;
 
 /**

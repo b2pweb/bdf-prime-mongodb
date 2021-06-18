@@ -39,6 +39,8 @@ use MongoDB\Driver\WriteConcern;
 
 /**
  * Connection for mongoDb
+ *
+ * @property Manager $_conn
  */
 class MongoConnection extends Connection implements ConnectionInterface
 {
@@ -46,11 +48,6 @@ class MongoConnection extends Connection implements ConnectionInterface
      * @var string
      */
     protected $name;
-
-    /**
-     * @var Manager
-     */
-    protected $_conn;
 
     /**
      * @var PrimeSchemaManager
@@ -163,7 +160,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function from($table)
+    public function from($table, ?string $alias = null)
     {
         return $this->builder()->from($table);
     }
@@ -410,7 +407,7 @@ class MongoConnection extends Connection implements ConnectionInterface
             return new CursorResultSet($this->runCommand($compiled));
         }
 
-        throw new \InvalidArgumentException('Unsupported compiled query type '.get_class($compiled));
+        throw new \InvalidArgumentException('Unsupported compiled query type ' . get_class($compiled));
     }
 
     /**
@@ -420,6 +417,6 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     protected function getNamespace($collection)
     {
-        return $this->getDatabase().'.'.$collection;
+        return $this->getDatabase() . '.' . $collection;
     }
 }

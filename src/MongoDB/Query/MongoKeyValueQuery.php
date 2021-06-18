@@ -23,12 +23,12 @@ use Bdf\Prime\Query\Extension\ProjectionableTrait;
  */
 final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQueryInterface, Compilable, Paginable, Limitable
 {
-    const TYPE_COUNT = 'count';
-
     use CompilableTrait;
     use LimitableTrait;
     use PaginableTrait;
     use ProjectionableTrait;
+
+    public const TYPE_COUNT = 'count';
 
     /**
      * MongoKeyValueQuery constructor.

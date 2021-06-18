@@ -1,17 +1,8 @@
 {
-    "name": "b2p/bdf-prime-mongodb",
+    "name": "b2pweb/bdf-prime-mongodb",
     "description": "Bdf prime MongoDB component",
     "type": "library",
-    "license": "proprietary",
-    "config": {
-        "secure-http": false
-    },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "http://packagist.b2pweb.com"
-        }
-    ],
+    "license": "MIT",
     "autoload": {
         "psr-4": {
             "Bdf\\Prime\\MongoDB\\": "src/MongoDB"
@@ -21,14 +12,20 @@
     "require": {
         "php": ">=7.1",
         "ext-mongodb": "*",
-        "b2p/bdf-prime": "~1.6"
+        "b2pweb/bdf-prime": "~1.0"
     },
     "require-dev": {
-        "b2p/bdf-phpunit": "~1.6"
+        "phpunit/phpunit": "~7.5",
+        "squizlabs/php_codesniffer": "~4.0"
     },
     "extra": {
         "branch-alias": {
             "dev-master": "1.x-dev"
         }
+    },
+    "scripts": {
+        "tests": "phpunit",
+        "tests-with-coverage": "phpunit --coverage-clover coverage.xml",
+        "phpcs": "phpcs --standard=psr12 --tab-width=4 --exclude=Generic.Files.LineLength src/"
     }
 }

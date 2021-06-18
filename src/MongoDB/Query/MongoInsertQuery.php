@@ -223,7 +223,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
      */
     public function compile($forceRecompile = false)
     {
-        return $this->compiler->{'compile'.$this->type()}($this);
+        return $this->compiler->{'compile' . $this->type()}($this);
     }
 
     /**

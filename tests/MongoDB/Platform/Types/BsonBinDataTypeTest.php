@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Platform\Types;
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform;
 use Bdf\Prime\Platform\Types\PlatformTypeInterface;
 use Bdf\Prime\Schema\ColumnInterface;

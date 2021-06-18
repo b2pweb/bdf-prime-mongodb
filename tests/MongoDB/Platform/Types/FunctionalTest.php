@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\Types;
 
-use Bdf\PHPUnit\TestCase;
+use PHPUnit\Framework\TestCase;
 use Bdf\Prime\Platform\PlatformTypes;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
@@ -33,12 +33,10 @@ class FunctionalTest extends TestCase
         $this->primeStart();
         $this->primeStart();
 
-        Prime::service()->config()->getDbConfig()->merge([
-            'mongo' => [
-                'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
-                'dbname' => 'TEST',
-            ],
+        Prime::service()->connections()->declareConnection('mongo', [
+            'driver' => 'mongodb',
+            'host'   => '127.0.0.1',
+            'dbname' => 'TEST',
         ]);
 
         $this->types = $this->prime()->connection('mongo')->platform()->types();

@@ -22,9 +22,6 @@ jobs:
       with:
         timezoneLinux: "Europe/Paris"
 
-    - name: MongoDB in GitHub Actions
-      uses: supercharge/mongodb-github-action@1.6.0
-
     - name: Install PHP
       uses: shivammathur/setup-php@v2
       with:
@@ -33,6 +30,9 @@ jobs:
         ini-values: date.timezone=Europe/Paris
     - name: Check PHP Version
       run: php -v
+
+    - name: MongoDB in GitHub Actions
+      uses: supercharge/mongodb-github-action@1.6.0
 
     - name: Validate composer.json and composer.lock
       run: composer validate --strict

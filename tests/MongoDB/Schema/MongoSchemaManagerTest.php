@@ -4,6 +4,8 @@ namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\Connection\ConnectionRegistry;
 use Bdf\Prime\Connection\Factory\ConnectionFactory;
+use Bdf\Prime\MongoDB\Test\EntityWithCustomCollation;
+use Bdf\Prime\Schema\Adapter\Metadata\MetadataTable;
 use PHPUnit\Framework\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoAssertion;
@@ -302,5 +304,29 @@ class MongoSchemaManagerTest extends TestCase
                 ]
             ]
         ], $diff->commands()[0]->document());
+    }
+
+    /**
+     *
+     */
+    public function test_create_and_load_table_with_collation()
+    {
+        EntityWithCustomCollation::repository()->schema()->migrate();
+        $table = $this->schema->loadTable('with_collation');
+
+        $this->assertEquals([
+            'collation' => [
+                'locale' => 'en',
+                'strength' => 2,
+                'caseLevel' => false,
+                'caseFirst' => 'off',
+                'numericOrdering' => false,
+                'alternate' => 'non-ignorable',
+                'maxVariable' => 'punct',
+                'normalization' => false,
+                'backwards' => false,
+                'version' => '57.1',
+            ],
+        ], $table->options());
     }
 }

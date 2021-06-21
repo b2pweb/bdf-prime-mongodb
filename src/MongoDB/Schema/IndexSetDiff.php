@@ -8,7 +8,6 @@ use Bdf\Prime\MongoDB\Query\Command\DropIndexes;
 use Bdf\Prime\Schema\Comparator\IndexSetComparatorInterface;
 use Bdf\Prime\Schema\Comparator\ReplaceIndexSetComparator;
 use Bdf\Prime\Schema\IndexInterface;
-use MongoDB\Driver\Command;
 
 /**
  * Handle diff for indexes on MongoDB.

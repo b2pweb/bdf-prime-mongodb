@@ -43,7 +43,7 @@ class SchemaCreation implements CommandSetInterface
         $commands = [];
 
         foreach ($this->tables as $table) {
-            $commands[] = new Create($table->name());
+            $commands[] = $this->collectionCreationCommand($table);
 
             $commands = array_merge(
                 $commands,
@@ -55,5 +55,16 @@ class SchemaCreation implements CommandSetInterface
         }
 
         return $commands;
+    }
+
+    private function collectionCreationCommand(TableInterface $table): Create
+    {
+        $command = new Create($table->name());
+
+        foreach ($table->options() as $option => $value) {
+            $command->$option($value);
+        }
+
+        return $command;
     }
 }

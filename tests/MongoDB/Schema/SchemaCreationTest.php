@@ -80,4 +80,26 @@ class SchemaCreationTest extends TestCase
             ]
         ], $commands[3]->document());
     }
+
+    /**
+     *
+     */
+    public function test_commands_with_options()
+    {
+        $tables = [
+            new Table('table_', [], new IndexSet([]), null, ['max' => 100, 'collation' => ['locale' => 'en', 'strength' => 2]])
+        ];
+
+        $creation = new SchemaCreation($tables);
+
+        $commands = $creation->commands();
+
+        $this->assertCount(1, $commands);
+
+        $this->assertEquals([
+            'create' => 'table_',
+            'max' => 100,
+            'collation' => ['locale' => 'en', 'strength' => 2],
+        ], $commands[0]->document());
+    }
 }

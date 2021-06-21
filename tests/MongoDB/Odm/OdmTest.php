@@ -4,6 +4,8 @@ namespace Bdf\Prime\MongoDB\Odm;
 
 require_once __DIR__.'/../_files/mongo_entities.php';
 
+use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
+use Bdf\Prime\MongoDB\Test\EntityWithCustomCollation;
 use PHPUnit\Framework\TestCase;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Test\Address;
@@ -194,41 +196,43 @@ class OdmTest extends TestCase
      */
     public function test_insert_non_flatten_embedded()
     {
-        $this->markTestSkipped('Récupérer le raw response de la requête');
-//        $this->addPersons();
-//
-//        $entity = new EntityWithEmbedded([
-//            'id' => 1,
-//            'address' => new Address([
-//                'address' => '178 Rue du chanvre',
-//                'zipCode' => '39250',
-//                'city'    => 'Longcochon',
-//                'country' => 'France'
-//            ]),
-//            'proprietary' => $this->persons['john']
-//        ]);
-//
-//        $entity->insert();
-//
-//        $data = Prime::connection('mongo')->from('embedded_test')->execute()->toArray();
-//
-//        $this->assertEquals(
-//            [
-//                [
-//                    '_id'     => 1,
-//                    'address' => [
-//                        'address' => '178 Rue du chanvre',
-//                        'zipCode' => '39250',
-//                        'city'    => 'Longcochon',
-//                        'country' => 'France'
-//                    ],
-//                    'proprietary' => [
-//                        'id' => $this->persons['john']->id()
-//                    ]
-//                ]
-//            ],
-//            $data
-//        );
+        $this->addPersons();
+
+        $entity = new EntityWithEmbedded([
+            'id' => 1,
+            'address' => new Address([
+                'address' => '178 Rue du chanvre',
+                'zipCode' => '39250',
+                'city'    => 'Longcochon',
+                'country' => 'France'
+            ]),
+            'proprietary' => $this->persons['john']
+        ]);
+
+        $entity->insert();
+
+        $query = Prime::connection('mongo')->from('embedded_test');
+        $data = Prime::connection('mongo')->execute($query)
+            ->fetchMode(CursorResultSet::FETCH_RAW_ARRAY)
+            ->all();
+
+        $this->assertEquals(
+            [
+                [
+                    '_id'     => 1,
+                    'address' => [
+                        'address' => '178 Rue du chanvre',
+                        'zipCode' => '39250',
+                        'city'    => 'Longcochon',
+                        'country' => 'France'
+                    ],
+                    'proprietary' => [
+                        'id' => $this->persons['john']->id()
+                    ]
+                ]
+            ],
+            $data
+        );
     }
 
     /**
@@ -394,5 +398,24 @@ class OdmTest extends TestCase
         foreach ($this->homes as $home) {
             $home->save();
         }
+    }
+
+    /**
+     *
+     */
+    public function test_with_case_insensitive_collation()
+    {
+        EntityWithCustomCollation::repository()->schema()->migrate();
+
+        $e1 = new EntityWithCustomCollation(['name' => 'Foo']);
+        $e2 = new EntityWithCustomCollation(['name' => 'Bar']);
+
+        $e1->insert();
+        $e2->insert();
+
+        $this->assertEquals($e1, EntityWithCustomCollation::where('name', 'foo')->first());
+        $this->assertEquals($e1, EntityWithCustomCollation::where('name', 'FOO')->first());
+        $this->assertEquals($e1, EntityWithCustomCollation::where('name', 'Foo')->first());
+        $this->assertEquals($e2, EntityWithCustomCollation::where('name', 'bar')->first());
     }
 }

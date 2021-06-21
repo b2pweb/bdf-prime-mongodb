@@ -118,3 +118,46 @@ $query->first();
 ### Testing
 
 The `TestPack` of Prime is compatible with MongoDB
+
+### Case-insensitive search and index
+
+To enable case-insensitive search by default, you can add default collation on table options.
+See [Case Insensitive Indexes](https://docs.mongodb.com/manual/core/index-case-insensitive/#case-insensitive-indexes-on-collections-with-a-default-collation)
+
+```php
+<?php
+
+use Bdf\Prime\Mapper\Mapper;
+use Bdf\Prime\MongoDB\Odm\MongoIdGenerator;
+
+class MyDocumentMapper extends Mapper
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function configure()
+    {
+        // Declare generator for generation MongoId on insertion 
+        $this->setGenerator(MongoIdGenerator::class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function schema()
+    {
+        return [
+            'connection' => 'mongo',
+            'table' => 'my_collection',
+            'tableOptions' => [
+                'collation' => [
+                    'locale' => 'en',
+                    'strength' => 2,
+                ],
+            ],
+        ];
+    }
+ 
+    // ...   
+}
+```

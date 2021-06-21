@@ -182,10 +182,16 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function loadTable($tableName)
     {
+        $cursor = $this->connection->runCommand((new ListCollections())->byName($tableName));
+        $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+        $collection = $cursor->toArray()[0] ?? [];
+
         return new Table(
             $tableName,
             [], //Cannot resolve schemas from MongoDB
-            new IndexSet($this->getIndexes($tableName))
+            new IndexSet($this->getIndexes($tableName)),
+            null,
+            $collection['options'] ?? []
         );
     }
 

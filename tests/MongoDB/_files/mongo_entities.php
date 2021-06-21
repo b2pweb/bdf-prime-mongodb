@@ -10,6 +10,7 @@ use Bdf\Prime\Mapper\Builder\FieldBuilder;
 use Bdf\Prime\Mapper\Builder\IndexBuilder;
 use Bdf\Prime\Mapper\Mapper;
 use Bdf\Prime\MongoDB\Odm\MongoIdGenerator;
+use MongoDB\BSON\ObjectId;
 
 /**
  * Class Person
@@ -813,6 +814,60 @@ class EntityWithComplexArrayMapper extends Mapper
         $builder
             ->guid('oid')->alias('_id')->primary()
             ->arrayOf('addresses', 'Address')
+        ;
+    }
+}
+
+class EntityWithCustomCollation extends Model
+{
+    /**
+     * @var string|ObjectId
+     */
+    public $id;
+
+    /**
+     * @var string
+     */
+    public $name;
+
+    public function __construct(array $data = [])
+    {
+        $this->import($data);
+    }
+}
+
+class EntityWithCustomCollationMapper extends Mapper
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function configure()
+    {
+        $this->setGenerator(MongoIdGenerator::class);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function schema()
+    {
+        return [
+            'connection' => 'mongo',
+            'table' => 'with_collation',
+            'tableOptions' => [
+                'collation' => [
+                    'locale' => 'en',
+                    'strength' => 2,
+                ],
+            ],
+        ];
+    }
+
+    public function buildFields($builder)
+    {
+        $builder
+            ->string('id')->alias('_id')->primary()
+            ->string('name')->unique()
         ;
     }
 }

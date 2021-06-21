@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Driver;
 
+use BadMethodCallException;
 use Doctrine\DBAL\Schema\AbstractSchemaManager;
 
 /**
@@ -23,6 +24,7 @@ class MongoSchemasManager extends AbstractSchemaManager
      */
     protected function _getPortableTableColumnDefinition($tableColumn)
     {
+        throw new BadMethodCallException('Not supported');
     }
     // phpcs:enable
 

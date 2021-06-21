@@ -57,11 +57,11 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function from($table, $alias = null)
+    public function from($from, $alias = null)
     {
-        if ($this->statements['collection'] !== $table) {
+        if ($this->statements['collection'] !== $from) {
             $this->compilerState->invalidate();
-            $this->statements['collection'] = $table;
+            $this->statements['collection'] = $from;
         }
 
         return $this;
@@ -141,17 +141,25 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress InvalidReturnType
+     * @todo remove psalm-suppress when prime types will be fixed
      */
     public function min($column = null)
     {
+        /** @psalm-suppress InvalidReturnStatement */
         return $this->aggregate(__FUNCTION__, $column);
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress InvalidReturnType
+     * @todo remove psalm-suppress when prime types will be fixed
      */
     public function max($column = null)
     {
+        /** @psalm-suppress InvalidReturnStatement */
         return $this->aggregate(__FUNCTION__, $column);
     }
 

@@ -41,6 +41,7 @@ use MongoDB\Driver\WriteConcern;
  * Connection for mongoDb
  *
  * @property Manager $_conn
+ * @method \Bdf\Prime\Configuration getConfiguration()
  */
 class MongoConnection extends Connection implements ConnectionInterface
 {
@@ -104,6 +105,8 @@ class MongoConnection extends Connection implements ConnectionInterface
     public function setName($name)
     {
         $this->name = $name;
+
+        return $this;
     }
 
     /**
@@ -176,9 +179,9 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function insert($tableExpression, array $data, array $types = [])
+    public function insert($table, array $data, array $types = [])
     {
-        return $this->builder()->from($tableExpression)->insert($data);
+        return $this->builder()->from($table)->insert($data);
     }
 
     /**
@@ -237,7 +240,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function executeQuery($query, array $params = [], $types = [], QueryCacheProfile $qcp = null)
+    public function executeQuery($sql, array $params = [], $types = [], QueryCacheProfile $qcp = null)
     {
         throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
     }
@@ -245,7 +248,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function executeUpdate($query, array $params = [], array $types = [])
+    public function executeUpdate($sql, array $params = [], array $types = [])
     {
         throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
     }
@@ -271,7 +274,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * Run a command
      *
-     * @param string|array|Command $command
+     * @param string|array|Command|CommandInterface $command
      * @param mixed $arguments
      *
      * @return \MongoDB\Driver\Cursor
@@ -313,6 +316,8 @@ class MongoConnection extends Connection implements ConnectionInterface
         }
 
         ++$this->transationLevel;
+
+        return true;
     }
 
     /**
@@ -352,6 +357,8 @@ class MongoConnection extends Connection implements ConnectionInterface
         }
 
         --$this->transationLevel;
+
+        return true;
     }
 
     /**
@@ -382,6 +389,8 @@ class MongoConnection extends Connection implements ConnectionInterface
         }
 
         --$this->transationLevel;
+
+        return true;
     }
 
     /**

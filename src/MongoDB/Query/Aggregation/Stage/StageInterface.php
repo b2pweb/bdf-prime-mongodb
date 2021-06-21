@@ -20,7 +20,7 @@ interface StageInterface
     /**
      * Get the stage operations in normalized form
      *
-     * @return array
+     * @return scalar|array
      */
     public function export();
 
@@ -30,7 +30,7 @@ interface StageInterface
      * @param CompilableClause $clause
      * @param MongoGrammar $grammar
      *
-     * @return array
+     * @return scalar|array
      */
     public function compile(CompilableClause $clause, MongoGrammar $grammar);
 }

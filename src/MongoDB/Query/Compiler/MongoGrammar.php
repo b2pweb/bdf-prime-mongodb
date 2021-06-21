@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Query\Compiler;
 
+use BadMethodCallException;
 use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Query\CompilableClause;
 use Bdf\Prime\Query\Compiler\CompilerInterface;
@@ -58,21 +59,27 @@ class MongoGrammar implements CompilerInterface
     // Add compiler methods for compatibility with ExpressionTransformerInterface::setContext()
     public function compileInsert(CompilableClause $query)
     {
+        throw new BadMethodCallException('Not supported');
     }
     public function compileUpdate(CompilableClause $query)
     {
+        throw new BadMethodCallException('Not supported');
     }
     public function compileDelete(CompilableClause $query)
     {
+        throw new BadMethodCallException('Not supported');
     }
     public function compileSelect(CompilableClause $query)
     {
+        throw new BadMethodCallException('Not supported');
     }
     public function quoteIdentifier(CompilableClause $query, $column)
     {
+        throw new BadMethodCallException('Not supported');
     }
     public function getBindings(CompilableClause $query)
     {
+        throw new BadMethodCallException('Not supported');
     }
 
     /**
@@ -146,7 +153,7 @@ class MongoGrammar implements CompilerInterface
      * @param CompilableClause $query The query container
      * @param array $columns The columns (or expressions) to project
      *
-     * @return array
+     * @return array<string, bool|int>
      *
      * @see https://docs.mongodb.com/manual/reference/method/db.collection.find/#projection For find projection
      * @see https://docs.mongodb.com/v3.2/reference/operator/aggregation/project/ For aggregation operation

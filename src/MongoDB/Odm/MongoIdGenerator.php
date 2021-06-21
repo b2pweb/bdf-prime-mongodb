@@ -14,8 +14,8 @@ class MongoIdGenerator extends AbstractGenerator
     /**
      * {@inheritdoc}
      */
-    protected function doGenerate($primary, array &$data, ServiceLocator $serviceLocator)
+    protected function doGenerate($property, array &$data, ServiceLocator $serviceLocator)
     {
-        return $data[$primary] = new ObjectID();
+        return $data[$property] = new ObjectID();
     }
 }

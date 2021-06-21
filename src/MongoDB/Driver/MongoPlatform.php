@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Driver;
 
+use BadMethodCallException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Table;
 
@@ -17,37 +18,42 @@ class MongoPlatform extends AbstractPlatform
     /**
      * {@inheritdoc}
      */
-    public function getBooleanTypeDeclarationSQL(array $columnDef)
+    public function getBooleanTypeDeclarationSQL(array $column)
     {
+        throw new BadMethodCallException('Not supported');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getIntegerTypeDeclarationSQL(array $columnDef)
+    public function getIntegerTypeDeclarationSQL(array $column)
     {
+        throw new BadMethodCallException('Not supported');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getBigIntTypeDeclarationSQL(array $columnDef)
+    public function getBigIntTypeDeclarationSQL(array $column)
     {
+        throw new BadMethodCallException('Not supported');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getSmallIntTypeDeclarationSQL(array $columnDef)
+    public function getSmallIntTypeDeclarationSQL(array $column)
     {
+        throw new BadMethodCallException('Not supported');
     }
 
     // phpcs:disable
     /**
      * {@inheritdoc}
      */
-    protected function _getCommonIntegerTypeDeclarationSQL(array $columnDef)
+    protected function _getCommonIntegerTypeDeclarationSQL(array $column)
     {
+        throw new BadMethodCallException('Not supported');
     }
     // phpcs:enable
 
@@ -56,20 +62,23 @@ class MongoPlatform extends AbstractPlatform
      */
     protected function initializeDoctrineTypeMappings()
     {
+        throw new BadMethodCallException('Not supported');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getClobTypeDeclarationSQL(array $field)
+    public function getClobTypeDeclarationSQL(array $column)
     {
+        throw new BadMethodCallException('Not supported');
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getBlobTypeDeclarationSQL(array $field)
+    public function getBlobTypeDeclarationSQL(array $column)
     {
+        throw new BadMethodCallException('Not supported');
     }
 
     /**
@@ -93,5 +102,6 @@ class MongoPlatform extends AbstractPlatform
      */
     public function getCreateTableSQL(Table $table, $createFlags = self::CREATE_INDEXES)
     {
+        throw new BadMethodCallException('Not supported');
     }
 }

@@ -168,6 +168,8 @@ final class WriteQuery implements SelfExecutable
      */
     public function execute(MongoConnection $connection)
     {
+        // Psalm do not detect correct constructor signature
+        /** @psalm-suppress InvalidArgument */
         $bulk = new BulkWrite($this->options);
 
         foreach ($this->inserts as $insert) {

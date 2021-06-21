@@ -2,6 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Schema;
 
+use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
 use Bdf\Prime\MongoDB\Query\Command\CreateIndexes;
 use Bdf\Prime\MongoDB\Query\Command\DropIndexes;
 use Bdf\Prime\Schema\Comparator\IndexSetComparatorInterface;
@@ -69,7 +70,7 @@ class IndexSetDiff implements CommandSetInterface
     }
 
     /**
-     * @return Command[]
+     * @return CommandInterface[]
      */
     protected function removeCommands()
     {
@@ -90,7 +91,7 @@ class IndexSetDiff implements CommandSetInterface
     }
 
     /**
-     * @return Command[]
+     * @return CommandInterface[]
      */
     protected function createCommands()
     {

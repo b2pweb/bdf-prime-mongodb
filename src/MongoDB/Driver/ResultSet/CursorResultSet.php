@@ -63,7 +63,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
                 break;
 
             case self::FETCH_CLASS:
-                if (is_subclass_of($options, Unserializable::class)) {
+                if ($options && is_subclass_of($options, Unserializable::class)) {
                     $this->cursor->setTypeMap(['root' => $options]);
                     break;
                 }

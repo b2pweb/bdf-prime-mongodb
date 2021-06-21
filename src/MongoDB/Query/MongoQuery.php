@@ -178,7 +178,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function paginationCount($columns = null)
+    public function paginationCount($column = null)
     {
         $statements = $this->statements;
 
@@ -186,7 +186,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
             $this->statements['limit']  = null;
             $this->statements['offset'] = null;
 
-            return $this->count($columns);
+            return $this->count($column);
         } finally {
             $this->statements = $statements;
         }
@@ -207,22 +207,30 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function avg($column = null)
     {
-        return $this->aggregate(__FUNCTION__, $column);
+        return (float) $this->aggregate(__FUNCTION__, $column);
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress InvalidReturnType
+     * @todo remove psalm-suppress when prime types will be fixed
      */
     public function min($column = null)
     {
+        /** @psalm-suppress InvalidReturnStatement */
         return $this->aggregate(__FUNCTION__, $column);
     }
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress InvalidReturnType
+     * @todo remove psalm-suppress when prime types will be fixed
      */
     public function max($column = null)
     {
+        /** @psalm-suppress InvalidReturnStatement */
         return $this->aggregate(__FUNCTION__, $column);
     }
 
@@ -231,7 +239,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function sum($column = null)
     {
-        return $this->aggregate(__FUNCTION__, $column);
+        return (float) $this->aggregate(__FUNCTION__, $column);
     }
 
     /**

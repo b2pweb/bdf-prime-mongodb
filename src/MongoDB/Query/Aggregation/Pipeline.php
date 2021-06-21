@@ -78,6 +78,8 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
 
     /**
      * {@inheritdoc}
+     *
+     * @param PipelineCompiler $compiler
      */
     public function setCompiler(CompilerInterface $compiler)
     {
@@ -100,7 +102,10 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     public function on(ConnectionInterface $connection)
     {
         $this->connection = $connection;
-        $this->compiler   = $connection->factory()->compiler(static::class);
+        /** @var PipelineCompiler */
+        $this->compiler = $connection->factory()->compiler(static::class);
+
+        return $this;
     }
 
     /**

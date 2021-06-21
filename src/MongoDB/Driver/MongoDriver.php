@@ -13,6 +13,8 @@ class MongoDriver implements Driver
 {
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress InvalidReturnType
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = [])
     {
@@ -28,6 +30,7 @@ class MongoDriver implements Driver
             unset($params['username'], $params['password']);
         }
 
+        /** @psalm-suppress InvalidReturnStatement */
         return new Manager($this->buildDsn($params), array_filter($params), $driverOptions);
     }
 

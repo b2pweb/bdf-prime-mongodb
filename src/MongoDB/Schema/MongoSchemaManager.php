@@ -53,6 +53,8 @@ class MongoSchemaManager extends AbstractSchemaManager
         }
 
         $this->pending = [];
+
+        return true;
     }
 
     /**
@@ -65,6 +67,10 @@ class MongoSchemaManager extends AbstractSchemaManager
 
     /**
      * {@inheritdoc}
+     *
+     * @param TableInterface[] $tables
+     *
+     * @psalm-suppress InvalidReturnType
      */
     public function schema($tables = [])
     {
@@ -72,6 +78,7 @@ class MongoSchemaManager extends AbstractSchemaManager
             $tables = [$tables];
         }
 
+        /** @psalm-suppress InvalidReturnStatement */
         return new SchemaCreation($tables);
     }
 

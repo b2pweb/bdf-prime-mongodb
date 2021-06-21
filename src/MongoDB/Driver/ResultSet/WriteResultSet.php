@@ -31,6 +31,7 @@ final class WriteResultSet extends \EmptyIterator implements ResultSetInterface
      */
     public function fetchMode($mode, $options = null)
     {
+        return $this;
     }
 
     /**

@@ -23,7 +23,7 @@ class PrimeMongoDbServiceProviderTest extends TestCase
     /**
      * 
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         if (!class_exists(Application::class)) {
             $this->markTestSkipped();

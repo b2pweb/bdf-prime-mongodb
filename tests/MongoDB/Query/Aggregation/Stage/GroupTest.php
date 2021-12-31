@@ -36,12 +36,12 @@ class GroupTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->manager = new ConnectionManager(new ConnectionRegistry([
             'mongo' => [
                 'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
+                'host'   => $_ENV['MONGO_HOST'],
                 'dbname' => 'TEST',
             ],
         ]));

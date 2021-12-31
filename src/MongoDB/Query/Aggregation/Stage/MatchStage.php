@@ -10,7 +10,7 @@ use Bdf\Prime\Query\CompilableClause;
  *
  * @link https://docs.mongodb.com/manual/reference/operator/aggregation/match/#pipe._S_match
  */
-class Match implements StageInterface
+class MatchStage implements StageInterface
 {
     /**
      * @var array

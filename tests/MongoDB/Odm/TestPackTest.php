@@ -25,13 +25,13 @@ class TestPackTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->configurePrime();
 
         Prime::service()->connections()->declareConnection('mongo', [
             'driver' => 'mongodb',
-            'host'   => '127.0.0.1',
+            'host'   => $_ENV['MONGO_HOST'],
             'dbname' => 'TEST',
         ]);
 
@@ -43,7 +43,7 @@ class TestPackTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         Prime::connection('mongo')->dropDatabase();
         $this->pack()->destroy();

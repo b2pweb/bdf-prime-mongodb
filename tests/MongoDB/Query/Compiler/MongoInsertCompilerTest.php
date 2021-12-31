@@ -30,13 +30,13 @@ class MongoInsertCompilerTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->primeStart();
 
         Prime::service()->connections()->declareConnection('mongo', [
             'driver' => 'mongodb',
-            'host'   => '127.0.0.1',
+            'host'   => $_ENV['MONGO_HOST'],
             'dbname' => 'TEST',
         ]);
 

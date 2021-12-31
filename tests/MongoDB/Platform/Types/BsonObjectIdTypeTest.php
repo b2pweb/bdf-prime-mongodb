@@ -30,7 +30,7 @@ class BsonObjectIdTypeTest extends TestCase
     protected $platform;
 
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform(), new TypesRegistry());
         $this->type = new BsonObjectIdType($this->platform);

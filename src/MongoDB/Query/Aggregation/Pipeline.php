@@ -7,7 +7,7 @@ use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Group;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Limit;
-use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Match;
+use Bdf\Prime\MongoDB\Query\Aggregation\Stage\MatchStage;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Project;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Skip;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Sort;
@@ -207,7 +207,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
 
         parent::buildClause($statement, $expression, $operator, $value, $type);
 
-        $statements['pipeline'][] = new Match($this->statements);
+        $statements['pipeline'][] = new MatchStage($this->statements);
         $this->statements = $statements;
 
         return $this;
@@ -223,10 +223,10 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
 
         $callback($this);
 
-        $statements['pipeline'][] = new Match([
+        $statements['pipeline'][] = new MatchStage([
             'where' => [
                 [
-                    'nested' => array_map(function (Match $match) {
+                    'nested' => array_map(function (MatchStage $match) {
                         return $match->export()[0];
                     }, $this->statements['pipeline']),
                     'glue'   => $type,

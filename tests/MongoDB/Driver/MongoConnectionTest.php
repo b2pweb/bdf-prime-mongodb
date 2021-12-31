@@ -44,12 +44,12 @@ class MongoConnectionTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $manager = new ConnectionManager(new ConnectionRegistry([
             'mongo' => [
                 'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
+                'host'   => $_ENV['MONGO_HOST'],
                 'dbname' => 'TEST',
             ],
         ]));
@@ -61,7 +61,7 @@ class MongoConnectionTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->connection->dropDatabase();
     }
@@ -104,7 +104,7 @@ class MongoConnectionTest extends TestCase
         $innerConnection = ((array)$connection)["\0*\0_conn"];
 
         $this->assertInstanceOf(Manager::class, $innerConnection);
-        $this->assertContains('mongodb://mongo1.example.com:1234,mongo2.example.com:4567', print_r($innerConnection, true));
+        $this->assertStringContainsString('mongodb://mongo1.example.com:1234,mongo2.example.com:4567', print_r($innerConnection, true));
     }
 
     /**

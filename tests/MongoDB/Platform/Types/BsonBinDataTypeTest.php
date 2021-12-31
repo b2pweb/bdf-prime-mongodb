@@ -30,7 +30,7 @@ class BsonBinDataTypeTest extends TestCase
     protected $platform;
 
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->platform = new MongoPlatform(new \Bdf\Prime\MongoDB\Driver\MongoPlatform(), new TypesRegistry());
         $this->type = new BsonBinDataType($this->platform);

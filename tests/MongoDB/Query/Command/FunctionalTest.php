@@ -27,12 +27,12 @@ class FunctionalTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $manager = new ConnectionManager(new ConnectionRegistry([
             'mongo' => [
                 'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
+                'host'   => $_ENV['MONGO_HOST'],
                 'dbname' => 'TEST',
             ],
         ]));
@@ -44,7 +44,7 @@ class FunctionalTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->connection->dropDatabase();
     }

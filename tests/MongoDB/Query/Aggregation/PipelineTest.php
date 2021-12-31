@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Query\Aggregation;
 
 use Bdf\Prime\Connection\ConnectionRegistry;
 use Bdf\Prime\Connection\Factory\ConnectionFactory;
+use PHPUnit\Framework\Constraint\IsEqual;
 use PHPUnit\Framework\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
@@ -42,12 +43,12 @@ class PipelineTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $manager = new ConnectionManager(new ConnectionRegistry([
             'mongo' => [
                 'driver' => 'mongodb',
-                'host'   => '127.0.0.1',
+                'host'   => $_ENV['MONGO_HOST'],
                 'dbname' => 'TEST',
             ],
         ]));
@@ -61,7 +62,7 @@ class PipelineTest extends TestCase
     /**
      * {@inheritdoc}
      */
-    protected function tearDown()
+    protected function tearDown(): void
     {
         $this->connection->dropDatabase();
     }
@@ -226,10 +227,11 @@ class PipelineTest extends TestCase
      */
     public function test_group_closure()
     {
-        $this->assertEquals([
+        $expected = [
             ['_id'   => '741', 'pricePerArticle' => 4.78],
             ['_id'   => '123', 'pricePerArticle' => 11.09],
-        ], $this->query()
+        ];
+        $this->assertThat($this->query()
             ->group('customer.id', function (Group $group) {
                 $group->avg('pricePerArticle', [
                     '$divide' => [
@@ -239,7 +241,7 @@ class PipelineTest extends TestCase
                 ]);
             })
             ->execute(),
-            '', 0.001, 10, true
+            new IsEqual($expected, 0.001, 10, true)
         );
     }
 
@@ -248,7 +250,7 @@ class PipelineTest extends TestCase
      */
     public function test_group_by_multiple_fields()
     {
-        $this->assertEquals([
+        $this->assertEqualsCanonicalizing([
             ['_id' => ['customer' => '741', 'name' => 'Jean']],
             ['_id' => ['customer' => '741', 'name' => 'Claude']],
             ['_id' => ['customer' => '123', 'name' => 'Paul']],
@@ -257,8 +259,7 @@ class PipelineTest extends TestCase
                 'customer' => 'customer.id',
                 'name'
             ])
-            ->execute(),
-            '', 0, 10, true
+            ->execute()
         );
     }
 
@@ -267,7 +268,7 @@ class PipelineTest extends TestCase
      */
     public function test_group_by_operation()
     {
-        $this->assertEquals([
+        $this->assertEqualsCanonicalizing([
             ['_id' => ['nbOrderPair' => 0], 'count' => 1],
             ['_id' => ['nbOrderPair' => 1], 'count' => 2],
         ], $this->query()
@@ -281,8 +282,7 @@ class PipelineTest extends TestCase
             ], [
                 'count' => ['sum' => 1]
             ])
-            ->execute(),
-            '', 0, 10, true
+            ->execute()
         );
     }
 

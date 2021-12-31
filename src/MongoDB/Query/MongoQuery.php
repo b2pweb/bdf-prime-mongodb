@@ -85,7 +85,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function delete()
+    public function delete(): int
     {
         $this->setType(self::TYPE_DELETE);
 
@@ -95,7 +95,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function update(array $data = [], array $types = [])
+    public function update(array $data = [], array $types = []): int
     {
         if ($data) {
             $this->statements['values'] = [
@@ -112,7 +112,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function insert(array $data = [])
+    public function insert(array $data = []): int
     {
         if ($data) {
             $this->statements['values'] = [
@@ -128,7 +128,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function replace(array $values = [])
+    public function replace(array $values = []): int
     {
         $this->statements['replace'] = true;
 
@@ -178,7 +178,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function paginationCount($column = null)
+    public function paginationCount(?string $column = null): int
     {
         $statements = $this->statements;
 
@@ -195,7 +195,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function count($column = null)
+    public function count(?string $column = null): int
     {
         return $this->connection->runCommand(
             $this->compiler->compileCount($this)
@@ -205,39 +205,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function avg($column = null)
-    {
-        return (float) $this->aggregate(__FUNCTION__, $column);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @psalm-suppress InvalidReturnType
-     * @todo remove psalm-suppress when prime types will be fixed
-     */
-    public function min($column = null)
-    {
-        /** @psalm-suppress InvalidReturnStatement */
-        return $this->aggregate(__FUNCTION__, $column);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @psalm-suppress InvalidReturnType
-     * @todo remove psalm-suppress when prime types will be fixed
-     */
-    public function max($column = null)
-    {
-        /** @psalm-suppress InvalidReturnStatement */
-        return $this->aggregate(__FUNCTION__, $column);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function sum($column = null)
+    public function avg(?string $column = null): float
     {
         return (float) $this->aggregate(__FUNCTION__, $column);
     }
@@ -245,7 +213,31 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function aggregate($function, $column = null)
+    public function min(?string $column = null)
+    {
+        return $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function max(?string $column = null)
+    {
+        return $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function sum(?string $column = null): float
+    {
+        return (float) $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function aggregate(string $function, ?string $column = null)
     {
         return $this
             ->group(null, ['aggregate' => [$function => $column]])
@@ -260,10 +252,11 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      *
      * @link https://docs.mongodb.com/manual/core/aggregation-pipeline/
      */
-    public function pipeline()
+    public function pipeline(): Pipeline
     {
         $pipeline = new Pipeline($this->connection(), $this->preprocessor(), $this->state());
 
+        /** @psalm-suppress InvalidArgument */
         $pipeline->setCustomFilters($this->customFilters);
         $pipeline->statements = $this->statements + $pipeline->statements;
 
@@ -290,7 +283,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      *
      * @see Pipeline::group()
      */
-    public function group($expression = null, $operations = null)
+    public function group($expression = null, $operations = null): Pipeline
     {
         return $this
             ->pipeline()

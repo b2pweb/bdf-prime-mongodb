@@ -58,7 +58,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function compiler()
+    public function compiler(): CompilerInterface
     {
         return $this->compiler;
     }
@@ -87,7 +87,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function connection()
+    public function connection(): ConnectionInterface
     {
         return $this->connection;
     }
@@ -113,7 +113,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function into($table)
+    public function into(string $table)
     {
         $this->compilerState->invalidate();
 
@@ -161,7 +161,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function values(array $data, $replace = false)
+    public function values(array $data, bool $replace = false)
     {
         $this->compilerState->invalidate();
 
@@ -181,7 +181,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function mode($mode)
+    public function mode(string $mode)
     {
         if ($mode !== $this->statements['mode']) {
             $this->compilerState->invalidate('mode');
@@ -194,7 +194,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function ignore($flag = true)
+    public function ignore(bool $flag = true)
     {
         return $this->mode($flag ? self::MODE_IGNORE : self::MODE_INSERT);
     }
@@ -202,7 +202,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function replace($flag = true)
+    public function replace(bool $flag = true)
     {
         return $this->mode($flag ? self::MODE_REPLACE : self::MODE_INSERT);
     }
@@ -210,7 +210,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function bulk($flag = true)
+    public function bulk(bool $flag = true)
     {
         $this->compilerState->invalidate();
         $this->statements['bulk'] = $flag;
@@ -221,7 +221,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function compile($forceRecompile = false)
+    public function compile(bool $forceRecompile = false)
     {
         return $this->compiler->{'compile' . $this->type()}($this);
     }
@@ -237,7 +237,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function type()
+    public function type(): string
     {
         return $this->statements['mode'] === self::MODE_REPLACE
             ? self::TYPE_UPDATE

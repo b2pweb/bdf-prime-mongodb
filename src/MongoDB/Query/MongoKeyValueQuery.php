@@ -101,11 +101,12 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function count($column = null)
+    public function count(?string $column = null): int
     {
+        /** @psalm-suppress InvalidArgument */
         $this->setType(self::TYPE_COUNT);
 
-        foreach ($this->connection->execute($this)->fetchMode(ResultSetInterface::FETCH_OBJECT) as $count) {
+        foreach ($this->connection->execute($this)->asObject() as $count) {
             return $count->n;
         }
 
@@ -115,7 +116,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function paginationCount($column = null)
+    public function paginationCount(?string $column = null): int
     {
         // Backup statements
         $statements = $this->statements;
@@ -134,39 +135,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function avg($column = null)
-    {
-        return (float) $this->aggregate(__FUNCTION__, $column);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @psalm-suppress InvalidReturnType
-     * @todo remove psalm-suppress when prime types will be fixed
-     */
-    public function min($column = null)
-    {
-        /** @psalm-suppress InvalidReturnStatement */
-        return $this->aggregate(__FUNCTION__, $column);
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @psalm-suppress InvalidReturnType
-     * @todo remove psalm-suppress when prime types will be fixed
-     */
-    public function max($column = null)
-    {
-        /** @psalm-suppress InvalidReturnStatement */
-        return $this->aggregate(__FUNCTION__, $column);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function sum($column = null)
+    public function avg(?string $column = null): float
     {
         return (float) $this->aggregate(__FUNCTION__, $column);
     }
@@ -174,7 +143,31 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function aggregate($function, $column = null)
+    public function min(?string $column = null)
+    {
+        return $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function max(?string $column = null)
+    {
+        return $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function sum(?string $column = null): float
+    {
+        return (float) $this->aggregate(__FUNCTION__, $column);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function aggregate(string $function, ?string $column = null)
     {
         return $this
             ->pipeline()
@@ -190,10 +183,11 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
      *
      * @link https://docs.mongodb.com/manual/core/aggregation-pipeline/
      */
-    public function pipeline()
+    public function pipeline(): Pipeline
     {
         $pipeline = new Pipeline($this->connection(), $this->preprocessor(), $this->state());
 
+        /** @psalm-suppress InvalidArgument */
         $pipeline->setCustomFilters($this->customFilters);
 
         $pipeline->statements['collection'] = $this->statements['collection'];
@@ -231,7 +225,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function delete()
+    public function delete(): int
     {
         $this->setType(self::TYPE_DELETE);
 
@@ -247,7 +241,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function update($values = null)
+    public function update($values = null): int
     {
         if ($values !== null) {
             $this->values($values);
@@ -267,7 +261,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function getBindings()
+    public function getBindings(): array
     {
         return [];
     }

@@ -45,6 +45,70 @@ final class WriteResultSet extends \EmptyIterator implements ResultSetInterface
     /**
      * {@inheritdoc}
      */
+    public function asAssociative(): ResultSetInterface
+    {
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function asList(): ResultSetInterface
+    {
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function asClass(string $className): ResultSetInterface
+    {
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function asColumn(int $column = 0): ResultSetInterface
+    {
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function asObject(): ResultSetInterface
+    {
+        return $this;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isRead(): bool
+    {
+        return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function isWrite(): bool
+    {
+        return true;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function hasWrite(): bool
+    {
+        return $this->count() > 0;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function count()
     {
         return

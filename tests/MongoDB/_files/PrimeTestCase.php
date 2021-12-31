@@ -50,7 +50,11 @@ trait PrimeTestCase
                             'memory' => true
                         ],
                     ]
-                ]
+                ],
+                'types' => [
+                    'searchable_array' => ArrayType::class,
+                    new AddressType(),
+                ],
             ]);
             ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
@@ -63,12 +67,9 @@ trait PrimeTestCase
                 ->addNormalizer(new ObjectNormalizer())
             ;
 
-            Prime::service()->types()->register(ArrayType::class, 'searchable_array');
             Prime::service()->setSerializer($serializer);
 
             Model::configure(Prime::service());
-
-            Prime::service()->types()->register(new AddressType());
         }
     }
 

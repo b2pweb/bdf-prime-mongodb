@@ -71,7 +71,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function compiler()
+    public function compiler(): CompilerInterface
     {
         return $this->compiler;
     }
@@ -91,7 +91,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function connection()
+    public function connection(): ConnectionInterface
     {
         return $this->connection;
     }
@@ -200,7 +200,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function buildClause($statement, $expression, $operator = null, $value = null, $type = CompositeExpression::TYPE_AND)
+    public function buildClause(string $statement, $expression, $operator = null, $value = null, string $type = CompositeExpression::TYPE_AND)
     {
         $statements = $this->statements;
         $this->statements = [$statement => []];
@@ -216,7 +216,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function buildNested($statement, \Closure $callback, $type = CompositeExpression::TYPE_AND)
+    public function buildNested(string $statement, callable $callback, string $type = CompositeExpression::TYPE_AND)
     {
         $statements = $this->statements;
         $this->statements = [$statement => []];
@@ -242,7 +242,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function compile($forceRecompile = false)
+    public function compile(bool $forceRecompile = false)
     {
         return $this->compiler->compileAggregate($this);
     }
@@ -258,7 +258,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function type()
+    public function type(): string
     {
         return self::TYPE_SELECT;
     }

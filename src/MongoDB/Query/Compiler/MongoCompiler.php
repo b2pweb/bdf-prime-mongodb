@@ -114,7 +114,7 @@ class MongoCompiler extends AbstractCompiler
                     '$set'         => $data,
                     '$setOnInsert' => $filter
                 ],
-                [
+                $query->statements['options'] + [
                     'upsert' => true,
                     'multi'  => false
                 ]
@@ -123,7 +123,7 @@ class MongoCompiler extends AbstractCompiler
             $bulk->update(
                 $this->grammar->filters($query, $query->statements['where']),
                 $this->compileUpdateOperators($query, $query->statements),
-                [
+                $query->statements['options'] + [
                     'multi' => true
                 ]
             );
@@ -142,7 +142,8 @@ class MongoCompiler extends AbstractCompiler
         $bulk = new WriteQuery($query->statements['collection']);
 
         $bulk->delete(
-            $this->grammar->filters($query, $query->statements['where'])
+            $this->grammar->filters($query, $query->statements['where']),
+            $query->statements['options']
         );
 
         return $bulk;
@@ -155,7 +156,7 @@ class MongoCompiler extends AbstractCompiler
      */
     protected function doCompileSelect(CompilableClause $query)
     {
-        $options = [];
+        $options = $query->statements['options'];
 
         if ($query->statements['columns']) {
             $options['projection'] = $this->grammar->projection($query, $query->statements['columns']);

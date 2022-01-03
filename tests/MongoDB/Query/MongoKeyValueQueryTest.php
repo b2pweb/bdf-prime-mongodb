@@ -350,6 +350,21 @@ class MongoKeyValueQueryTest extends TestCase
     }
 
     /**
+     *
+     */
+    public function test_collation()
+    {
+        $result = $this->query()
+            ->select(['name'])
+            ->collation(['locale' => 'fr', 'strength' => 1])
+            ->where('name.first', 'john')
+            ->first()
+        ;
+
+        $this->assertEquals(['name.first' => 'John', 'name.last' => 'Doe'], $result);
+    }
+
+    /**
      * @return MongoKeyValueQuery
      */
     private function query()

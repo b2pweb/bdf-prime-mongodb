@@ -21,10 +21,11 @@ use Bdf\Prime\Query\Extension\ProjectionableTrait;
 /**
  * KeyValue query implementation for MongoDB
  */
-final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQueryInterface, Compilable, Paginable, Limitable
+final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQueryInterface, Compilable, Paginable, Limitable, OptionsConfigurable
 {
     use CompilableTrait;
     use LimitableTrait;
+    use OptionsTrait;
     use PaginableTrait;
     use ProjectionableTrait;
 
@@ -51,6 +52,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
                 'data'  => [],
                 'types' => [],
             ],
+            'options' => [],
         ];
     }
 

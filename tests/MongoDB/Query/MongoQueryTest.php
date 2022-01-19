@@ -224,10 +224,37 @@ class MongoQueryTest extends TestCase
     /**
      *
      */
+    public function test_update_multi_disabled()
+    {
+        $this->assertEquals(1, $this->query()
+            ->multi(false)
+            ->update(['age' => 35])
+        );
+
+        $this->assertEqualsCanonicalizing([35, false], $this->query()->inRows('age'));
+    }
+
+    /**
+     *
+     */
     public function test_delete()
     {
         $this->assertEquals(1, $this->query()
             ->where('first_name', 'John')
+            ->delete()
+        );
+
+        $this->assertCount(1, $this->query()->all());
+    }
+
+
+    /**
+     *
+     */
+    public function test_delete_with_onlyDeleteFirst()
+    {
+        $this->assertEquals(1, $this->query()
+            ->onlyDeleteFirst()
             ->delete()
         );
 
@@ -297,6 +324,25 @@ class MongoQueryTest extends TestCase
         ;
 
         $this->assertEquals(['François', 'John'], $results);
+    }
+
+    /**
+     *
+     */
+    public function test_order_with_collation()
+    {
+        $this->query()->insert(['first_name' => 'A']);
+        $this->query()->insert(['first_name' => 'b']);
+        $this->query()->insert(['first_name' => 'C']);
+        $this->query()->insert(['first_name' => 'd']);
+
+        $results = $this->query()
+            ->collation(['locale' => 'fr', 'strength' => 1])
+            ->order('first_name')
+            ->inRows('first_name')
+        ;
+
+        $this->assertEquals(['A', 'b', 'C', 'd', 'François', 'John'], $results);
     }
 
     /**

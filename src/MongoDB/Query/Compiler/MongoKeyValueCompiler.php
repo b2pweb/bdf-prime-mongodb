@@ -51,7 +51,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
         $bulk->update(
             $this->compileFilters($query, $query->statements['where']),
             $this->grammar->set($query, $query->statements['values']['data'], $query->statements['values']['types']),
-            [
+            $query->statements['options'] + [
                 'multi' => true
             ]
         );
@@ -66,7 +66,10 @@ class MongoKeyValueCompiler extends AbstractCompiler
     {
         $bulk = new WriteQuery($query->statements['collection']);
 
-        $bulk->delete($this->compileFilters($query, $query->statements['where']));
+        $bulk->delete(
+            $this->compileFilters($query, $query->statements['where']),
+            $query->statements['options']
+        );
 
         return $bulk;
     }
@@ -76,7 +79,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
      */
     protected function doCompileSelect(CompilableClause $query)
     {
-        $options = [];
+        $options = $query->statements['options'];
 
         if ($query->statements['columns']) {
             $options['projection'] = $this->grammar->projection($query, $query->statements['columns']);

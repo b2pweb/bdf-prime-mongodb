@@ -24,10 +24,11 @@ use Bdf\Prime\Query\QueryInterface;
  * @property MongoConnection $connection
  * @property MongoCompiler $compiler
  */
-class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable, Aggregatable, Limitable
+class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable, Aggregatable, Limitable, OptionsConfigurable
 {
     use PaginableTrait;
     use LimitableTrait;
+    use OptionsTrait;
     use OrderableTrait;
 
 
@@ -51,6 +52,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
             'offset'     => null,
             'orders'     => [],
             'replace'    => false,
+            'options'    => [],
         ];
     }
 

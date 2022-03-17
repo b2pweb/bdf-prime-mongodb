@@ -63,7 +63,7 @@ class BsonLongType extends AbstractPlatformType
     /**
      * {@inheritdoc}
      */
-    public function phpType()
+    public function phpType(): string
     {
         return PHP_INT_SIZE < 8
             ? PhpTypeInterface::STRING

@@ -54,7 +54,7 @@ class PipelineTest extends TestCase
         ]));
         ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
-        $this->connection = $manager->connection('mongo');
+        $this->connection = $manager->getConnection('mongo');
 
         $this->insertData();
     }
@@ -74,7 +74,7 @@ class PipelineTest extends TestCase
     {
         $this->assertEquals(
             $this->data,
-            $this->query()->execute()
+            $this->query()->execute()->asRawArray()->all()
         );
     }
 
@@ -89,7 +89,7 @@ class PipelineTest extends TestCase
                 ['name' => 'Jean'],
                 ['name' => 'Claude'],
             ],
-            $this->query()->project(['name'])->execute()
+            $this->query()->project(['name'])->execute()->asRawArray()->all()
         );
     }
 
@@ -104,7 +104,7 @@ class PipelineTest extends TestCase
                 ['name' => 'Jean',   'customer' => '741'],
                 ['name' => 'Claude', 'customer' => '741'],
             ],
-            $this->query()->project(['name', 'customer' => 'customer.id'])->execute()
+            $this->query()->project(['name', 'customer' => 'customer.id'])->execute()->asRawArray()->all()
         );
     }
 
@@ -124,7 +124,7 @@ class PipelineTest extends TestCase
                 'orderCount' => [
                     '$size' => '$order'
                 ]
-            ])->execute()
+            ])->execute()->asRawArray()->all()
         );
     }
 
@@ -145,7 +145,7 @@ class PipelineTest extends TestCase
                     ->add('customer.id', 'customer')
                     ->evaluate('orderCount', '$size', '$order')
                 ;
-            })->execute()
+            })->execute()->asRawArray()->all()
         );
     }
 
@@ -156,7 +156,7 @@ class PipelineTest extends TestCase
     {
         $this->assertEquals([
             ['_id' => null]
-        ], $this->query()->group()->execute());
+        ], $this->query()->group()->execute()->asRawArray()->all());
     }
 
     /**
@@ -175,7 +175,7 @@ class PipelineTest extends TestCase
                     '$size' => '$order'
                 ]
             ]
-        ])->execute());
+        ])->execute()->asRawArray()->all());
     }
 
     /**
@@ -190,7 +190,7 @@ class PipelineTest extends TestCase
             ]
         ], $this->query()->group(null, [
             'count' => ['sum' => 1]
-        ])->execute());
+        ])->execute()->asRawArray()->all());
     }
 
     /**
@@ -201,7 +201,7 @@ class PipelineTest extends TestCase
         $this->assertEqualsCanonicalizing([
             ['_id'   => '741'],
             ['_id'   => '123'],
-        ], $this->query()->group('customer.id')->execute());
+        ], $this->query()->group('customer.id')->execute()->asRawArray()->all());
     }
 
     /**
@@ -218,7 +218,7 @@ class PipelineTest extends TestCase
                     'sum' => ['$size' => '$order']
                 ]
             ])
-            ->execute()
+            ->execute()->asRawArray()->all()
         );
     }
 
@@ -240,7 +240,7 @@ class PipelineTest extends TestCase
                     ]
                 ]);
             })
-            ->execute(),
+            ->execute()->asRawArray()->all(),
             new IsEqual($expected, 0.001, 10, true)
         );
     }
@@ -259,7 +259,7 @@ class PipelineTest extends TestCase
                 'customer' => 'customer.id',
                 'name'
             ])
-            ->execute()
+            ->execute()->asRawArray()->all()
         );
     }
 
@@ -282,7 +282,7 @@ class PipelineTest extends TestCase
             ], [
                 'count' => ['sum' => 1]
             ])
-            ->execute()
+            ->execute()->asRawArray()->all()
         );
     }
 
@@ -295,7 +295,7 @@ class PipelineTest extends TestCase
             [
                 $this->data[0]
             ],
-            $this->query()->match('name', '>=', 'Pa')->execute()
+            $this->query()->match('name', '>=', 'Pa')->execute()->asRawArray()->all()
         );
     }
 
@@ -308,7 +308,7 @@ class PipelineTest extends TestCase
             [
                 $this->data[0]
             ],
-            $this->query()->match('name', 'Paul')->execute()
+            $this->query()->match('name', 'Paul')->execute()->asRawArray()->all()
         );
     }
 
@@ -323,7 +323,7 @@ class PipelineTest extends TestCase
             ],
             $this->query()->match([
                 'name :gte' => 'Pa'
-            ])->execute()
+            ])->execute()->asRawArray()->all()
         );
     }
 
@@ -339,7 +339,7 @@ class PipelineTest extends TestCase
             $this->query()->match(function(Whereable $clause) {
                 $clause->where('name', '>=', 'Pa');
                 $clause->where('name', '>', 'Claude');
-            })->execute()
+            })->execute()->asRawArray()->all()
         );
     }
 
@@ -354,7 +354,7 @@ class PipelineTest extends TestCase
                 ['name' => 'Jean'],
                 ['name' => 'Claude']
             ],
-            $this->query()->project('name')->sort('name', 'DESC')->execute()
+            $this->query()->project('name')->sort('name', 'DESC')->execute()->asRawArray()->all()
         );
     }
 
@@ -375,7 +375,7 @@ class PipelineTest extends TestCase
                     'customer.id' => 'DESC',
                     'name' => 'ASC'
                 ])
-                ->execute()
+                ->execute()->asRawArray()->all()
         );
     }
 
@@ -394,7 +394,7 @@ class PipelineTest extends TestCase
                 ->project('name')
                 ->sort('customer.id', 'DESC')
                 ->sort('name')
-                ->execute()
+                ->execute()->asRawArray()->all()
         );
     }
 
@@ -410,7 +410,7 @@ class PipelineTest extends TestCase
             ],
             $this->query()
                 ->limit(2)
-                ->execute()
+                ->execute()->asRawArray()->all()
         );
     }
 
@@ -428,7 +428,7 @@ class PipelineTest extends TestCase
                 ->project('name')
                 ->limit(2)
                 ->sort('name')
-                ->execute()
+                ->execute()->asRawArray()->all()
         );
     }
 
@@ -442,7 +442,7 @@ class PipelineTest extends TestCase
                 ['name' => 'Jean'],
                 ['name' => 'Claude']
             ],
-            $this->query()->project('name')->skip(1)->execute()
+            $this->query()->project('name')->skip(1)->execute()->asRawArray()->all()
         );
     }
 
@@ -455,7 +455,7 @@ class PipelineTest extends TestCase
             [
                 ['name' => 'Jean']
             ],
-            $this->query()->project('name')->skip(1)->limit(1)->execute()
+            $this->query()->project('name')->skip(1)->limit(1)->execute()->asRawArray()->all()
         );
     }
 
@@ -465,7 +465,7 @@ class PipelineTest extends TestCase
     public function test_skip_after_limit()
     {
         $this->assertEmpty(
-            $this->query()->project('name')->limit(1)->skip(1)->execute()
+            $this->query()->project('name')->limit(1)->skip(1)->execute()->asRawArray()->all()
         );
     }
 
@@ -489,7 +489,7 @@ class PipelineTest extends TestCase
                 ->order('name', 'DESC')
                 ->limit(1)
                 ->pipeline()
-                ->execute()
+                ->execute()->asRawArray()->all()
         );
     }
 

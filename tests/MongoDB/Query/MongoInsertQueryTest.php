@@ -43,7 +43,7 @@ class MongoInsertQueryTest extends TestCase
         ]));
         ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
-        $this->connection = $manager->connection('mongo');
+        $this->connection = $manager->getConnection('mongo');
     }
 
     /**
@@ -63,7 +63,7 @@ class MongoInsertQueryTest extends TestCase
             'name.first' => 'John',
             'name.last'  => 'Doe',
             'birth'      => '1982-06-25'
-        ])->execute());
+        ])->execute()->count());
 
         $this->assertEquals([
             [
@@ -91,7 +91,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Mouse',
                 'birth'      => '1924-11-28'
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -125,7 +125,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Mouse',
                 'birth'      => '1924-11-28'
             ], true)
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -149,7 +149,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.first' => 'John',
                 'name.last'  => 'Doe',
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -167,7 +167,7 @@ class MongoInsertQueryTest extends TestCase
                 'birth'      => '1976-12-01',
                 'other'      => 42
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -196,7 +196,7 @@ class MongoInsertQueryTest extends TestCase
                 '_id'   => 1,
                 'value' => 42
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -227,7 +227,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Doe',
                 'birth'      => '1986-02-25'
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -250,7 +250,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Doe',
                 'birth'      => '1986-02-25'
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $entity = $this->connection->builder()->from($this->collection)->where('name.first', 'John')->first();
@@ -281,7 +281,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Doe',
                 'birth'      => '1986-02-25'
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -312,7 +312,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Doe',
                 'birth'      => '1986-02-25'
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -336,7 +336,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Doe',
                 'birth'      => '1986-02-25'
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -374,7 +374,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Mouse',
                 'birth'      => '1924-11-28'
             ])
-            ->execute()
+            ->execute()->count()
         );
 
         $this->assertEquals([
@@ -415,7 +415,7 @@ class MongoInsertQueryTest extends TestCase
                 'name.last'  => 'Doe',
                 'birth'      => '1986-02-25'
             ])
-            ->execute()
+            ->execute()->count()
         );
     }
 

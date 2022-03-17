@@ -3,6 +3,7 @@
 namespace Bdf\Prime\MongoDB\Driver;
 
 use Bdf\Prime\Connection\ConnectionInterface;
+use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\Exception\DBALException;
 use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform as PrimePlatform;
@@ -19,18 +20,22 @@ use Bdf\Prime\MongoDB\Query\Compiler\MongoKeyValueCompiler;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
 use Bdf\Prime\MongoDB\Query\SelfExecutable;
 use Bdf\Prime\MongoDB\Schema\MongoSchemaManager as PrimeSchemaManager;
+use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
 use Bdf\Prime\Query\Contract\Compilable;
 use Bdf\Prime\Query\Contract\Query\InsertQueryInterface;
 use Bdf\Prime\Query\Contract\Query\KeyValueQueryInterface;
 use Bdf\Prime\Query\Factory\DefaultQueryFactory;
 use Bdf\Prime\Query\Factory\QueryFactoryInterface;
+use Bdf\Prime\Query\ReadCommandInterface;
+use Bdf\Prime\Schema\SchemaManagerInterface;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Result;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Manager;
@@ -112,7 +117,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -120,7 +125,15 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function schema()
+    public function getDatabase(): string
+    {
+        return $this->getParams()['dbname'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function schema(): SchemaManagerInterface
     {
         if ($this->schema === null) {
             $this->schema = new PrimeSchemaManager($this);
@@ -132,7 +145,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function platform()
+    public function platform(): PlatformInterface
     {
         if ($this->platform === null) {
             $this->platform = new PrimePlatform(
@@ -147,7 +160,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function make($query, PreprocessorInterface $preprocessor = null)
+    public function make($query, PreprocessorInterface $preprocessor = null): \Bdf\Prime\Query\CommandInterface
     {
         return $this->factory->make($query, $preprocessor);
     }
@@ -155,7 +168,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function factory()
+    public function factory(): QueryFactoryInterface
     {
         return $this->factory;
     }
@@ -163,7 +176,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function from($table, ?string $alias = null)
+    public function from($table, ?string $alias = null): ReadCommandInterface
     {
         return $this->builder()->from($table);
     }
@@ -171,7 +184,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function select($query, array $bindings = [], array $types = [])
+    public function select($query, array $bindings = [], array $types = []): ResultSetInterface
     {
         throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
     }
@@ -240,7 +253,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function executeQuery($sql, array $params = [], $types = [], QueryCacheProfile $qcp = null)
+    public function executeQuery($sql, array $params = [], $types = [], QueryCacheProfile $qcp = null): Result
     {
         throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
     }
@@ -248,7 +261,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function executeUpdate($sql, array $params = [], array $types = [])
+    public function executeUpdate($sql, array $params = [], array $types = []): int
     {
         throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
     }
@@ -396,7 +409,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function builder(PreprocessorInterface $preprocessor = null)
+    public function builder(PreprocessorInterface $preprocessor = null): ReadCommandInterface
     {
         return $this->factory->make(MongoQuery::class, $preprocessor);
     }
@@ -404,7 +417,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function execute(Compilable $query)
+    public function execute(Compilable $query): ResultSetInterface
     {
         $compiled = $query->compile();
 
@@ -427,5 +440,13 @@ class MongoConnection extends Connection implements ConnectionInterface
     protected function getNamespace($collection)
     {
         return $this->getDatabase() . '.' . $collection;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function close(): void
+    {
+        parent::close();
     }
 }

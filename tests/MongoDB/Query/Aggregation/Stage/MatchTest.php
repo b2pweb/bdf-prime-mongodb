@@ -41,7 +41,7 @@ class MatchTest extends TestCase
 
         ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
-        $this->grammar = new MongoGrammar($this->manager->connection('mongo')->platform());
+        $this->grammar = new MongoGrammar($this->manager->getConnection('mongo')->platform());
     }
 
     /**
@@ -196,6 +196,6 @@ class MatchTest extends TestCase
      */
     protected function query()
     {
-        return (new Pipeline($this->manager->connection('mongo')))->from('users');
+        return (new Pipeline($this->manager->getConnection('mongo')))->from('users');
     }
 }

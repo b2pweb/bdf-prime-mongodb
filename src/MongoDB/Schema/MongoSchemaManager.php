@@ -42,7 +42,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function flush()
+    public function flush(): bool
     {
         foreach ($this->pending as $pending) {
             if ($pending instanceof CommandInterface) {
@@ -60,7 +60,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function pending()
+    public function pending(): array
     {
         return $this->pending;
     }
@@ -126,7 +126,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function hasDatabase($database)
+    public function hasDatabase($database): bool
     {
         return in_array(strtolower($database), array_map('strtolower', $this->getDatabases()));
     }
@@ -134,7 +134,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function getDatabases()
+    public function getDatabases(): array
     {
         $list = $this->connection->runAdminCommand('listDatabases')->toArray();
 
@@ -167,7 +167,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function hasTable($tableName)
+    public function hasTable($tableName): bool
     {
         $cursor = $this->connection->runCommand(
             (new ListCollections())
@@ -180,7 +180,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function loadTable($tableName)
+    public function loadTable($tableName): Table
     {
         $cursor = $this->connection->runCommand((new ListCollections())->byName($tableName));
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);

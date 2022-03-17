@@ -270,7 +270,7 @@ class OdmTest extends TestCase
 
         $entity->insert();
 
-        $data = Prime::connection('mongo')->from('timestampable')->execute();
+        $data = Prime::connection('mongo')->from('timestampable')->execute()->all();
 
         $this->assertInstanceOf(UTCDateTime::class, $data[0]['created_at']);
         $this->assertNull($data[0]['updated_at']);
@@ -283,7 +283,7 @@ class OdmTest extends TestCase
 
         $entity->setValue('foo2')->save();
 
-        $data = Prime::connection('mongo')->from('timestampable')->execute();
+        $data = Prime::connection('mongo')->from('timestampable')->execute()->all();
         $this->assertInstanceOf(UTCDateTime::class, $data[0]['created_at']);
         $this->assertInstanceOf(UTCDateTime::class, $data[0]['updated_at']);
 

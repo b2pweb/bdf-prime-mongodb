@@ -110,7 +110,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
     /**
      * {@inheritdoc}
      */
-    public function asClass(string $className): ResultSetInterface
+    public function asClass(string $className, array $constructorArguments = []): ResultSetInterface
     {
         return $this->fetchMode(self::FETCH_CLASS, $className);
     }
@@ -121,6 +121,16 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
     public function asColumn(int $column = 0): ResultSetInterface
     {
         return $this->fetchMode(self::FETCH_COLUMN, $column);
+    }
+
+    /**
+     * Fetch result into raw array (i.e. not flatten)
+     *
+     * @return $this
+     */
+    public function asRawArray(): CursorResultSet
+    {
+        return $this->fetchMode(self::FETCH_RAW_ARRAY);
     }
 
     /**
@@ -150,7 +160,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
     /**
      * {@inheritdoc}
      */
-    public function all()
+    public function all(): array
     {
         return iterator_to_array($this, false);
     }
@@ -158,7 +168,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
     /**
      * {@inheritdoc}
      */
-    public function count()
+    public function count(): int
     {
         return count($this->all());
     }
@@ -189,6 +199,14 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
             default:
                 return $value;
         }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function rewind(): void
+    {
+        parent::rewind();
     }
 
     /**
@@ -250,7 +268,11 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
     private function extractColumn(array $data, $column, &$index = 0)
     {
         if ($column === $index) {
-            return reset($data);
+            $value = reset($data);
+
+            if (!is_array($value)) {
+                return $value;
+            }
         }
 
         foreach ($data as $value) {

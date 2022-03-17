@@ -3,22 +3,37 @@
 namespace Bdf\Prime\MongoDB\Query\Compiler;
 
 use Bdf\Prime\Connection\ConnectionInterface;
+use Bdf\Prime\MongoDB\Platform\MongoPlatform;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
 use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
 use Bdf\Prime\MongoDB\Query\MongoKeyValueQuery;
 use Bdf\Prime\Query\CompilableClause;
-use Bdf\Prime\Query\Compiler\AbstractCompiler;
+use Bdf\Prime\Query\Compiler\DeleteCompilerInterface;
+use Bdf\Prime\Query\Compiler\DeleteCompilerTrait;
+use Bdf\Prime\Query\Compiler\SelectCompilerInterface;
+use Bdf\Prime\Query\Compiler\SelectCompilerTrait;
+use Bdf\Prime\Query\Compiler\UpdateCompilerInterface;
+use Bdf\Prime\Query\Compiler\UpdateCompilerTrait;
 
 /**
  * Compiler for @see MongoKeyValueQuery
+ *
+ * @implements SelectCompilerInterface<MongoKeyValueQuery>
+ * @implements UpdateCompilerInterface<MongoKeyValueQuery>
+ * @implements DeleteCompilerInterface<MongoKeyValueQuery>
  */
-class MongoKeyValueCompiler extends AbstractCompiler
+class MongoKeyValueCompiler implements SelectCompilerInterface, UpdateCompilerInterface, DeleteCompilerInterface
 {
-    /**
-     * @var MongoGrammar
-     */
-    private $grammar;
+    /** @use SelectCompilerTrait<MongoKeyValueQuery> */
+    use SelectCompilerTrait;
+    /** @use UpdateCompilerTrait<MongoKeyValueQuery> */
+    use UpdateCompilerTrait;
+    /** @use DeleteCompilerTrait<MongoKeyValueQuery> */
+    use DeleteCompilerTrait;
+
+    private MongoPlatform $platform;
+    private MongoGrammar $grammar;
 
 
     /**
@@ -28,23 +43,14 @@ class MongoKeyValueCompiler extends AbstractCompiler
      */
     public function __construct(ConnectionInterface $connection)
     {
-        parent::__construct($connection);
-
-        $this->grammar = new MongoGrammar($connection->platform());
+        $this->platform = $connection->platform();
+        $this->grammar = new MongoGrammar($this->platform);
     }
 
     /**
      * {@inheritdoc}
      */
-    protected function doCompileInsert(CompilableClause $query)
-    {
-        throw new \BadMethodCallException('INSERT operation is not supported on key value query');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function doCompileUpdate(CompilableClause $query)
+    protected function doCompileUpdate(CompilableClause $query): WriteQuery
     {
         $bulk = new WriteQuery($query->statements['collection']);
 
@@ -62,7 +68,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
     /**
      * {@inheritdoc}
      */
-    protected function doCompileDelete(CompilableClause $query)
+    protected function doCompileDelete(CompilableClause $query): WriteQuery
     {
         $bulk = new WriteQuery($query->statements['collection']);
 
@@ -77,7 +83,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
     /**
      * {@inheritdoc}
      */
-    protected function doCompileSelect(CompilableClause $query)
+    protected function doCompileSelect(CompilableClause $query): ReadQuery
     {
         $options = $query->statements['options'];
 
@@ -109,7 +115,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
      *
      * @link https://docs.mongodb.com/manual/reference/command/count/
      */
-    public function compileCount(CompilableClause $query)
+    public function compileCount(CompilableClause $query): Count
     {
         $command = new Count($query->statements['collection']);
 
@@ -129,22 +135,6 @@ class MongoKeyValueCompiler extends AbstractCompiler
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function quoteIdentifier(CompilableClause $query, $column)
-    {
-        return $column;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getBindings(CompilableClause $query)
-    {
-        return [];
-    }
-
-    /**
      * Compile filters and convert to db value
      *
      * @param CompilableClause $query
@@ -152,7 +142,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
      *
      * @return array
      */
-    private function compileFilters(CompilableClause $query, array $filters)
+    private function compileFilters(CompilableClause $query, array $filters): array
     {
         $compiled = [];
 
@@ -160,7 +150,7 @@ class MongoKeyValueCompiler extends AbstractCompiler
             $type = true;
 
             $field = $query->preprocessor()->field($field, $type);
-            $value = $this->platform()->types()->toDatabase($value, $type === true ? null : $type);
+            $value = $this->platform->types()->toDatabase($value, $type === true ? null : $type);
 
             $compiled[$field] = $value;
         }

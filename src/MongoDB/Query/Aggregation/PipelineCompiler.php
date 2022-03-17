@@ -13,10 +13,7 @@ use Bdf\Prime\Query\CompilableClause;
  */
 class PipelineCompiler
 {
-    /**
-     * @var MongoGrammar
-     */
-    private $grammar;
+    private MongoGrammar $grammar;
 
 
     /**
@@ -36,7 +33,7 @@ class PipelineCompiler
      *
      * @return Aggregate
      */
-    public function compileAggregate(CompilableClause $clause)
+    public function compileAggregate(CompilableClause $clause): Aggregate
     {
         $command = new Aggregate($clause->statements['collection']);
 
@@ -77,7 +74,7 @@ class PipelineCompiler
      *
      * @return array
      */
-    public function compilePipeline(CompilableClause $clause, array $stages)
+    public function compilePipeline(CompilableClause $clause, array $stages): array
     {
         $pipeline = [];
 

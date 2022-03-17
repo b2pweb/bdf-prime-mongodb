@@ -104,4 +104,12 @@ class MongoPlatform extends AbstractPlatform
     {
         throw new BadMethodCallException('Not supported');
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getCurrentDatabaseExpression(): string
+    {
+        throw new BadMethodCallException('Not supported');
+    }
 }

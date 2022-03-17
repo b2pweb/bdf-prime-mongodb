@@ -2,40 +2,45 @@
 
 namespace Bdf\Prime\MongoDB\Query\Compiler;
 
-use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
+use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
+use Bdf\Prime\MongoDB\Query\MongoInsertQuery;
+use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Query\CompilableClause;
-use Bdf\Prime\Query\Compiler\AbstractCompiler;
+use Bdf\Prime\Query\Compiler\InsertCompilerInterface;
+use Bdf\Prime\Query\Compiler\InsertCompilerTrait;
+use Bdf\Prime\Query\Compiler\UpdateCompilerInterface;
+use Bdf\Prime\Query\Compiler\UpdateCompilerTrait;
 use Bdf\Prime\Query\Contract\Query\InsertQueryInterface;
 use Bdf\Prime\Query\Custom\BulkInsert\BulkInsertQuery;
 
 /**
  * Compiler for @see BulkInsertQuery
+ *
+ * @implements InsertCompilerInterface<MongoInsertQuery>
+ * @implements UpdateCompilerInterface<MongoInsertQuery>
  */
-class MongoInsertCompiler extends AbstractCompiler
+class MongoInsertCompiler implements InsertCompilerInterface, UpdateCompilerInterface
 {
+    /** @use InsertCompilerTrait<MongoInsertQuery> */
+    use InsertCompilerTrait;
+    /** @use UpdateCompilerTrait<MongoInsertQuery> */
+    use UpdateCompilerTrait;
+
+    private PlatformInterface $platform;
+
     /**
-     * {@inheritdoc}
+     * @param ConnectionInterface $connection
      */
-    public function getBindings(CompilableClause $query)
+    public function __construct(ConnectionInterface $connection)
     {
-        return [];
+        $this->platform = $connection->platform();
     }
 
     /**
      * {@inheritdoc}
      */
-    public function quoteIdentifier(CompilableClause $query, $column)
-    {
-        return $column;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return WriteQuery
-     */
-    protected function doCompileInsert(CompilableClause $query)
+    protected function doCompileInsert(CompilableClause $query): WriteQuery
     {
         $bulk = new WriteQuery($query->statements['collection']);
 
@@ -54,10 +59,8 @@ class MongoInsertCompiler extends AbstractCompiler
 
     /**
      * {@inheritdoc}
-     *
-     * @return WriteQuery
      */
-    protected function doCompileUpdate(CompilableClause $query)
+    protected function doCompileUpdate(CompilableClause $query): WriteQuery
     {
         $bulk = new WriteQuery($query->statements['collection']);
 
@@ -92,26 +95,6 @@ class MongoInsertCompiler extends AbstractCompiler
     }
 
     /**
-     * {@inheritdoc}
-     *
-     * @return WriteQuery
-     */
-    protected function doCompileDelete(CompilableClause $query)
-    {
-        throw new \BadMethodCallException();
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @return ReadQuery
-     */
-    protected function doCompileSelect(CompilableClause $query)
-    {
-        throw new \BadMethodCallException();
-    }
-
-    /**
      * Compile document data for insert operation.
      * Unlike Update, the insert data should not be flatten
      *
@@ -120,7 +103,7 @@ class MongoInsertCompiler extends AbstractCompiler
      *
      * @return array
      */
-    private function compileInsertData(array $data, array $columns)
+    private function compileInsertData(array $data, array $columns): array
     {
         $parsed = [];
 
@@ -137,7 +120,7 @@ class MongoInsertCompiler extends AbstractCompiler
                 $base = &$base[$field[$i]];
             }
 
-            $value = $this->platform()->types()->toDatabase($data[$key] ?? null, $column['type']);
+            $value = $this->platform->types()->toDatabase($data[$key] ?? null, $column['type']);
             $base[$field[$i]] = $value;
         }
 
@@ -152,7 +135,7 @@ class MongoInsertCompiler extends AbstractCompiler
      *
      * @return array
      */
-    private function resolveColumns(CompilableClause $query, array $columns)
+    private function resolveColumns(CompilableClause $query, array $columns): array
     {
         if (isset($query->state()->compiledParts['columns'])) {
             return $query->state()->compiledParts['columns'];

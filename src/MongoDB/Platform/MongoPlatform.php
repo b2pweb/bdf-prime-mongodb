@@ -73,7 +73,7 @@ class MongoPlatform implements PlatformInterface
     /**
      * {@inheritdoc}
      */
-    public function name()
+    public function name(): string
     {
         return 'mongodb';
     }
@@ -81,7 +81,7 @@ class MongoPlatform implements PlatformInterface
     /**
      * {@inheritdoc}
      */
-    public function types()
+    public function types(): PlatformTypes
     {
         return $this->types;
     }

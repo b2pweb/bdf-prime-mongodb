@@ -55,7 +55,7 @@ class MongoConnectionTest extends TestCase
         ]));
         ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
-        $this->connection = $manager->connection('mongo');
+        $this->connection = $manager->getConnection('mongo');
     }
 
     /**
@@ -97,7 +97,7 @@ class MongoConnectionTest extends TestCase
         ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
         /** @var MongoConnection $connection */
-        $connection = $manager->connection('replica');
+        $connection = $manager->getConnection('replica');
         $connection->connect();
 
         /** @var Manager $innerConnection */

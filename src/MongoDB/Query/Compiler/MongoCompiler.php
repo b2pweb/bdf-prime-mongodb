@@ -14,10 +14,7 @@ use Bdf\Prime\Query\Compiler\AbstractCompiler;
  */
 class MongoCompiler extends AbstractCompiler
 {
-    /**
-     * @var MongoGrammar
-     */
-    private $grammar;
+    private MongoGrammar $grammar;
 
 
     /**
@@ -36,7 +33,7 @@ class MongoCompiler extends AbstractCompiler
     /**
      * {@inheritdoc}
      */
-    public function getBindings(CompilableClause $query)
+    public function getBindings(CompilableClause $query): array
     {
         return [];
     }
@@ -50,7 +47,7 @@ class MongoCompiler extends AbstractCompiler
      *
      * @link https://docs.mongodb.com/manual/reference/command/count/
      */
-    public function compileCount(CompilableClause $query)
+    public function compileCount(CompilableClause $query): Count
     {
         $command = new Count($query->statements['collection']);
 
@@ -71,10 +68,8 @@ class MongoCompiler extends AbstractCompiler
 
     /**
      * {@inheritdoc}
-     *
-     * @return WriteQuery
      */
-    protected function doCompileInsert(CompilableClause $query)
+    protected function doCompileInsert(CompilableClause $query): WriteQuery
     {
         $bulk = new WriteQuery($query->statements['collection']);
 
@@ -87,10 +82,8 @@ class MongoCompiler extends AbstractCompiler
 
     /**
      * {@inheritdoc}
-     *
-     * @return WriteQuery
      */
-    protected function doCompileUpdate(CompilableClause $query)
+    protected function doCompileUpdate(CompilableClause $query): WriteQuery
     {
         $bulk = new WriteQuery($query->statements['collection']);
 
@@ -134,10 +127,8 @@ class MongoCompiler extends AbstractCompiler
 
     /**
      * {@inheritdoc}
-     *
-     * @return WriteQuery
      */
-    protected function doCompileDelete(CompilableClause $query)
+    protected function doCompileDelete(CompilableClause $query): WriteQuery
     {
         $bulk = new WriteQuery($query->statements['collection']);
 
@@ -151,10 +142,8 @@ class MongoCompiler extends AbstractCompiler
 
     /**
      * {@inheritdoc}
-     *
-     * @return ReadQuery
      */
-    protected function doCompileSelect(CompilableClause $query)
+    protected function doCompileSelect(CompilableClause $query): ReadQuery
     {
         $options = $query->statements['options'];
 
@@ -177,19 +166,6 @@ class MongoCompiler extends AbstractCompiler
         $filters = $this->grammar->filters($query, $query->statements['where']);
 
         return new ReadQuery($query->statements['collection'], $filters, $options);
-    }
-
-    /**
-     * @param CompilableClause $query
-     * @param mixed $expression
-     *
-     * @return mixed
-     */
-    public function compileExpression(CompilableClause $query, $expression)
-    {
-        @trigger_error(E_USER_DEPRECATED);
-
-        return $this->grammar->expression($query, $expression);
     }
 
     /**
@@ -230,32 +206,6 @@ class MongoCompiler extends AbstractCompiler
 
     /**
      * @param CompilableClause $query
-     * @param array $filters
-     *
-     * @return array
-     */
-    public function compileFilters(CompilableClause $query, array $filters)
-    {
-        @trigger_error(E_USER_DEPRECATED);
-
-        return $this->grammar->filters($query, $filters);
-    }
-
-    /**
-     * @param CompilableClause $query
-     * @param array $columns
-     *
-     * @return array
-     */
-    public function compileProjection(CompilableClause $query, array $columns)
-    {
-        @trigger_error(E_USER_DEPRECATED);
-
-        return $this->grammar->projection($query, $columns);
-    }
-
-    /**
-     * @param CompilableClause $query
      * @param array $statements
      *
      * @return array
@@ -269,26 +219,5 @@ class MongoCompiler extends AbstractCompiler
         }
 
         return $operators;
-    }
-
-    /**
-     * @param CompilableClause $query
-     * @param array $orders
-     *
-     * @return array
-     */
-    public function compileSort(CompilableClause $query, array $orders)
-    {
-        @trigger_error(E_USER_DEPRECATED);
-
-        return $this->grammar->sort($query, $orders);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function quoteIdentifier(CompilableClause $query, $column)
-    {
-        return $column;
     }
 }

@@ -4,10 +4,17 @@ namespace Bdf\Prime\MongoDB\Driver;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Driver\API\ExceptionConverter;
+use Doctrine\DBAL\Driver\Exception;
+use Doctrine\DBAL\Exception\DriverException;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
+use Doctrine\DBAL\Query;
 use MongoDB\Driver\Manager;
 
 /**
  * Driver for @see MongoConnection
+ *
+ * @deprecated
  */
 class MongoDriver implements Driver
 {
@@ -45,9 +52,9 @@ class MongoDriver implements Driver
     /**
      * {@inheritdoc}
      */
-    public function getSchemaManager(Connection $conn)
+    public function getSchemaManager(Connection $conn, AbstractPlatform $platform)
     {
-        return new MongoSchemasManager($conn);
+        return new MongoSchemasManager($conn, $platform);
     }
 
     /**
@@ -64,6 +71,19 @@ class MongoDriver implements Driver
     public function getDatabase(Connection $conn)
     {
         return $conn->getParams()['dbname'];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getExceptionConverter(): ExceptionConverter
+    {
+        return new class implements ExceptionConverter {
+            public function convert(Exception $exception, ?Query $query): DriverException
+            {
+                return new DriverException($exception, $query);
+            }
+        };
     }
 
     private function buildDsn(array $params): string

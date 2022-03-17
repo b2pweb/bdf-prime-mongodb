@@ -176,6 +176,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         $value = parent::current();

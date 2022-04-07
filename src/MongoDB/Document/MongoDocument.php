@@ -36,7 +36,7 @@ class MongoDocument
      *
      * @var ObjectId|null
      */
-    protected ?ObjectId $_id = null;
+    protected ?ObjectId $_id = null; // phpcs:ignore
 
     /**
      * @return ObjectId|null

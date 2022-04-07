@@ -27,5 +27,4 @@ interface DocumentHydratorInterface
      * @return array Database fields
      */
     public function toDatabase(object $document): array;
-
 }

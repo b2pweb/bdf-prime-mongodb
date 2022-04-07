@@ -144,7 +144,6 @@ class CollectionPreprocessor implements PreprocessorInterface
      */
     public function clear(): void
     {
-
     }
 
     /**

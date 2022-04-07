@@ -2,7 +2,6 @@
 
 namespace Bdf\Prime\MongoDB\Document\Hydrator;
 
-
 use MongoDB\BSON\ObjectId;
 
 /**

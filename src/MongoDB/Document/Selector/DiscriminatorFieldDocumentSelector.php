@@ -72,7 +72,7 @@ final class DiscriminatorFieldDocumentSelector implements DocumentSelectorInterf
             $documentClass = $this->documentClass;
         }
 
-        return new $documentClass;
+        return new $documentClass();
     }
 
     /**

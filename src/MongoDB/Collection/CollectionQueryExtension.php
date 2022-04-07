@@ -76,7 +76,7 @@ class CollectionQueryExtension
             return $entity;
         }
 
-        throw new EntityNotFoundException('Cannot resolve entity identifier "'.$id.'"');
+        throw new EntityNotFoundException('Cannot resolve entity identifier "' . $id . '"');
     }
 
 //    /**

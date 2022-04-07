@@ -81,7 +81,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
     /**
      * {@inheritdoc}
      */
-    public final function getId(object $document): ?ObjectId
+    final public function getId(object $document): ?ObjectId
     {
         return $this->idAccessor()->readId($document);
     }
@@ -89,7 +89,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
     /**
      * {@inheritdoc}
      */
-    public final function setId(object $document, ?ObjectId $id): void
+    final public function setId(object $document, ?ObjectId $id): void
     {
         $this->idAccessor()->writeId($document, $id);
     }
@@ -97,7 +97,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
     /**
      * {@inheritdoc}
      */
-    public final function fromDatabase(array $data, TypesRegistryInterface $types): object
+    final public function fromDatabase(array $data, TypesRegistryInterface $types): object
     {
         $document = $this->selector()->instantiate($data);
         $data = $this->fields()->fromDatabase($data, $types);
@@ -108,7 +108,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
     /**
      * {@inheritdoc}
      */
-    public final function toDatabase(object $document, TypesRegistryInterface $types): array
+    final public function toDatabase(object $document, TypesRegistryInterface $types): array
     {
         $data = $this->hydrator()->toDatabase($document);
 
@@ -118,7 +118,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
     /**
      * {@inheritdoc}
      */
-    public final function constraints(): array
+    final public function constraints(): array
     {
         return $this->selector()->filters($this->documentClass);
     }
@@ -128,7 +128,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
      *
      * @return FieldsMapping
      */
-    public final function fields(): FieldsMapping
+    final public function fields(): FieldsMapping
     {
         if ($this->fields) {
             return $this->fields;
@@ -142,7 +142,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
     /**
      * @return IdAccessorInterface<D>
      */
-    private final function idAccessor(): IdAccessorInterface
+    final private function idAccessor(): IdAccessorInterface
     {
         if ($this->idAccessor) {
             return $this->idAccessor;

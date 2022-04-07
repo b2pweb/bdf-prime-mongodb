@@ -49,6 +49,28 @@ class MongoCompiler extends AbstractCompiler
      */
     public function compileCount(CompilableClause $query): Count
     {
+        try {
+            $query->state()->compiling = true;
+            $query = $query->preprocessor()->forSelect($query);
+
+            return $this->doCompileCount($query);
+        } finally {
+            $query->state()->compiling = false;
+            $query->preprocessor()->clear();
+        }
+    }
+
+    /**
+     * Compile a count command
+     *
+     * @param CompilableClause $query
+     *
+     * @return Count
+     *
+     * @link https://docs.mongodb.com/manual/reference/command/count/
+     */
+    protected function doCompileCount(CompilableClause $query): Count
+    {
         $command = new Count($query->statements['collection']);
 
         if (!empty($query->statements['where'])) {

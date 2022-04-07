@@ -13,6 +13,7 @@ use Bdf\Prime\Query\Compiler\UpdateCompilerInterface;
 use Bdf\Prime\Query\Compiler\UpdateCompilerTrait;
 use Bdf\Prime\Query\Contract\Query\InsertQueryInterface;
 use Bdf\Prime\Query\Custom\BulkInsert\BulkInsertQuery;
+use Bdf\Prime\Types\TypeInterface;
 
 /**
  * Compiler for @see BulkInsertQuery
@@ -51,7 +52,7 @@ class MongoInsertCompiler implements InsertCompilerInterface, UpdateCompilerInte
         $columns = $this->resolveColumns($query, $query->statements['columns']);
 
         foreach ($query->statements['values'] as $data) {
-            $bulk->insert($this->compileInsertData($data, $columns));
+            $bulk->insert($this->compileInsertData($query, $data, $columns));
         }
 
         return $bulk;
@@ -67,7 +68,7 @@ class MongoInsertCompiler implements InsertCompilerInterface, UpdateCompilerInte
         $columns = $this->resolveColumns($query, $query->statements['columns']);
 
         foreach ($query->statements['values'] as $data) {
-            $data = $this->compileInsertData($data, $columns);
+            $data = $this->compileInsertData($query, $data, $columns);
 
             if (!isset($data['_id'])) {
                 $bulk->insert($data);
@@ -99,11 +100,16 @@ class MongoInsertCompiler implements InsertCompilerInterface, UpdateCompilerInte
      * Unlike Update, the insert data should not be flatten
      *
      * @param array $data
-     * @param array $columns
+     * @param array|null $columns Column mapping, or null if disabled
      *
      * @return array
      */
-    private function compileInsertData(array $data, array $columns): array
+    private function compileInsertData(CompilableClause $query, array $data, ?array $columns): array
+    {
+        return $columns ? $this->compileFlattenData($data, $columns) : $this->compileDocumentData($query, $data);
+    }
+
+    private function compileFlattenData(array $data, array $columns): array
     {
         $parsed = [];
 
@@ -127,16 +133,42 @@ class MongoInsertCompiler implements InsertCompilerInterface, UpdateCompilerInte
         return $parsed;
     }
 
+    private function compileDocumentData(CompilableClause $query, array $data, string $fieldPathPrefix = ''): array
+    {
+        $parsed = [];
+
+        // @todo handle field name mapping ?
+        foreach ($data as $field => $value) {
+            $fieldPath = $fieldPathPrefix . $field;
+
+            $type = true;
+            $query->preprocessor()->field($fieldPath, $type);
+
+            if ($type instanceof TypeInterface || !is_array($value)) {
+                $value = $this->platform->types()->toDatabase($value, $type);
+                $parsed[$field] = $value;
+            } else {
+                $parsed[$field] = $this->compileDocumentData($query, $value, $fieldPath . '.');
+            }
+        }
+
+        return $parsed;
+    }
+
     /**
      * Resolve INSERT columns
      *
      * @param CompilableClause $query
      * @param array $columns
      *
-     * @return array
+     * @return array|null Resolved columns, or null if insert is not flatten and column system disabled
      */
-    private function resolveColumns(CompilableClause $query, array $columns): array
+    private function resolveColumns(CompilableClause $query, array $columns): ?array
     {
+        if (empty($query->statements['flatten'])) {
+            return null;
+        }
+
         if (isset($query->state()->compiledParts['columns'])) {
             return $query->state()->compiledParts['columns'];
         }

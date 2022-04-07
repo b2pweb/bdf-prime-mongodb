@@ -23,6 +23,11 @@ use Bdf\Prime\Query\QueryInterface;
  *
  * @property MongoConnection $connection
  * @property MongoCompiler $compiler
+ *
+ * @template R as object|array
+ *
+ * @implements QueryInterface<MongoConnection, R>
+ * @extends AbstractQuery<MongoConnection, R>
  */
 class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable, Aggregatable, Limitable, OptionsConfigurable
 {

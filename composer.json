@@ -11,7 +11,8 @@
     "minimum-stability": "dev",
     "require": {
         "php": "~7.4 | ~8.0.0 | ~8.1.0",
-        "ext-mongodb": "*"
+        "ext-mongodb": "*",
+        "b2pweb/bdf-serializer": "~1.2"
     },
     "require-dev": {
         "phpunit/phpunit": "~9.0",

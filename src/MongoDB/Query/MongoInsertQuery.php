@@ -43,6 +43,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
             'values'     => [],
             'mode'       => self::MODE_INSERT,
             'bulk'       => false,
+            'flatten'    => true,
         ];
     }
 
@@ -227,5 +228,22 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
             ? self::TYPE_UPDATE
             : self::TYPE_INSERT
         ;
+    }
+
+    /**
+     * Enable or disable flatten mode for insert document
+     *
+     * By default, this mode is enabled, so embedded document fields will be modified using dot notation (ex: 'doc.field.other')
+     * If disabled, abstract array structure can be used
+     *
+     * @param bool $enabled true to enable, or false for disable
+     *
+     * @return $this
+     */
+    public function flatten(bool $enabled = true)
+    {
+        $this->statements['flatten'] = $enabled;
+
+        return $this;
     }
 }

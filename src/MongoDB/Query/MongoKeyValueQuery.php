@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Query;
 use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoKeyValueCompiler;
 use Bdf\Prime\Query\AbstractReadCommand;
@@ -21,6 +22,11 @@ use Bdf\Prime\Query\Extension\ProjectionableTrait;
 
 /**
  * KeyValue query implementation for MongoDB
+ *
+ * @template R as object|array
+ *
+ * @extends AbstractReadCommand<MongoConnection, R>
+ * @implements KeyValueQueryInterface<MongoConnection, R>
  */
 final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQueryInterface, Compilable, Paginable, Limitable, OptionsConfigurable
 {

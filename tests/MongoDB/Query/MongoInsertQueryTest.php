@@ -420,6 +420,71 @@ class MongoInsertQueryTest extends TestCase
     }
 
     /**
+     *
+     */
+    public function test_insert_not_flatten()
+    {
+        $this->assertEquals(1, $this->query()->flatten(false)->values([
+            'name' => [
+                'first' => 'John',
+                'last'  => 'Doe',
+            ],
+            'birth'      => '1982-06-25'
+        ])->execute()->count());
+
+        $this->assertEquals([
+            'name' => [
+                'first' => 'John',
+                'last'  => 'Doe',
+            ],
+            'birth'      => '1982-06-25'
+        ], $this->connection->builder()->from($this->collection)->select(['name', 'birth'])->execute()->asRawArray()->all()[0]);
+    }
+
+    /**
+     *
+     */
+    public function test_replace_not_flatten()
+    {
+        $this->assertEquals(1, $this->query()->flatten(false)->replace()->values([
+            'name' => [
+                'first' => 'John',
+                'last'  => 'Doe',
+            ],
+            'birth'      => '1982-06-25'
+        ])->execute()->count());
+
+        $doc = $this->connection->builder()->from($this->collection)->execute()->asRawArray()->all()[0];
+
+        $this->assertEquals([
+            '_id' => $doc['_id'],
+            'name' => [
+                'first' => 'John',
+                'last'  => 'Doe',
+            ],
+            'birth'      => '1982-06-25'
+        ], $doc);
+
+        $this->assertEquals(1, $this->query()->flatten(false)->replace()->values([
+            '_id' => $doc['_id'],
+            'name' => [
+                'first' => 'John',
+                'last'  => 'Smith',
+            ],
+            'birth'      => '1959-03-12'
+        ])->execute()->count());
+
+        $this->assertEquals([
+            '_id' => $doc['_id'],
+            'name' => [
+                'first' => 'John',
+                'last'  => 'Smith',
+            ],
+            'birth'      => '1959-03-12'
+        ], $this->connection->builder()->from($this->collection)->execute()->asRawArray()->all()[0]);
+    }
+
+    /**
      * @return MongoInsertQuery
      */
     private function query()

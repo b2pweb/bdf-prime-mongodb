@@ -38,7 +38,9 @@ class BsonBinDataType extends AbstractPlatformType
             return null;
         }
 
-        if ($value instanceof Binary) {
+        $targetType = $fieldOptions['phpType'] ?? null;
+
+        if ($value instanceof Binary && ($targetType === PhpTypeInterface::STRING || !$targetType)) {
             return $value->getData();
         }
 
@@ -50,8 +52,8 @@ class BsonBinDataType extends AbstractPlatformType
      */
     public function toDatabase($value)
     {
-        if ($value === null) {
-            return null;
+        if ($value === null || $value instanceof Binary) {
+            return $value;
         }
 
         return new Binary($value, Binary::TYPE_GENERIC);

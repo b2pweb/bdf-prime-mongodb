@@ -17,9 +17,9 @@ use Bdf\Prime\Query\ReadCommandInterface;
 class CollectionQueries
 {
     /**
-     * @var MongoCollection<D>
+     * @var MongoCollectionInterface<D>
      */
-    private MongoCollection $collection;
+    private MongoCollectionInterface $collection;
 
     /**
      * @var DocumentMapperInterface<D>
@@ -47,11 +47,11 @@ class CollectionQueries
     private array $queries;
 
     /**
-     * @param MongoCollection $collection
-     * @param DocumentMapperInterface $mapper
+     * @param MongoCollectionInterface<D> $collection
+     * @param DocumentMapperInterface<D> $mapper
      * @param MongoConnection $connection
      */
-    public function __construct(MongoCollection $collection, DocumentMapperInterface $mapper, MongoConnection $connection)
+    public function __construct(MongoCollectionInterface $collection, DocumentMapperInterface $mapper, MongoConnection $connection)
     {
         $this->collection = $collection;
         $this->mapper = $mapper;
@@ -66,6 +66,7 @@ class CollectionQueries
      */
     public function query(): MongoQuery
     {
+        /** @var MongoQuery<D> */
         return $this->make(MongoQuery::class);
     }
 

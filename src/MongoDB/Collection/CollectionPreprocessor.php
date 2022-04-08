@@ -15,12 +15,12 @@ use Bdf\Prime\Types\TypeInterface;
  */
 class CollectionPreprocessor implements PreprocessorInterface
 {
-    protected MongoCollection $collection;
+    protected MongoCollectionInterface $collection;
 
     /**
-     * @param MongoCollection $collection
+     * @param MongoCollectionInterface $collection
      */
-    public function __construct(MongoCollection $collection)
+    public function __construct(MongoCollectionInterface $collection)
     {
         $this->collection = $collection;
     }

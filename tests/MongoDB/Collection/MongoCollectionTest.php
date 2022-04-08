@@ -219,10 +219,10 @@ class MongoCollectionTest extends TestCase
         $this->simpleObjectCollection->add($doc2);
         $this->simpleObjectCollection->add($doc3);
 
-        $this->assertEqualsCanonicalizing([$doc1], iterator_to_array($this->simpleObjectCollection->findAllRaw(['foo' => 'bar'])));
-        $this->assertEqualsCanonicalizing([$doc1, $doc2], iterator_to_array($this->simpleObjectCollection->findAllRaw(['foo' => ['$regex' => '^b.*']])));
-        $this->assertEquals([$doc3], iterator_to_array($this->simpleObjectCollection->findAllRaw(['value' => ['$gt' => 10]])));
-        $this->assertEqualsCanonicalizing([], iterator_to_array($this->simpleObjectCollection->findAllRaw(['value' => 'bob'])));
+        $this->assertEqualsCanonicalizing([$doc1], $this->simpleObjectCollection->findAllRaw(['foo' => 'bar']));
+        $this->assertEqualsCanonicalizing([$doc1, $doc2], $this->simpleObjectCollection->findAllRaw(['foo' => ['$regex' => '^b.*']]));
+        $this->assertEquals([$doc3], $this->simpleObjectCollection->findAllRaw(['value' => ['$gt' => 10]]));
+        $this->assertEqualsCanonicalizing([], $this->simpleObjectCollection->findAllRaw(['value' => 'bob']));
     }
 
     /**
@@ -238,10 +238,10 @@ class MongoCollectionTest extends TestCase
         $this->simpleObjectCollection->add($doc2);
         $this->simpleObjectCollection->add($doc3);
 
-        $this->assertEqualsCanonicalizing([$doc1], iterator_to_array($this->simpleObjectCollection->query()->where('foo', 'bar')->all()));
-        $this->assertEqualsCanonicalizing([$doc1, $doc2], iterator_to_array($this->simpleObjectCollection->query()->where('foo', (new Like('b'))->startsWith())->all()));
-        $this->assertEquals([$doc3], iterator_to_array($this->simpleObjectCollection->query()->whereRaw(['value' => ['$exists' => true]])->all()));
-        $this->assertEquals([], iterator_to_array($this->simpleObjectCollection->query()->whereRaw(['foo' => ['$exists' => false]])->all()));
+        $this->assertEqualsCanonicalizing([$doc1], $this->simpleObjectCollection->query()->where('foo', 'bar')->all());
+        $this->assertEqualsCanonicalizing([$doc1, $doc2], $this->simpleObjectCollection->query()->where('foo', (new Like('b'))->startsWith())->all());
+        $this->assertEquals([$doc3], $this->simpleObjectCollection->query()->whereRaw(['value' => ['$exists' => true]])->all());
+        $this->assertEquals([], $this->simpleObjectCollection->query()->whereRaw(['foo' => ['$exists' => false]])->all());
     }
 
     /**

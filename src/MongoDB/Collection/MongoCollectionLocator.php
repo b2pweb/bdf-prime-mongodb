@@ -16,7 +16,7 @@ class MongoCollectionLocator
     private ConnectionRegistryInterface $connections;
 
     /**
-     * @psalm-var class-string-map<D as object, MongoCollection<D>>
+     * @psalm-var class-string-map<D, MongoCollection<D>>
      * @var array<class-string, MongoCollection>
      */
     private array $collections = [];
@@ -57,12 +57,13 @@ class MongoCollectionLocator
             }
         }
 
-        /** @var DocumentMapper $mapper */
+        /** @var DocumentMapper<D> $mapper */
         $mapper = new $mapperClass($type);
-
-        return $this->collections[$type] = new MongoCollection(
+        $this->collections[$type] = $collection = new MongoCollection(
             $this->connections->getConnection($mapper->connection()),
             $mapper
         );
+
+        return $collection;
     }
 }

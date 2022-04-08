@@ -34,7 +34,9 @@ final class BdfDocumentHydrator implements DocumentHydratorInterface
      */
     public function fromDatabase(object $document, array $data): object
     {
-        return $this->serializer->fromArray($data, $document);
+        $this->serializer->fromArray($data, $document);
+
+        return $document;
     }
 
     /**

@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB;
 
-use Bdf\Prime\MongoDB\Collection\MongoCollection;
+use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Collection\MongoCollectionLocator;
 use RuntimeException;
 
@@ -47,11 +47,11 @@ final class Mongo
 
     /**
      * @param class-string<D> $documentClass
-     * @return MongoCollection<D>
+     * @return MongoCollectionInterface<D>
      *
      * @template D as object
      */
-    public static function collection(string $documentClass): MongoCollection
+    public static function collection(string $documentClass): MongoCollectionInterface
     {
         return self::locator()->collection($documentClass);
     }

@@ -20,9 +20,9 @@ use MongoDB\BSON\ObjectId;
 class CollectionQueryExtension
 {
     /**
-     * @var MongoCollection<D>
+     * @var MongoCollectionInterface<D>
      */
-    private MongoCollection $collection;
+    private MongoCollectionInterface $collection;
 
     /**
      * @var DocumentMapperInterface<D>
@@ -30,10 +30,10 @@ class CollectionQueryExtension
     private DocumentMapperInterface $mapper;
 
     /**
-     * @param MongoCollection<D> $collection
+     * @param MongoCollectionInterface<D> $collection
      * @param DocumentMapperInterface<D> $mapper
      */
-    public function __construct(MongoCollection $collection, DocumentMapperInterface $mapper)
+    public function __construct(MongoCollectionInterface $collection, DocumentMapperInterface $mapper)
     {
         $this->collection = $collection;
         $this->mapper = $mapper;
@@ -54,6 +54,7 @@ class CollectionQueryExtension
             return null;
         }
 
+        /** @psalm-suppress InvalidArgument */
         return $query->whereRaw(['_id' => $id])->first($attributes);
     }
 
@@ -104,17 +105,21 @@ class CollectionQueryExtension
      *
      * @param ResultSetInterface<array<string, mixed>> $data
      *
-     * @return iterable<D>
+     * @return list<D>
      * @throws PrimeException
      */
-    public function processEntities(ResultSetInterface $data)
+    public function processDocuments(ResultSetInterface $data): array
     {
+        $documents = [];
+
         $mapper = $this->mapper;
         $types = $this->collection->connection()->platform()->types();
 
-        foreach ($data->asRawArray() as $key => $doc) {
-            yield $key => $mapper->fromDatabase($doc, $types);
+        foreach ($data->asRawArray() as $doc) {
+            $documents[] = $mapper->fromDatabase($doc, $types);
         }
+
+        return $documents;
     }
 
     /**
@@ -127,7 +132,7 @@ class CollectionQueryExtension
     public function apply(ReadCommandInterface $query): void
     {
         $query->setExtension($this);
-        $query->post([$this, 'processEntities'], false);
+        $query->post([$this, 'processDocuments'], false);
     }
 
     /**

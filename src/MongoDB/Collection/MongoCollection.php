@@ -17,14 +17,12 @@ use MongoDB\BSON\ObjectId;
  * Store and access to mongo documents
  *
  * @template D as object
- * @mixin MongoQuery<D>
+ * @implements MongoCollectionInterface<D>
  *
- * @todo interface, parce que c'est bien
  * @todo gestion des exceptions
- *
  * @todo lazy connection
  */
-class MongoCollection
+class MongoCollection implements MongoCollectionInterface
 {
     private MongoConnection $connection;
 
@@ -44,12 +42,7 @@ class MongoCollection
     }
 
     /**
-     * Add the document to the collection
-     * If the id is not provided, it will be generated
-     * If the document already exists, this method will fail
-     *
-     * @param D $document
-     * @return void
+     * {@inheritdoc}
      */
     public function add(object $document): void
     {
@@ -67,13 +60,7 @@ class MongoCollection
     }
 
     /**
-     * Replace the document on the collection
-     * If the id is not provided, it will be generated, and perform a simple insert
-     * If the document already exist, this method will replace the document
-     * If the document do not exist, it will be inserted
-     *
-     * @param D $document
-     * @return void
+     * {@inheritdoc}
      */
     public function replace(object $document): void
     {
@@ -91,12 +78,7 @@ class MongoCollection
     }
 
     /**
-     * Perform a simple update of the document
-     *
-     * @param D $document Document to update
-     * @param list<string> $fields List of fields to update. For embedded fields, use "dot" notation (i.e. "embedded.subField"). If empty, all fields will be updated.
-     *
-     * @return void
+     * {@inheritdoc}
      */
     public function update(object $document, array $fields = []): void
     {
@@ -124,12 +106,7 @@ class MongoCollection
     }
 
     /**
-     * Delete the document from the collection
-     *
-     * If the document has no id, or do not exist, this will do nothing
-     *
-     * @param D $document
-     * @return void
+     * {@inheritdoc}
      */
     public function delete(object $document): void
     {
@@ -146,11 +123,7 @@ class MongoCollection
     }
 
     /**
-     * Get a document by its id
-     *
-     * @param ObjectId $id
-     *
-     * @return D|null The document, or null if not exists
+     * {@inheritdoc}
      */
     public function get(ObjectId $id): ?object
     {
@@ -158,13 +131,7 @@ class MongoCollection
     }
 
     /**
-     * Check the existence of the document in the collection
-     * This method will only check the "_id" field.
-     *
-     * @param D $document Document to check
-     * @return bool true if exists
-     *
-     * @throws \Bdf\Prime\Exception\PrimeException
+     * {@inheritdoc}
      */
     public function exists(object $document): bool
     {
@@ -178,21 +145,14 @@ class MongoCollection
         $count->query(['_id' => $id] + $this->mapper->constraints());
 
         foreach ($count->execute($this->connection) as $row) {
-            return $row['n'];
+            return $row['n'] > 0;
         }
 
-        return 0;
+        return false;
     }
 
     /**
-     * Reload the document and get fields from database
-     *
-     * The document passed as parameter will be unmodified
-     * This method is equivalent to call `$collection->get($document->id());`
-     *
-     * @param D $document Document to refresh
-     *
-     * @return D|null The document, or null if not exists
+     * {@inheritdoc}
      */
     public function refresh(object $document): ?object
     {
@@ -202,31 +162,27 @@ class MongoCollection
     }
 
     /**
-     * Perform a search on the collection
-     *
-     * @param array $filters Raw mongodb filters
-     * @param array $options Search options
-     *
-     * @return D[]
+     * {@inheritdoc}
      */
-    public function findAllRaw(array $filters = [], array $options = []): iterable
+    public function findAllRaw(array $filters = [], array $options = []): array
     {
         $filters += $this->mapper->constraints();
         $query = new ReadQuery($this->mapper->collection(), $filters, $options);
         $result = $query->execute($this->connection);
 
-        foreach ($result->asRawArray() as $key => $document) {
-            yield $key => $this->mapper->fromDatabase($document, $this->connection->platform()->types());
+        $mapper = $this->mapper;
+        $types = $this->connection->platform()->types();
+        $documents = [];
+
+        foreach ($result->asRawArray() as $document) {
+            $documents[] = $mapper->fromDatabase($document, $types);
         }
+
+        return $documents;
     }
 
     /**
-     * Perform a search on the collection, and return a single entity
-     *
-     * @param array $filters Raw mongodb filters
-     * @param array $options Search options
-     *
-     * @return D|null The document if exists, or null
+     * {@inheritdoc}
      */
     public function findOneRaw(array $filters = [], array $options = []): ?object
     {
@@ -242,12 +198,7 @@ class MongoCollection
     }
 
     /**
-     * Count matching documents on the collection
-     *
-     * @param array $filters Criteria
-     * @return int
-     *
-     * @throws \Bdf\Prime\Exception\PrimeException
+     * {@inheritdoc}
      */
     public function count(array $filters = []): int
     {
@@ -255,7 +206,7 @@ class MongoCollection
     }
 
     /**
-     * @return MongoConnection
+     * {@inheritdoc}
      */
     public function connection(): MongoConnection
     {
@@ -267,15 +218,16 @@ class MongoCollection
         return $this->mapper;
     }
 
+    /**
+     * {@inheritdoc}
+     */
     public function queries(): CollectionQueries
     {
         return new CollectionQueries($this, $this->mapper, $this->connection);
     }
 
     /**
-     * Create a query builder for perform search on the collection
-     *
-     * @return MongoQuery<D>
+     * {@inheritdoc}
      */
     public function query(): MongoQuery
     {

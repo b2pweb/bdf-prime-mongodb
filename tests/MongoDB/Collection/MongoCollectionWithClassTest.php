@@ -205,12 +205,12 @@ class MongoCollectionWithClassTest extends TestCase
         $this->customClassDocument->add($doc2);
         $this->customClassDocument->add($doc3);
 
-        $this->assertEqualsCanonicalizing([$doc1], iterator_to_array($this->customClassDocument->findAllRaw(['firstName' => 'John'])));
-        $this->assertEqualsCanonicalizing([$doc1, $doc2], iterator_to_array($this->customClassDocument->findAllRaw(['lastName' => ['$regex' => '^d.*', '$options' => 'i']])));
-        $this->assertEquals([$doc3], iterator_to_array($this->customClassDocument->findAllRaw(['birthDate' => ['$lt' => new UTCDateTime(1000)]])));
-        $this->assertEqualsCanonicalizing([], iterator_to_array($this->customClassDocument->findAllRaw(['birthDate' => 'bob'])));
+        $this->assertEqualsCanonicalizing([$doc1], $this->customClassDocument->findAllRaw(['firstName' => 'John']));
+        $this->assertEqualsCanonicalizing([$doc1, $doc2], $this->customClassDocument->findAllRaw(['lastName' => ['$regex' => '^d.*', '$options' => 'i']]));
+        $this->assertEquals([$doc3], $this->customClassDocument->findAllRaw(['birthDate' => ['$lt' => new UTCDateTime(1000)]]));
+        $this->assertEqualsCanonicalizing([], $this->customClassDocument->findAllRaw(['birthDate' => 'bob']));
 
-        $this->assertSame($this->customClassDocument, iterator_to_array($this->customClassDocument->findAllRaw(['firstName' => 'John']))[0]->collection());
+        $this->assertSame($this->customClassDocument, $this->customClassDocument->findAllRaw(['firstName' => 'John'])[0]->collection());
     }
 
     /**
@@ -226,10 +226,10 @@ class MongoCollectionWithClassTest extends TestCase
         $this->customClassDocument->add($doc2);
         $this->customClassDocument->add($doc3);
 
-        $this->assertEqualsCanonicalizing([$doc1], iterator_to_array($this->customClassDocument->query()->where('firstName', 'John')->all()));
-        $this->assertEqualsCanonicalizing([$doc1, $doc2], iterator_to_array($this->customClassDocument->query()->where('lastName', (new Like('d'))->startsWith())->all()));
-        $this->assertEquals([$doc3], iterator_to_array($this->customClassDocument->query()->whereRaw(['birthDate' => ['$type' => 'date']])->all()));
-        $this->assertEquals([], iterator_to_array($this->customClassDocument->query()->whereRaw(['firstName' => ['$exists' => false]])->all()));
+        $this->assertEqualsCanonicalizing([$doc1], $this->customClassDocument->query()->where('firstName', 'John')->all());
+        $this->assertEqualsCanonicalizing([$doc1, $doc2], $this->customClassDocument->query()->where('lastName', (new Like('d'))->startsWith())->all());
+        $this->assertEquals([$doc3], $this->customClassDocument->query()->whereRaw(['birthDate' => ['$type' => 'date']])->all());
+        $this->assertEquals([], $this->customClassDocument->query()->whereRaw(['firstName' => ['$exists' => false]])->all());
 
         $this->assertSame($this->customClassDocument, $this->customClassDocument->query()->where('firstName', 'John')->first()->collection());
     }

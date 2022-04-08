@@ -66,7 +66,7 @@ final class DiscriminatorFieldDocumentSelector implements DocumentSelectorInterf
     {
         $discriminator = $data[$this->discriminatorField] ?? null;
 
-        if (is_scalar($discriminator)) {
+        if (is_string($discriminator) || is_int($discriminator)) {
             $documentClass = $this->mapping[$discriminator] ?? $this->documentClass;
         } else {
             $documentClass = $this->documentClass;

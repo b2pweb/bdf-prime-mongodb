@@ -176,9 +176,9 @@ class MongoCollectionWithClassNotMongoDocumentTest extends TestCase
         $this->customClassDocument->add($doc2);
         $this->customClassDocument->add($doc3);
 
-        $this->assertEqualsCanonicalizing([$doc1], iterator_to_array($this->customClassDocument->findAllRaw(['value' => 'John'])));
-        $this->assertEqualsCanonicalizing([$doc1, $doc3], iterator_to_array($this->customClassDocument->findAllRaw(['value' => ['$regex' => '^j.*', '$options' => 'i']])));
-        $this->assertEqualsCanonicalizing([], iterator_to_array($this->customClassDocument->findAllRaw(['value' => 'bob'])));
+        $this->assertEqualsCanonicalizing([$doc1], $this->customClassDocument->findAllRaw(['value' => 'John']));
+        $this->assertEqualsCanonicalizing([$doc1, $doc3], $this->customClassDocument->findAllRaw(['value' => ['$regex' => '^j.*', '$options' => 'i']]));
+        $this->assertEqualsCanonicalizing([], $this->customClassDocument->findAllRaw(['value' => 'bob']));
     }
 
     /**
@@ -194,8 +194,8 @@ class MongoCollectionWithClassNotMongoDocumentTest extends TestCase
         $this->customClassDocument->add($doc2);
         $this->customClassDocument->add($doc3);
 
-        $this->assertEqualsCanonicalizing([$doc1], iterator_to_array($this->customClassDocument->query()->where('value', 'John')->all()));
-        $this->assertEqualsCanonicalizing([$doc1, $doc3], iterator_to_array($this->customClassDocument->query()->where('value', (new Like('j'))->startsWith())->all()));
-        $this->assertEquals([], iterator_to_array($this->customClassDocument->query()->whereRaw(['value' => ['$exists' => false]])->all()));
+        $this->assertEqualsCanonicalizing([$doc1], $this->customClassDocument->query()->where('value', 'John')->all());
+        $this->assertEqualsCanonicalizing([$doc1, $doc3], $this->customClassDocument->query()->where('value', (new Like('j'))->startsWith())->all());
+        $this->assertEquals([], $this->customClassDocument->query()->whereRaw(['value' => ['$exists' => false]])->all());
     }
 }

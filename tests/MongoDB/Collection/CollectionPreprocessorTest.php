@@ -252,7 +252,7 @@ class CollectionPreprocessorTest extends TestCase
         $doc2->save();
 
         $query = DocumentWithEmbeddedDate::where('e1.date', '>', new DateTime('2010-02-01'));
-        $this->assertEquals([$doc1], iterator_to_array($query->all()));
+        $this->assertEquals([$doc1], $query->all());
 
         $this->assertEquals(new ReadQuery('DocumentWithEmbeddedDate', [
             'e1.date' => ['$gt' => new UTCDateTime(new DateTime('2010-02-01'))],

@@ -88,6 +88,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     {
         parent::__construct($params, $driver, $config, $eventManager);
 
+        /** @psalm-suppress InvalidArgument */
         $this->factory = new DefaultQueryFactory(
             $this,
             new MongoCompiler($this),
@@ -411,6 +412,7 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     public function builder(PreprocessorInterface $preprocessor = null): ReadCommandInterface
     {
+        /** @psalm-suppress InvalidArgument */
         return $this->factory->make(MongoQuery::class, $preprocessor);
     }
 

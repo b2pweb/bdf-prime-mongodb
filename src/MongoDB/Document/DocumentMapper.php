@@ -234,6 +234,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
         }
 
         if (is_subclass_of($documentBaseClass, MongoDocument::class)) {
+            /** @var IdAccessorInterface<D> */
             return MongoDocumentIdAccessor::instance();
         }
 

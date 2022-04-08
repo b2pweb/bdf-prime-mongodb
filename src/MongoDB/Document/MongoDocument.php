@@ -2,7 +2,7 @@
 
 namespace Bdf\Prime\MongoDB\Document;
 
-use Bdf\Prime\MongoDB\Collection\MongoCollection;
+use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Mongo;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
 use MongoDB\BSON\ObjectId;
@@ -63,7 +63,7 @@ class MongoDocument
      *
      * @return void
      *
-     * @see MongoCollection::replace() The called method
+     * @see MongoCollectionInterface::replace() The called method
      */
     public function save(): void
     {
@@ -78,7 +78,7 @@ class MongoDocument
      *
      * @return void
      *
-     * @see MongoCollection::update() The called method
+     * @see MongoCollectionInterface::update() The called method
      */
     public function update(array $fields = []): void
     {
@@ -91,7 +91,7 @@ class MongoDocument
      *
      * @return void
      *
-     * @see MongoCollection::add() The called method
+     * @see MongoCollectionInterface::add() The called method
      *
      * @todo error si déjà existant
      */
@@ -105,7 +105,7 @@ class MongoDocument
      *
      * @return void
      *
-     * @see MongoCollection::delete() The called method
+     * @see MongoCollectionInterface::delete() The called method
      */
     public function delete(): void
     {
@@ -115,9 +115,9 @@ class MongoDocument
     /**
      * Get the linked collection
      *
-     * @return MongoCollection<static>
+     * @return MongoCollectionInterface<static>
      */
-    public static function collection(): MongoCollection
+    public static function collection(): MongoCollectionInterface
     {
         return Mongo::collection(static::class);
     }

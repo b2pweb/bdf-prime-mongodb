@@ -106,10 +106,10 @@ class CollectionQueryExtensionTest extends TestCase
         $this->collection->add($doc2 = (object) ['foo' => 'sin', 'bar' => 'dolor']);
         $this->collection->add($doc3 = (object) ['foo' => 'sit', 'bar' => 'amet']);
 
-        $this->assertEquals([$doc1, $doc2], iterator_to_array($this->query()->search('r')));
-        $this->assertEquals([$doc2, $doc3], iterator_to_array($this->query()->search('si')));
-        $this->assertEquals([$doc3], iterator_to_array($this->query()->where('bar', 'amet')->search('si')));
-        $this->assertEquals([$doc2], iterator_to_array($this->query()->search('dol')));
+        $this->assertEquals([$doc1, $doc2], $this->query()->search('r'));
+        $this->assertEquals([$doc2, $doc3], $this->query()->search('si'));
+        $this->assertEquals([$doc3], $this->query()->where('bar', 'amet')->search('si'));
+        $this->assertEquals([$doc2], $this->query()->search('dol'));
     }
 
     public function test_scope_not_found()

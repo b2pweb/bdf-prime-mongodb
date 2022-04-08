@@ -175,7 +175,7 @@ class MongoDocumentTest extends TestCase
         $this->assertEquals($person, Person::where('firstName', 'John')->first());
         $this->assertEquals($person, Person::query()->where('firstName', 'John')->first());
         $this->assertEquals($person, Person::findOneRaw(['firstName' => 'John']));
-        $this->assertEquals([$person], iterator_to_array(Person::findAllRaw(['firstName' => 'John'])));
+        $this->assertEquals([$person], Person::findAllRaw(['firstName' => 'John']));
         $this->assertEquals(1, Person::count());
         $this->assertEquals(1, Person::count(['firstName' => 'John']));
         $this->assertEquals(0, Person::count(['firstName' => 'NotFound']));

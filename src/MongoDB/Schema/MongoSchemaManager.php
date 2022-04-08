@@ -71,6 +71,7 @@ class MongoSchemaManager extends AbstractSchemaManager
      * @param TableInterface[] $tables
      *
      * @psalm-suppress InvalidReturnType
+     * @deprecated Used for compatiblity with repository
      */
     public function schema($tables = [])
     {

@@ -82,8 +82,8 @@ class CollectionQueriesTest extends TestCase
         $this->collection->add($doc1 = (object) ['foo' => 'bar']);
         $this->collection->add($doc2 = (object) ['foo' => 'baz']);
 
-        $this->assertEquals([$doc1, $doc2], iterator_to_array($this->queries->query()->all()));
-        $this->assertEquals([$doc1], iterator_to_array($this->queries->query()->where('foo', 'bar')->all()));
+        $this->assertEquals([$doc1, $doc2], $this->queries->query()->all());
+        $this->assertEquals([$doc1], $this->queries->query()->where('foo', 'bar')->all());
     }
 
     public function test_keyValue()
@@ -91,8 +91,8 @@ class CollectionQueriesTest extends TestCase
         $this->collection->add($doc1 = (object) ['foo' => 'bar']);
         $this->collection->add($doc2 = (object) ['foo' => 'baz']);
 
-        $this->assertEquals([$doc1, $doc2], iterator_to_array($this->queries->keyValue()->all()));
-        $this->assertEquals([$doc1], iterator_to_array($this->queries->keyValue('foo', 'bar')->all()));
+        $this->assertEquals([$doc1, $doc2], $this->queries->keyValue()->all());
+        $this->assertEquals([$doc1], $this->queries->keyValue('foo', 'bar')->all());
     }
 
     public function test_keyValue_with_constraints_should_return_null()
@@ -117,9 +117,9 @@ class CollectionQueriesTest extends TestCase
         $this->collection->add($doc2 = (object) ['bar' => 3, 'baz' => 4]);
         $this->collection->add($doc3 = (object) ['foo' => 1, 'baz' => 2]);
 
-        $this->assertEquals([$doc1, $doc2], iterator_to_array($this->queries->withFields('bar')));
-        $this->assertEquals([$doc1, $doc3], iterator_to_array($this->queries->withFields('foo')));
-        $this->assertEquals([$doc1], iterator_to_array($this->queries->withFields('foo', 'bar')));
+        $this->assertEquals([$doc1, $doc2], $this->queries->withFields('bar'));
+        $this->assertEquals([$doc1, $doc3], $this->queries->withFields('foo'));
+        $this->assertEquals([$doc1], $this->queries->withFields('foo', 'bar'));
     }
 
     public function test_scope()
@@ -128,8 +128,8 @@ class CollectionQueriesTest extends TestCase
         $this->collection->add($doc2 = (object) ['foo' => 'sin', 'bar' => 'dolor']);
         $this->collection->add($doc3 = (object) ['foo' => 'sit', 'bar' => 'amet']);
 
-        $this->assertEquals([$doc1, $doc2], iterator_to_array($this->queries->search('r')));
-        $this->assertEquals([$doc2, $doc3], iterator_to_array($this->queries->search('si')));
-        $this->assertEquals([$doc2], iterator_to_array($this->queries->search('dol')));
+        $this->assertEquals([$doc1, $doc2], $this->queries->search('r'));
+        $this->assertEquals([$doc2, $doc3], $this->queries->search('si'));
+        $this->assertEquals([$doc2], $this->queries->search('dol'));
     }
 }

@@ -152,9 +152,9 @@ class MongoCollectionWithDiscriminatorTest extends TestCase
         $this->collection->add($foo);
         $this->collection->add($bar);
 
-        $this->assertEquals([$base], iterator_to_array($this->collection->findAllRaw(['value' => 12])));
-        $this->assertEquals([$base, $foo, $bar], iterator_to_array($this->collection->findAllRaw(['_type' => ['$exists' => true]])));
-        $this->assertEquals([$bar], iterator_to_array($this->collection->findAllRaw(['bar' => ['$exists' => true]])));
+        $this->assertEquals([$base], $this->collection->findAllRaw(['value' => 12]));
+        $this->assertEquals([$base, $foo, $bar], $this->collection->findAllRaw(['_type' => ['$exists' => true]]));
+        $this->assertEquals([$bar], $this->collection->findAllRaw(['bar' => ['$exists' => true]]));
     }
 
     /**
@@ -170,7 +170,7 @@ class MongoCollectionWithDiscriminatorTest extends TestCase
         $this->collection->add($foo);
         $this->collection->add($bar);
 
-        $this->assertEquals([$foo, $bar], iterator_to_array($this->collection->query()->where('value', '>', 20)->all()));
+        $this->assertEquals([$foo, $bar], $this->collection->query()->where('value', '>', 20)->all());
     }
 
     /**
@@ -199,8 +199,8 @@ class MongoCollectionWithDiscriminatorTest extends TestCase
         $this->assertEquals($foo, $fooCollection->findOneRaw(['foo' => 'aaa']));
         $this->assertNull($fooCollection->findOneRaw(['bar' => 10]));
 
-        $this->assertEquals([$foo], iterator_to_array($fooCollection->query()->all()));
-        $this->assertEquals([$foo], iterator_to_array($fooCollection->findAllRaw([])));
+        $this->assertEquals([$foo], $fooCollection->query()->all());
+        $this->assertEquals([$foo], $fooCollection->findAllRaw([]));
 
         $this->assertEquals(1, $fooCollection->count());
         $this->assertEquals(0, $fooCollection->count(['value' => 123]));
@@ -241,8 +241,8 @@ class MongoCollectionWithDiscriminatorTest extends TestCase
         $this->assertEquals($bar, $barCollection->findOneRaw(['bar' => 10]));
         $this->assertEquals($babar, $barCollection->findOneRaw(['value' => 14]));
 
-        $this->assertEquals([$bar, $babar], iterator_to_array($barCollection->query()->all()));
-        $this->assertEquals([$bar, $babar], iterator_to_array($barCollection->findAllRaw([])));
+        $this->assertEquals([$bar, $babar], $barCollection->query()->all());
+        $this->assertEquals([$bar, $babar], $barCollection->findAllRaw([]));
 
         $this->assertEquals(2, $barCollection->count());
         $this->assertEquals(0, $barCollection->count(['value' => 123]));

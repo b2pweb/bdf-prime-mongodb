@@ -66,4 +66,16 @@ class MongoCollectionLocator
 
         return $collection;
     }
+
+    // @todo refactor: mapper resolver
+    public function collectionByMapper(string $mapperClass): MongoCollection
+    {
+        /** @var DocumentMapper $mapper */
+        $mapper = new $mapperClass();
+
+        return new MongoCollection(
+            $this->connections->getConnection($mapper->connection()),
+            $mapper
+        );
+    }
 }

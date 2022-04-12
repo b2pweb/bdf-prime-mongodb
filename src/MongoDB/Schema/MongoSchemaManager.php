@@ -44,15 +44,16 @@ class MongoSchemaManager extends AbstractSchemaManager
      */
     public function flush(): bool
     {
-        foreach ($this->pending as $pending) {
+        $pendings = $this->pending;
+        $this->pending = []; // Clear queries before execution in case of failing
+
+        foreach ($pendings as $pending) {
             if ($pending instanceof CommandInterface) {
                 $this->connection->runCommand($pending);
             } elseif ($pending instanceof \Closure) {
                 $pending($this->connection);
             }
         }
-
-        $this->pending = [];
 
         return true;
     }
@@ -85,9 +86,13 @@ class MongoSchemaManager extends AbstractSchemaManager
 
     /**
      * {@inheritdoc}
+     *
+     * @param TableInterface|CollectionDefinition $newTable
+     * @param TableInterface|CollectionDefinition $oldTable
      */
-    public function diff(TableInterface $newTable, TableInterface $oldTable)
+    public function diff($newTable, $oldTable)
     {
+        // @todo handle diff of options using https://www.mongodb.com/docs/manual/reference/command/collMod/
         $comparator = new IndexSetComparator(
             $oldTable->indexes(),
             $newTable->indexes()
@@ -194,6 +199,46 @@ class MongoSchemaManager extends AbstractSchemaManager
             null,
             $collection['options'] ?? []
         );
+    }
+
+    /**
+     * Load definition (i.e. indexes + options) of a collection declared on mongo database
+     *
+     * @param string $collectionName Collection name to load
+     *
+     * @return CollectionDefinition
+     */
+    public function load(string $collectionName): CollectionDefinition
+    {
+        $cursor = $this->connection->runCommand((new ListCollections())->byName($collectionName));
+        $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+        $collection = $cursor->toArray()[0] ?? [];
+
+        return new CollectionDefinition(
+            $collectionName,
+            new IndexSet($this->getIndexes($collectionName)),
+            $collection['options'] ?? []
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param TableInterface|CollectionDefinition $table
+     */
+    public function add($table)
+    {
+        if ($table instanceof TableInterface) {
+            return parent::add($table);
+        }
+
+        if ($this->hasTable($table->name())) {
+            return $this->push(
+                $this->diff($table, $this->load($table->name()))
+            );
+        }
+
+        return $this->push(new SchemaCreation([$table]));
     }
 
     /**

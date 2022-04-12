@@ -4,6 +4,7 @@ namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\Connection\ConnectionRegistry;
 use Bdf\Prime\Connection\Factory\ConnectionFactory;
+use Bdf\Prime\Mapper\Builder\IndexBuilder;
 use Bdf\Prime\MongoDB\Test\EntityWithCustomCollation;
 use Bdf\Prime\Schema\Adapter\Metadata\MetadataTable;
 use PHPUnit\Framework\TestCase;
@@ -110,6 +111,92 @@ class MongoSchemaManagerTest extends TestCase
         $this->assertTrue($table->indexes()->get(MongoIndex::PRIMARY)->primary());
 
         $this->assertEquals(['_id'], $table->indexes()->primary()->fields());
+    }
+
+    /**
+     *
+     */
+    public function test_load()
+    {
+        $this->connection->runCommand('create', 'test_collection');
+        $this->connection->runCommand([
+            'createIndexes' => 'test_collection',
+            'indexes'       => [
+                [
+                    'key' => [
+                        'first_name' => 1,
+                        'last_name'  => 1
+                    ],
+                    'name' => 'search_name',
+                    'unique' => true
+                ],
+                [
+                    'key' => [
+                        'age' => -1
+                    ],
+                    'name' => 'age_order'
+                ]
+            ]
+        ]);
+
+        $collection = $this->schema->load('test_collection');
+
+        $this->assertInstanceOf(CollectionDefinition::class, $collection);
+        $this->assertEquals('test_collection', $collection->name());
+
+        $this->assertEquals('search_name', $collection->indexes()->get('search_name')->name());
+        $this->assertEquals(['first_name', 'last_name'], $collection->indexes()->get('search_name')->fields());
+        $this->assertTrue($collection->indexes()->get('search_name')->unique());
+
+        $this->assertEquals('age_order', $collection->indexes()->get('age_order')->name());
+        $this->assertEquals(['age'], $collection->indexes()->get('age_order')->fields());
+        $this->assertEquals(Index::TYPE_SIMPLE, $collection->indexes()->get('age_order')->type());
+
+        $this->assertEquals(MongoIndex::PRIMARY, $collection->indexes()->get(MongoIndex::PRIMARY)->name());
+        $this->assertEquals(['_id'], $collection->indexes()->get(MongoIndex::PRIMARY)->fields());
+        $this->assertTrue($collection->indexes()->get(MongoIndex::PRIMARY)->primary());
+
+        $this->assertEquals(['_id'], $collection->indexes()->primary()->fields());
+    }
+
+    /**
+     *
+     */
+    public function test_add_and_load()
+    {
+        $collection = (new CollectionDefinitionBuilder('test_collection'))
+            ->capped()
+            ->size(4096)
+            ->collation(['locale' => 'en', 'strength' => 2])
+            ->indexes(function (IndexBuilder $builder) {
+                $builder->add('foo_idx')->on('foo');
+            })
+            ->build()
+        ;
+
+        $this->schema->add($collection);
+
+        $loaded = $this->schema->load('test_collection');
+
+        $this->assertEquals('test_collection', $loaded->name());
+        $this->assertCount(2, $loaded->indexes()->all());
+        $this->assertEquals(['foo'], $loaded->indexes()->get('foo_idx')->fields());
+        $this->assertEquals([
+            'capped' => true,
+            'size' => 4096,
+            'collation' => [
+                'locale' => 'en',
+                'strength' => 2,
+                'caseLevel' => false,
+                'caseFirst' => 'off',
+                'numericOrdering' => false,
+                'alternate' => 'non-ignorable',
+                'maxVariable' => 'punct',
+                'normalization' => false,
+                'backwards' => false,
+                'version' => '57.1',
+            ]
+        ], $loaded->options());
     }
 
     /**
@@ -287,6 +374,36 @@ class MongoSchemaManagerTest extends TestCase
         ]));
 
         $diff = $this->schema->diff($table2, $table);
+
+        $this->assertInstanceOf(IndexSetDiff::class, $diff);
+        $this->assertEquals('table_', $diff->collection());
+        $this->assertCount(1, $diff->commands());
+
+        $this->assertInstanceOf(CreateIndexes::class, $diff->commands()[0]);
+        $this->assertEquals([
+            'createIndexes' => 'table_',
+            'indexes' => [
+                [
+                    'key' => [
+                        'name_' => 1
+                    ],
+                    'name' => 'name'
+                ]
+            ]
+        ], $diff->commands()[0]->document());
+    }
+
+    /**
+     *
+     */
+    public function test_diff_with_collection()
+    {
+        $collection1 = new CollectionDefinition('table_', new IndexSet([]), []);
+        $collection2 = new CollectionDefinition('table_', new IndexSet([
+            new Index(['name_' => []], Index::TYPE_SIMPLE, 'name')
+        ]), []);
+
+        $diff = $this->schema->diff($collection2, $collection1);
 
         $this->assertInstanceOf(IndexSetDiff::class, $diff);
         $this->assertEquals('table_', $diff->collection());

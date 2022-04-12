@@ -12,18 +12,17 @@ use Bdf\Prime\MongoDB\Document\Mapping\FieldsMapping;
 use Bdf\Prime\MongoDB\Document\Mapping\FieldsMappingBuilder;
 use Bdf\Prime\MongoDB\Document\Selector\DefaultDocumentSelector;
 use Bdf\Prime\MongoDB\Document\Selector\DocumentSelectorInterface;
+use Bdf\Prime\MongoDB\Schema\CollectionDefinition;
+use Bdf\Prime\MongoDB\Schema\CollectionDefinitionBuilder;
 use Bdf\Prime\Types\TypesRegistryInterface;
 use MongoDB\BSON\ObjectId;
 use stdClass;
 
 /**
- * Class DocumentMapper
+ * Base implementation of DocumentMapperInterface
  *
  * @template D as object
  * @implements DocumentMapperInterface<D>
- *
- * @todo final un peu partout
- * @todo faire une interface et un wrapper pour les hydrators
  */
 abstract class DocumentMapper implements DocumentMapperInterface
 {
@@ -53,7 +52,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
     private ?FieldsMapping $fields = null;
 
     /**
-     * @param class-string<D>|null $documentClass
+     * @param class-string<D>|null $documentClass Document class related to the collection. If null it will be resolved using the mapper class name
      */
     public function __construct(?string $documentClass = null)
     {
@@ -124,9 +123,7 @@ abstract class DocumentMapper implements DocumentMapperInterface
     }
 
     /**
-     * Get declared fields of the handled document
-     *
-     * @return FieldsMapping
+     * {@inheritdoc}
      */
     final public function fields(): FieldsMapping
     {
@@ -140,39 +137,15 @@ abstract class DocumentMapper implements DocumentMapperInterface
     }
 
     /**
-     * @return IdAccessorInterface<D>
+     * {@inheritdoc}
      */
-    final private function idAccessor(): IdAccessorInterface
+    final public function definition(): CollectionDefinition
     {
-        if ($this->idAccessor) {
-            return $this->idAccessor;
-        }
+        $builder = new CollectionDefinitionBuilder($this->collection());
 
-        return $this->idAccessor = $this->createIdAccessor($this->documentClass);
-    }
+        $this->buildDefinition($builder);
 
-    /**
-     * @return DocumentHydratorInterface
-     */
-    private function hydrator(): DocumentHydratorInterface
-    {
-        if ($this->hydrator) {
-            return $this->hydrator;
-        }
-
-        return $this->hydrator = $this->createHydrator($this->documentClass);
-    }
-
-    /**
-     * @return DocumentSelectorInterface<D>
-     */
-    private function selector(): DocumentSelectorInterface
-    {
-        if ($this->selected) {
-            return $this->selected;
-        }
-
-        return $this->selected = $this->createDocumentSelector($this->documentClass);
+        return $builder->build();
     }
 
     /**
@@ -181,12 +154,62 @@ abstract class DocumentMapper implements DocumentMapperInterface
      * By default, will parse document class using reflection for register declared properties as field
      * Override for declare a custom mapping
      *
+     * <code>
+     * class MyDocumentMapper extends DocumentMapper
+     * {
+     *     // ...
+     *     public function buildFields(FieldsMappingBuilder $builder): void
+     *     {
+     *         $builder
+     *             ->autoConfigure(MyDocument::class) // Parse fields declared on the document class
+     *             ->dateTime('date', DateTimeImmutable::class) // Extra fields can be declared
+     *             ->binary('content', Binary::TYPE_GENERIC, 'string') // You can define mapped type : here use a string field as mongo binary
+     *         ;
+     *     }
+     * }
+     * </code>
+     *
      * @param FieldsMappingBuilder $builder
      * @return void
      */
     protected function buildFields(FieldsMappingBuilder $builder): void
     {
         $builder->autoConfigure($this->documentClass);
+    }
+
+    /**
+     * Configure the collection definition, like indexes or options
+     * Should be overridden for configure
+     *
+     * <code>
+     * class MyDocumentMapper extends DocumentMapper
+     * {
+     *     // ...
+     *     public function buildDefinition(CollectionDefinitionBuilder $builder): void
+     *     {
+     *         $builder->collation(['locale' => 'fr', 'strength' => 2]); // Declare collection options
+     *         $builder->addIndex('idx_search')->on(['name', 'keywords']); // Define indexes
+     *         $builder->addIndex('unq_name')->unique()->on(['name', 'type']);
+     *
+     *         // Can also be declared using closure to keep fluid interface :
+     *         $builder
+     *             ->collation(['locale' => 'fr', 'strength' => 2])
+     *             ->indexes(function (IndexesBuilder $builder) {
+     *                 $builder
+     *                     ->add('idx_search')->on(['name', 'keywords'])
+     *                     ->add('unq_name')->unique()->on(['name', 'type']);
+     *             })
+     *         ;
+     *     }
+     * }
+     * </code>
+     *
+     * @param CollectionDefinitionBuilder $builder
+     * @return void
+     */
+    protected function buildDefinition(CollectionDefinitionBuilder $builder): void
+    {
+        // to overrides
     }
 
     /**
@@ -239,5 +262,47 @@ abstract class DocumentMapper implements DocumentMapperInterface
         }
 
         return new ReflectionPropertyIdAccessor($documentBaseClass);
+    }
+
+    /**
+     * Get or create id accessor instance
+     *
+     * @return IdAccessorInterface<D>
+     */
+    private function idAccessor(): IdAccessorInterface
+    {
+        if ($this->idAccessor) {
+            return $this->idAccessor;
+        }
+
+        return $this->idAccessor = $this->createIdAccessor($this->documentClass);
+    }
+
+    /**
+     * Get or create hydrator instance
+     *
+     * @return DocumentHydratorInterface
+     */
+    private function hydrator(): DocumentHydratorInterface
+    {
+        if ($this->hydrator) {
+            return $this->hydrator;
+        }
+
+        return $this->hydrator = $this->createHydrator($this->documentClass);
+    }
+
+    /**
+     * Get or create selector instance
+     *
+     * @return DocumentSelectorInterface<D>
+     */
+    private function selector(): DocumentSelectorInterface
+    {
+        if ($this->selected) {
+            return $this->selected;
+        }
+
+        return $this->selected = $this->createDocumentSelector($this->documentClass);
     }
 }

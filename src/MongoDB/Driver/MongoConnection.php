@@ -134,7 +134,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function schema(): SchemaManagerInterface
+    public function schema(): PrimeSchemaManager
     {
         if ($this->schema === null) {
             $this->schema = new PrimeSchemaManager($this);

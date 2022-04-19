@@ -40,6 +40,9 @@ class BulkCollectionWriter implements WriterInterface
     private DocumentMapperInterface $mapper;
     private ?WriteQuery $query = null;
 
+    /**
+     * @param MongoCollectionInterface<D> $collection
+     */
     public function __construct(MongoCollectionInterface $collection)
     {
         $this->mapper = $collection->mapper();

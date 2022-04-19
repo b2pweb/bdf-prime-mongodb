@@ -33,7 +33,7 @@ class CollectionQueryExtension
     /**
      * Collect documents by attribute
      *
-     * @var array{attribute: string, combine: array}|null
+     * @var array{attribute: string, combine: bool}|null
      */
     private ?array $byOptions = null;
 
@@ -93,8 +93,8 @@ class CollectionQueryExtension
      * Use combine for multiple entities with same attribute value
      *
      * @param ReadCommandInterface<ConnectionInterface, D> $query
-     * @param string  $attribute
-     * @param boolean $combine
+     * @param string $attribute
+     * @param bool $combine
      *
      * @return ReadCommandInterface<ConnectionInterface, D>
      */
@@ -113,7 +113,7 @@ class CollectionQueryExtension
      *
      * @param ResultSetInterface<array<string, mixed>> $data
      *
-     * @return list<D>
+     * @return D[]|array<string, list<D>>
      * @throws PrimeException
      */
     public function processDocuments(ResultSetInterface $data): array
@@ -171,7 +171,7 @@ class CollectionQueryExtension
 
     /**
      * @param ResultSetInterface $rows
-     * @param DocumentMapperInterface $mapper
+     * @param DocumentMapperInterface<D> $mapper
      * @param TypesRegistryInterface $types
      *
      * @return list<D>
@@ -189,7 +189,7 @@ class CollectionQueryExtension
 
     /**
      * @param ResultSetInterface $rows
-     * @param DocumentMapperInterface $mapper
+     * @param DocumentMapperInterface<D> $mapper
      * @param TypesRegistryInterface $types
      * @param string $keyField
      *
@@ -209,7 +209,7 @@ class CollectionQueryExtension
 
     /**
      * @param ResultSetInterface $rows
-     * @param DocumentMapperInterface $mapper
+     * @param DocumentMapperInterface<D> $mapper
      * @param TypesRegistryInterface $types
      * @param string $keyField
      *

@@ -118,6 +118,15 @@ class MongoQueryTest extends TestCase
     /**
      *
      */
+    public function test_count_with_collation()
+    {
+        $this->assertSame(0, $this->query()->where('first_name', 'JOHN')->count());
+        $this->assertSame(1, $this->query()->where('first_name', 'JOHN')->collation(['locale' => 'en', 'strength' => 1])->count());
+    }
+
+    /**
+     *
+     */
     public function test_count_with_limit()
     {
         $this->query()->insert(['first_name' => 'Paul']);

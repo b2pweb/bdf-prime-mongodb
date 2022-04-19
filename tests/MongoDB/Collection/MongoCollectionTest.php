@@ -3,6 +3,7 @@
 namespace MongoDB\Collection;
 
 use Bdf\Prime\Entity\Extensions\ArrayInjector;
+use Bdf\Prime\MongoDB\Collection\BulkCollectionWriter;
 use Bdf\Prime\MongoDB\Collection\MongoCollection;
 use Bdf\Prime\MongoDB\Document\DocumentMapper;
 use Bdf\Prime\MongoDB\Document\MongoDocument;
@@ -297,5 +298,27 @@ class MongoCollectionTest extends TestCase
         $this->simpleObjectCollection->add((object) ['_id' => $doc->_id, 'foo' => 'other']);
         $this->assertEquals((object) ['_id' => $doc->_id, 'foo' => 'other'], $this->simpleObjectCollection->refresh($doc));
         $this->assertEquals('bar', $doc->foo);
+    }
+
+    public function test_writer()
+    {
+        $this->assertInstanceOf(BulkCollectionWriter::class, $this->simpleObjectCollection->writer());
+        $this->assertNotSame($this->simpleObjectCollection->writer(), $this->simpleObjectCollection->writer());
+
+        $writer = $this->simpleObjectCollection->writer();
+
+        $writer->insert($doc1 = (object) ['foo' => 'bar']);
+        $writer->insert($doc2 = (object) ['foo' => 'baz']);
+
+        $this->assertInstanceOf(ObjectId::class, $doc1->_id);
+        $this->assertInstanceOf(ObjectId::class, $doc2->_id);
+
+        $this->assertFalse($this->simpleObjectCollection->exists($doc1));
+        $this->assertFalse($this->simpleObjectCollection->exists($doc2));
+
+        $writer->flush();
+
+        $this->assertTrue($this->simpleObjectCollection->exists($doc1));
+        $this->assertTrue($this->simpleObjectCollection->exists($doc2));
     }
 }

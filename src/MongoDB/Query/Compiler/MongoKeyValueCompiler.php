@@ -117,7 +117,7 @@ class MongoKeyValueCompiler implements SelectCompilerInterface, UpdateCompilerIn
      */
     public function compileCount(CompilableClause $query): Count
     {
-        $command = new Count($query->statements['collection']);
+        $command = new Count($query->statements['collection'], $query->statements['options']);
 
         if (!empty($query->statements['where'])) {
             $command->query($this->compileFilters($query, $query->statements['where']));

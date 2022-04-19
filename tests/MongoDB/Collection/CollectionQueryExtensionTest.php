@@ -100,6 +100,17 @@ class CollectionQueryExtensionTest extends TestCase
         }
     }
 
+    public function test_by()
+    {
+        $this->collection->add($doc1 = (object) ['foo' => 'lorem', 'bar' => 'ipsum']);
+        $this->collection->add($doc2 = (object) ['foo' => 'sin', 'bar' => 'dolor']);
+        $this->collection->add($doc3 = (object) ['foo' => 'sit', 'bar' => 'amet']);
+        $this->collection->add($doc4 = (object) ['foo' => 'sit', 'bar' => 'al']);
+
+        $this->assertEquals(['lorem' => $doc1, 'sin' => $doc2, 'sit' => $doc4], $this->query()->by('foo')->all());
+        $this->assertEquals(['lorem' => [$doc1], 'sin' => [$doc2], 'sit' => [$doc3, $doc4]], $this->query()->by('foo', true)->all());
+    }
+
     public function test_scope()
     {
         $this->collection->add($doc1 = (object) ['foo' => 'lorem', 'bar' => 'ipsum']);

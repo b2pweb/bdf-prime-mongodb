@@ -71,7 +71,7 @@ class MongoCompiler extends AbstractCompiler
      */
     protected function doCompileCount(CompilableClause $query): Count
     {
-        $command = new Count($query->statements['collection']);
+        $command = new Count($query->statements['collection'], $query->statements['options']);
 
         if (!empty($query->statements['where'])) {
             $command->query($this->grammar->filters($query, $query->statements['where']));

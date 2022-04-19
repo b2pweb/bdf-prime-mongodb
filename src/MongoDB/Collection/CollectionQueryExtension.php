@@ -10,10 +10,11 @@ use Bdf\Prime\Exception\PrimeException;
 use Bdf\Prime\MongoDB\Document\DocumentMapperInterface;
 use Bdf\Prime\Query\Contract\Whereable;
 use Bdf\Prime\Query\ReadCommandInterface;
+use Bdf\Prime\Types\TypesRegistryInterface;
 use MongoDB\BSON\ObjectId;
 
 /**
- * Class CollectionQueryExtension
+ * Apply extra methods to mongo queries according to related collection
  *
  * @template D as object
  */
@@ -28,6 +29,13 @@ class CollectionQueryExtension
      * @var DocumentMapperInterface<D>
      */
     private DocumentMapperInterface $mapper;
+
+    /**
+     * Collect documents by attribute
+     *
+     * @var array{attribute: string, combine: array}|null
+     */
+    private ?array $byOptions = null;
 
     /**
      * @param MongoCollectionInterface<D> $collection
@@ -80,25 +88,25 @@ class CollectionQueryExtension
         throw new EntityNotFoundException('Cannot resolve entity identifier "' . $id . '"');
     }
 
-//    /**
-//     * Get one entity or return a new one if not found in repository
-//     *
-//     * @param ReadCommandInterface<ConnectionInterface, D>&Whereable $query
-//     * @param ?ObjectId $id
-//     * @param null|string|array $attributes
-//     *
-//     * @return D
-//     */
-//    public function getOrNew(ReadCommandInterface $query, ?ObjectId $id, $attributes = null)
-//    {
-//        $entity = $this->get($query, $id, $attributes);
-//
-//        if ($entity !== null) {
-//            return $entity;
-//        }
-//
-//        return $this->repository->entity();
-//    }
+    /**
+     * Indexing entities by an attribute value
+     * Use combine for multiple entities with same attribute value
+     *
+     * @param ReadCommandInterface<ConnectionInterface, D> $query
+     * @param string  $attribute
+     * @param boolean $combine
+     *
+     * @return ReadCommandInterface<ConnectionInterface, D>
+     */
+    public function by(ReadCommandInterface $query, string $attribute, bool $combine = false)
+    {
+        $this->byOptions = [
+            'attribute' => $attribute,
+            'combine'   => $combine,
+        ];
+
+        return $query;
+    }
 
     /**
      * Post processor for hydrating entities
@@ -110,16 +118,20 @@ class CollectionQueryExtension
      */
     public function processDocuments(ResultSetInterface $data): array
     {
-        $documents = [];
-
         $mapper = $this->mapper;
         $types = $this->collection->connection()->platform()->types();
+        $rows = $data->asRawArray();
+        $byOptions = $this->byOptions;
 
-        foreach ($data->asRawArray() as $doc) {
-            $documents[] = $mapper->fromDatabase($doc, $types);
+        if (!$byOptions) {
+            return $this->processAsList($rows, $mapper, $types);
         }
 
-        return $documents;
+        if (!$byOptions['combine']) {
+            return $this->processAsAssociative($rows, $mapper, $types, $byOptions['attribute']);
+        }
+
+        return $this->processAsGrouping($rows, $mapper, $types, $byOptions['attribute']);
     }
 
     /**
@@ -131,8 +143,10 @@ class CollectionQueryExtension
      */
     public function apply(ReadCommandInterface $query): void
     {
-        $query->setExtension($this);
-        $query->post([$this, 'processDocuments'], false);
+        $ext = clone $this;
+
+        $query->setExtension($ext);
+        $query->post([$ext, 'processDocuments'], false);
     }
 
     /**
@@ -153,5 +167,63 @@ class CollectionQueryExtension
         }
 
         return $scopes[$name](...$arguments);
+    }
+
+    /**
+     * @param ResultSetInterface $rows
+     * @param DocumentMapperInterface $mapper
+     * @param TypesRegistryInterface $types
+     *
+     * @return list<D>
+     */
+    private function processAsList(ResultSetInterface $rows, DocumentMapperInterface $mapper, TypesRegistryInterface $types)
+    {
+        $documents = [];
+
+        foreach ($rows as $doc) {
+            $documents[] = $mapper->fromDatabase($doc, $types);
+        }
+
+        return $documents;
+    }
+
+    /**
+     * @param ResultSetInterface $rows
+     * @param DocumentMapperInterface $mapper
+     * @param TypesRegistryInterface $types
+     * @param string $keyField
+     *
+     * @return array<array-key, D>
+     */
+    private function processAsAssociative(ResultSetInterface $rows, DocumentMapperInterface $mapper, TypesRegistryInterface $types, string $keyField)
+    {
+        $documents = [];
+
+        foreach ($rows as $doc) {
+            $key = $doc[$keyField] ?? '';
+            $documents[$key] = $mapper->fromDatabase($doc, $types);
+        }
+
+        return $documents;
+    }
+
+    /**
+     * @param ResultSetInterface $rows
+     * @param DocumentMapperInterface $mapper
+     * @param TypesRegistryInterface $types
+     * @param string $keyField
+     *
+     * @return array<array-key, list<D>>
+     */
+    private function processAsGrouping(ResultSetInterface $rows, DocumentMapperInterface $mapper, TypesRegistryInterface $types, string $keyField)
+    {
+        $documents = [];
+
+        foreach ($rows as $doc) {
+            $key = $doc[$keyField] ?? '';
+            $documents[$key][] = $mapper->fromDatabase($doc, $types);
+        }
+
+        return $documents;
     }
 }

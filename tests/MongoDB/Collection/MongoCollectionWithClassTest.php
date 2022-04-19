@@ -2,7 +2,6 @@
 
 namespace MongoDB\Collection;
 
-use Bdf\Prime\Entity\Extensions\ArrayInjector;
 use Bdf\Prime\MongoDB\Collection\MongoCollection;
 use Bdf\Prime\MongoDB\Collection\MongoCollectionLocator;
 use Bdf\Prime\MongoDB\Document\DocumentMapper;
@@ -22,7 +21,7 @@ class MongoCollectionWithClassTest extends TestCase
     /**
      * @var MongoCollection<Person>
      */
-    private $customClassDocument;
+    private $collection;
 
     /**
      * {@inheritdoc}
@@ -38,7 +37,7 @@ class MongoCollectionWithClassTest extends TestCase
         ]);
 
         Mongo::configure($locator = new MongoCollectionLocator(Prime::service()->connections()));
-        $this->customClassDocument = $locator->collection(Person::class);
+        $this->collection = $locator->collection(Person::class);
     }
 
     /**
@@ -56,11 +55,11 @@ class MongoCollectionWithClassTest extends TestCase
     {
         $doc = new Person('John', 'Doe');
 
-        $this->customClassDocument->add($doc);
+        $this->collection->add($doc);
         $this->assertInstanceOf(ObjectId::class, $doc->id());
-        $this->assertSame($this->customClassDocument, $doc->collection());
+        $this->assertSame($this->collection, $doc->collection());
 
-        $this->assertEquals($doc, $this->customClassDocument->get($doc->id()));
+        $this->assertEquals($doc, $this->collection->get($doc->id()));
     }
 
     /**
@@ -72,11 +71,11 @@ class MongoCollectionWithClassTest extends TestCase
         $doc = new Person('John', 'Doe');
         $doc->setId($id);
 
-        $this->customClassDocument->add($doc);
+        $this->collection->add($doc);
         $this->assertEquals($id, $doc->id());
-        $this->assertSame($this->customClassDocument, $doc->collection());
+        $this->assertSame($this->collection, $doc->collection());
 
-        $this->assertEquals($doc, $this->customClassDocument->get($id));
+        $this->assertEquals($doc, $this->collection->get($id));
     }
 
     /**
@@ -86,14 +85,14 @@ class MongoCollectionWithClassTest extends TestCase
     {
         $doc = new Person('John', 'Doe');
 
-        $this->customClassDocument->replace($doc);
+        $this->collection->replace($doc);
         $this->assertInstanceOf(ObjectId::class, $doc->id());
-        $this->assertEquals($doc, $this->customClassDocument->get($doc->id()));
-        $this->assertSame($this->customClassDocument, $doc->collection());
+        $this->assertEquals($doc, $this->collection->get($doc->id()));
+        $this->assertSame($this->collection, $doc->collection());
 
         $doc->setLastName('baz');
-        $this->customClassDocument->replace($doc);
-        $this->assertEquals($doc, $this->customClassDocument->get($doc->id()));
+        $this->collection->replace($doc);
+        $this->assertEquals($doc, $this->collection->get($doc->id()));
     }
 
     /**
@@ -105,10 +104,10 @@ class MongoCollectionWithClassTest extends TestCase
         $doc = new Person('John', 'Doe');
         $doc->setId($id);
 
-        $this->customClassDocument->replace($doc);
+        $this->collection->replace($doc);
         $this->assertSame($id, $doc->id());
-        $this->assertEquals($doc, $this->customClassDocument->get($id));
-        $this->assertSame($this->customClassDocument, $doc->collection());
+        $this->assertEquals($doc, $this->collection->get($id));
+        $this->assertSame($this->collection, $doc->collection());
     }
 
     /**
@@ -118,7 +117,7 @@ class MongoCollectionWithClassTest extends TestCase
     {
         $doc = new Person('John', 'Doe');
 
-        $this->customClassDocument->delete($doc);
+        $this->collection->delete($doc);
         $this->expectNotToPerformAssertions();
     }
 
@@ -130,11 +129,11 @@ class MongoCollectionWithClassTest extends TestCase
         $doc = new Person('John', 'Doe');
         $doc->setId(new ObjectId());
 
-        $this->customClassDocument->add($doc);
-        $this->customClassDocument->delete($doc);
+        $this->collection->add($doc);
+        $this->collection->delete($doc);
 
-        $this->assertNull($this->customClassDocument->get($doc->id()));
-        $this->customClassDocument->delete($doc);
+        $this->assertNull($this->collection->get($doc->id()));
+        $this->collection->delete($doc);
     }
 
     /**
@@ -143,15 +142,15 @@ class MongoCollectionWithClassTest extends TestCase
     public function test_update()
     {
         $doc = new Person('John', 'Doe');
-        $this->customClassDocument->add($doc);
+        $this->collection->add($doc);
 
         $doc->setFirstName('Michel');
         $doc->setLastName('Smith');
 
-        $this->customClassDocument->update($doc, ['lastName']);
+        $this->collection->update($doc, ['lastName']);
 
-        $this->assertSame('John', $this->customClassDocument->get($doc->id())->firstName());
-        $this->assertSame('Smith', $this->customClassDocument->get($doc->id())->lastName());
+        $this->assertSame('John', $this->collection->get($doc->id())->firstName());
+        $this->assertSame('Smith', $this->collection->get($doc->id())->lastName());
     }
 
     /**
@@ -160,15 +159,15 @@ class MongoCollectionWithClassTest extends TestCase
     public function test_update_all_fields()
     {
         $doc = new Person('John', 'Doe');
-        $this->customClassDocument->add($doc);
+        $this->collection->add($doc);
 
         $doc->setFirstName('Michel');
         $doc->setLastName('Smith');
 
-        $this->customClassDocument->update($doc);
+        $this->collection->update($doc);
 
-        $this->assertSame('Michel', $this->customClassDocument->get($doc->id())->firstName());
-        $this->assertSame('Smith', $this->customClassDocument->get($doc->id())->lastName());
+        $this->assertSame('Michel', $this->collection->get($doc->id())->firstName());
+        $this->assertSame('Smith', $this->collection->get($doc->id())->lastName());
     }
 
     /**
@@ -180,16 +179,16 @@ class MongoCollectionWithClassTest extends TestCase
         $doc2 = new Person('Albert', 'Dupont');
         $doc3 = new Person('Jean', 'Le Bon', new \DateTime('1319-04-26'));
 
-        $this->customClassDocument->add($doc1);
-        $this->customClassDocument->add($doc2);
-        $this->customClassDocument->add($doc3);
+        $this->collection->add($doc1);
+        $this->collection->add($doc2);
+        $this->collection->add($doc3);
 
-        $this->assertEquals($doc1, $this->customClassDocument->findOneRaw(['firstName' => 'John']));
-        $this->assertEquals($doc2, $this->customClassDocument->findOneRaw(['firstName' => ['$regex' => '.*bert']]));
-        $this->assertEquals($doc3, $this->customClassDocument->findOneRaw(['birthDate' => ['$type' => 'date']]));
-        $this->assertNull($this->customClassDocument->findOneRaw(['not' => 'found']));
+        $this->assertEquals($doc1, $this->collection->findOneRaw(['firstName' => 'John']));
+        $this->assertEquals($doc2, $this->collection->findOneRaw(['firstName' => ['$regex' => '.*bert']]));
+        $this->assertEquals($doc3, $this->collection->findOneRaw(['birthDate' => ['$type' => 'date']]));
+        $this->assertNull($this->collection->findOneRaw(['not' => 'found']));
 
-        $this->assertSame($this->customClassDocument, $this->customClassDocument->findOneRaw(['firstName' => 'John'])->collection());
+        $this->assertSame($this->collection, $this->collection->findOneRaw(['firstName' => 'John'])->collection());
     }
 
     /**
@@ -201,16 +200,16 @@ class MongoCollectionWithClassTest extends TestCase
         $doc2 = new Person('Albert', 'Dupont');
         $doc3 = new Person('Jean', 'Le Bon', new \DateTime('1319-04-26'));
 
-        $this->customClassDocument->add($doc1);
-        $this->customClassDocument->add($doc2);
-        $this->customClassDocument->add($doc3);
+        $this->collection->add($doc1);
+        $this->collection->add($doc2);
+        $this->collection->add($doc3);
 
-        $this->assertEqualsCanonicalizing([$doc1], $this->customClassDocument->findAllRaw(['firstName' => 'John']));
-        $this->assertEqualsCanonicalizing([$doc1, $doc2], $this->customClassDocument->findAllRaw(['lastName' => ['$regex' => '^d.*', '$options' => 'i']]));
-        $this->assertEquals([$doc3], $this->customClassDocument->findAllRaw(['birthDate' => ['$lt' => new UTCDateTime(1000)]]));
-        $this->assertEqualsCanonicalizing([], $this->customClassDocument->findAllRaw(['birthDate' => 'bob']));
+        $this->assertEqualsCanonicalizing([$doc1], $this->collection->findAllRaw(['firstName' => 'John']));
+        $this->assertEqualsCanonicalizing([$doc1, $doc2], $this->collection->findAllRaw(['lastName' => ['$regex' => '^d.*', '$options' => 'i']]));
+        $this->assertEquals([$doc3], $this->collection->findAllRaw(['birthDate' => ['$lt' => new UTCDateTime(1000)]]));
+        $this->assertEqualsCanonicalizing([], $this->collection->findAllRaw(['birthDate' => 'bob']));
 
-        $this->assertSame($this->customClassDocument, $this->customClassDocument->findAllRaw(['firstName' => 'John'])[0]->collection());
+        $this->assertSame($this->collection, $this->collection->findAllRaw(['firstName' => 'John'])[0]->collection());
     }
 
     /**
@@ -222,16 +221,16 @@ class MongoCollectionWithClassTest extends TestCase
         $doc2 = new Person('Albert', 'Dupont');
         $doc3 = new Person('Jean', 'Le Bon', new \DateTime('1319-04-26'));
 
-        $this->customClassDocument->add($doc1);
-        $this->customClassDocument->add($doc2);
-        $this->customClassDocument->add($doc3);
+        $this->collection->add($doc1);
+        $this->collection->add($doc2);
+        $this->collection->add($doc3);
 
-        $this->assertEqualsCanonicalizing([$doc1], $this->customClassDocument->query()->where('firstName', 'John')->all());
-        $this->assertEqualsCanonicalizing([$doc1, $doc2], $this->customClassDocument->query()->where('lastName', (new Like('d'))->startsWith())->all());
-        $this->assertEquals([$doc3], $this->customClassDocument->query()->whereRaw(['birthDate' => ['$type' => 'date']])->all());
-        $this->assertEquals([], $this->customClassDocument->query()->whereRaw(['firstName' => ['$exists' => false]])->all());
+        $this->assertEqualsCanonicalizing([$doc1], $this->collection->query()->where('firstName', 'John')->all());
+        $this->assertEqualsCanonicalizing([$doc1, $doc2], $this->collection->query()->where('lastName', (new Like('d'))->startsWith())->all());
+        $this->assertEquals([$doc3], $this->collection->query()->whereRaw(['birthDate' => ['$type' => 'date']])->all());
+        $this->assertEquals([], $this->collection->query()->whereRaw(['firstName' => ['$exists' => false]])->all());
 
-        $this->assertSame($this->customClassDocument, $this->customClassDocument->query()->where('firstName', 'John')->first()->collection());
+        $this->assertSame($this->collection, $this->collection->query()->where('firstName', 'John')->first()->collection());
     }
 }
 

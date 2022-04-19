@@ -149,4 +149,31 @@ class MongoCompilerTest extends TestCase
             'limit' => 5
         ], $count->document());
     }
+
+    /**
+     *
+     */
+    public function test_compileCount_with_collation()
+    {
+        $query = $this->query()
+            ->collation(['locale' => 'fr', 'strength' => 2])
+            ->where('first_name', ':like', 't%')
+            ->limit(5)
+        ;
+
+        $count = $this->compiler->compileCount($query);
+
+        $this->assertInstanceOf(Count::class, $count);
+        $this->assertEquals([
+            'collation' => ['locale' => 'fr', 'strength' => 2],
+            'count' => 'test_collection',
+            'query' => [
+                'first_name' => [
+                    '$regex' => '^t.*$',
+                    '$options' => 'i'
+                ]
+            ],
+            'limit' => 5
+        ], $count->document());
+    }
 }

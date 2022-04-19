@@ -31,7 +31,7 @@ class MongoCollectionLocator
 
     /**
      * @param class-string<D> $type
-     * @return MongoCollection<D>
+     * @return MongoCollectionInterface<D>
      *
      * @template D as object
      *
@@ -39,7 +39,7 @@ class MongoCollectionLocator
      * @todo collection by name ?
      * @todo mapper factory / locator
      */
-    public function collection(string $type): MongoCollection
+    public function collection(string $type): MongoCollectionInterface
     {
         if (isset($this->collections[$type])) {
             return $this->collections[$type];

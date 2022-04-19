@@ -4,13 +4,10 @@ namespace Bdf\Prime\MongoDB\Collection;
 
 use Bdf\Prime\MongoDB\Document\DocumentMapperInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
-use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
-use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
-use Bdf\Util\Arr;
-use InvalidArgumentException;
+use Bdf\Prime\Repository\Write\WriterInterface;
 use MongoDB\BSON\ObjectId;
 
 /**
@@ -46,17 +43,9 @@ class MongoCollection implements MongoCollectionInterface
      */
     public function add(object $document): void
     {
-        $data = $this->mapper->toDatabase($document, $this->connection->platform()->types());
-
-        if (empty($data['_id'])) {
-            $data['_id'] = new ObjectId();
-            $this->mapper->setId($document, $data['_id']);
-        }
-
-        $write = new WriteQuery($this->mapper->collection());
-        $write->insert($data);
-
-        $write->execute($this->connection);
+        $writer = new BulkCollectionWriter($this);
+        $writer->insert($document);
+        $writer->flush();
     }
 
     /**
@@ -64,17 +53,9 @@ class MongoCollection implements MongoCollectionInterface
      */
     public function replace(object $document): void
     {
-        if ($this->mapper->getId($document) === null) {
-            $this->add($document);
-            return;
-        }
-
-        $data = $this->mapper->toDatabase($document, $this->connection->platform()->types());
-
-        $write = new WriteQuery($this->mapper->collection());
-        $write->update(['_id' => $data['_id']], $data, ['upsert' => true]);
-
-        $write->execute($this->connection);
+        $writer = new BulkCollectionWriter($this);
+        $writer->insert($document, ['replace' => true]);
+        $writer->flush();
     }
 
     /**
@@ -82,27 +63,9 @@ class MongoCollection implements MongoCollectionInterface
      */
     public function update(object $document, array $fields = []): void
     {
-        if (($id = $this->mapper->getId($document)) === null) {
-            throw new InvalidArgumentException('The document id is missing');
-        }
-
-        // @todo optimise ? provide fields
-        $data = $this->mapper->toDatabase($document, $this->connection->platform()->types());
-
-        if ($fields) {
-            $changes = [];
-
-            foreach ($fields as $field) {
-                $changes[$field] = Arr::get($data, $field);
-            }
-        } else {
-            $changes = $data;
-        }
-
-        $write = new WriteQuery($this->mapper->collection());
-        $write->update(['_id' => $id], ['$set' => $changes]);
-
-        $write->execute($this->connection);
+        $writer = new BulkCollectionWriter($this);
+        $writer->update($document, ['attributes' => $fields]);
+        $writer->flush();
     }
 
     /**
@@ -110,16 +73,9 @@ class MongoCollection implements MongoCollectionInterface
      */
     public function delete(object $document): void
     {
-        $id = $this->mapper->getId($document);
-
-        if ($id === null) {
-            return;
-        }
-
-        $write = new WriteQuery($this->mapper->collection());
-        $write->delete(['_id' => $id]);
-
-        $write->execute($this->connection);
+        $writer = new BulkCollectionWriter($this);
+        $writer->delete($document);
+        $writer->flush();
     }
 
     /**
@@ -224,6 +180,14 @@ class MongoCollection implements MongoCollectionInterface
     public function queries(): CollectionQueries
     {
         return new CollectionQueries($this, $this->mapper, $this->connection);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function writer(): WriterInterface
+    {
+        return new BulkCollectionWriter($this);
     }
 
     /**

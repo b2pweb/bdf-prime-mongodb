@@ -290,6 +290,15 @@ class MongoKeyValueQueryTest extends TestCase
     /**
      *
      */
+    public function test_count_with_collation()
+    {
+        $this->assertSame(0, $this->query()->where('name.first', 'JOHN')->count());
+        $this->assertSame(1, $this->query()->where('name.first', 'JOHN')->collation(['locale' => 'en', 'strength' => 1])->count());
+    }
+
+    /**
+     *
+     */
     public function test_paginationCount()
     {
         $this->assertEquals(2, $this->query()->paginationCount());

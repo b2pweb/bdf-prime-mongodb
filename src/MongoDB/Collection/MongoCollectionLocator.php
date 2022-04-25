@@ -3,7 +3,9 @@
 namespace Bdf\Prime\MongoDB\Collection;
 
 use Bdf\Prime\ConnectionRegistryInterface;
-use Bdf\Prime\MongoDB\Document\DocumentMapper;
+use Bdf\Prime\MongoDB\Document\DocumentMapperInterface;
+use Bdf\Prime\MongoDB\Document\Factory\DocumentMapperFactory;
+use Bdf\Prime\MongoDB\Document\Factory\DocumentMapperFactoryInterface;
 
 /**
  *
@@ -16,6 +18,11 @@ class MongoCollectionLocator
     private ConnectionRegistryInterface $connections;
 
     /**
+     * @var DocumentMapperFactoryInterface
+     */
+    private DocumentMapperFactoryInterface $mapperFactory;
+
+    /**
      * @psalm-var class-string-map<D, MongoCollection<D>>
      * @var array<class-string, MongoCollection>
      */
@@ -23,21 +30,21 @@ class MongoCollectionLocator
 
     /**
      * @param ConnectionRegistryInterface $connections
+     * @param DocumentMapperFactoryInterface|null $mapperFactory Mapper factory. By default, use `DocumentMapperFactory`
      */
-    public function __construct(ConnectionRegistryInterface $connections)
+    public function __construct(ConnectionRegistryInterface $connections, ?DocumentMapperFactoryInterface $mapperFactory = null)
     {
         $this->connections = $connections;
+        $this->mapperFactory = $mapperFactory ?? new DocumentMapperFactory();
     }
 
     /**
-     * @param class-string<D> $type
+     * Get the collection related to the given document class
+     *
+     * @param class-string<D> $type Document class name
      * @return MongoCollectionInterface<D>
      *
      * @template D as object
-     *
-     * @todo handle inheritance (iterate class hierarchy)
-     * @todo collection by name ?
-     * @todo mapper factory / locator
      */
     public function collection(string $type): MongoCollectionInterface
     {
@@ -45,37 +52,29 @@ class MongoCollectionLocator
             return $this->collections[$type];
         }
 
-        $mapperClass = $type . 'Mapper';
+        $mapper = $this->mapperFactory->createByDocumentClassName($type);
+        $connection = $this->connections->getConnection($mapper->connection());
 
-        if (!class_exists($mapperClass)) {
-            foreach (class_parents($type) as $documentType) {
-                $mapperClass = $documentType . 'Mapper';
-
-                if (class_exists($mapperClass)) {
-                    break;
-                }
-            }
-        }
-
-        /** @var DocumentMapper<D> $mapper */
-        $mapper = new $mapperClass($type);
-        $this->collections[$type] = $collection = new MongoCollection(
-            $this->connections->getConnection($mapper->connection()),
-            $mapper
-        );
+        $this->collections[$type] = $collection = $mapper->createMongoCollection($connection);
 
         return $collection;
     }
 
-    // @todo refactor: mapper resolver
-    public function collectionByMapper(string $mapperClass): MongoCollection
+    /**
+     * Create a collection by a mapper class name
+     *
+     * @param class-string<DocumentMapperInterface> $mapperClass Mapper to create
+     * @param class-string<D>|null $documentClass Document class to use. If null, use the default related document class
+     *
+     * @return MongoCollectionInterface<D>
+     *
+     * @template D as object
+     */
+    public function collectionByMapper(string $mapperClass, ?string $documentClass = null): MongoCollectionInterface
     {
-        /** @var DocumentMapper $mapper */
-        $mapper = new $mapperClass();
+        $mapper = $this->mapperFactory->createByMapperClassName($mapperClass, $documentClass);
+        $connection = $this->connections->getConnection($mapper->connection());
 
-        return new MongoCollection(
-            $this->connections->getConnection($mapper->connection()),
-            $mapper
-        );
+        return $mapper->createMongoCollection($connection);
     }
 }

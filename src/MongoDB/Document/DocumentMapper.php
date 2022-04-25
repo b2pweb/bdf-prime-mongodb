@@ -2,6 +2,8 @@
 
 namespace Bdf\Prime\MongoDB\Document;
 
+use Bdf\Prime\MongoDB\Collection\MongoCollection;
+use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Document\Hydrator\BdfDocumentHydrator;
 use Bdf\Prime\MongoDB\Document\Hydrator\DocumentHydratorInterface;
 use Bdf\Prime\MongoDB\Document\Hydrator\IdAccessorInterface;
@@ -12,6 +14,7 @@ use Bdf\Prime\MongoDB\Document\Mapping\FieldsMapping;
 use Bdf\Prime\MongoDB\Document\Mapping\FieldsMappingBuilder;
 use Bdf\Prime\MongoDB\Document\Selector\DefaultDocumentSelector;
 use Bdf\Prime\MongoDB\Document\Selector\DocumentSelectorInterface;
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Schema\CollectionDefinition;
 use Bdf\Prime\MongoDB\Schema\CollectionDefinitionBuilder;
 use Bdf\Prime\Types\TypesRegistryInterface;
@@ -52,11 +55,43 @@ abstract class DocumentMapper implements DocumentMapperInterface
     private ?FieldsMapping $fields = null;
 
     /**
-     * @param class-string<D>|null $documentClass Document class related to the collection. If null it will be resolved using the mapper class name
+     * @param class-string<D>|null $documentClass Document class related to the collection. If null stdClass will be used
      */
     public function __construct(?string $documentClass = null)
     {
-        $this->documentClass = $documentClass ?? substr(static::class, 0, -strlen('Mapper'));
+        $this->documentClass = $documentClass ?? stdClass::class;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @psalm-param class-string<R> $documentClassName
+     * @psalm-return DocumentMapper<R>
+     * @template R as object
+     */
+    public function forDocument(string $documentClassName): DocumentMapperInterface
+    {
+        /** @var DocumentMapper<R> $new */
+        $new = clone $this;
+        $new->documentClass = $documentClassName;
+
+        return $new;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function document(): string
+    {
+        return $this->documentClass;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function createMongoCollection(MongoConnection $connection): MongoCollectionInterface
+    {
+        return new MongoCollection($connection, $this);
     }
 
     /**

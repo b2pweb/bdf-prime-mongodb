@@ -3,7 +3,9 @@
 namespace Bdf\Prime\MongoDB\Document;
 
 use Bdf\Prime\Mapper\Mapper;
+use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Document\Mapping\FieldsMapping;
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Schema\CollectionDefinition;
 use Bdf\Prime\Types\TypesRegistryInterface;
 use MongoDB\BSON\ObjectId;
@@ -15,6 +17,24 @@ use MongoDB\BSON\ObjectId;
  */
 interface DocumentMapperInterface
 {
+    /**
+     * Configure the mapper for the given document class
+     * A new instance of the mapper will be returned : the previous instance will be unchanged
+     *
+     * @param class-string<R> $documentClassName New document class name
+     * @return DocumentMapperInterface<R> New mapper instance
+     *
+     * @template R as object
+     */
+    public function forDocument(string $documentClassName): self;
+
+    /**
+     * Get the related document class name
+     *
+     * @return class-string<D>
+     */
+    public function document(): string;
+
     /**
      * Get the connection name which stores the collection
      *
@@ -28,6 +48,15 @@ interface DocumentMapperInterface
      * @return string
      */
     public function collection(): string;
+
+    /**
+     * Create the mongo collection instance related to the current mapper
+     *
+     * @param MongoConnection $connection
+     *
+     * @return MongoCollectionInterface<D>
+     */
+    public function createMongoCollection(MongoConnection $connection): MongoCollectionInterface;
 
     /**
      * Convert a document object to mongo fields

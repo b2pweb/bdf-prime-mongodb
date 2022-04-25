@@ -51,7 +51,7 @@ class WithEmbeddedTest extends TestCase
                 return 'simple';
             }
         });
-        $this->customClassDocument = new MongoCollection(Prime::connection('mongo'), new DocumentWithEmbeddedMapper());
+        $this->customClassDocument = new MongoCollection(Prime::connection('mongo'), (new DocumentWithEmbeddedMapper())->forDocument(DocumentWithEmbedded::class));
     }
 
     /**

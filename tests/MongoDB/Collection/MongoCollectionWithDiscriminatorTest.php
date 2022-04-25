@@ -2,17 +2,14 @@
 
 namespace MongoDB\Collection;
 
-use Bdf\Prime\Entity\Extensions\ArrayInjector;
 use Bdf\Prime\MongoDB\Collection\MongoCollection;
 use Bdf\Prime\MongoDB\Document\DocumentMapper;
+use Bdf\Prime\MongoDB\Document\MongoDocument;
 use Bdf\Prime\MongoDB\Document\Selector\DiscriminatorFieldDocumentSelector;
 use Bdf\Prime\MongoDB\Document\Selector\DocumentSelectorInterface;
-use Bdf\Prime\MongoDB\Document\MongoDocument;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
-use Bdf\Prime\Query\Expression\Like;
 use MongoDB\BSON\ObjectId;
-use MongoDB\BSON\UTCDateTime;
 use PHPUnit\Framework\TestCase;
 
 class MongoCollectionWithDiscriminatorTest extends TestCase
@@ -37,7 +34,7 @@ class MongoCollectionWithDiscriminatorTest extends TestCase
             'dbname' => 'TEST',
         ]);
 
-        $this->collection = new MongoCollection(Prime::connection('mongo'), new DiscrimiatorMapper(Base::class));
+        $this->collection = new MongoCollection(Prime::connection('mongo'), (new DiscrimiatorMapper())->forDocument(Base::class));
     }
 
     /**
@@ -184,7 +181,7 @@ class MongoCollectionWithDiscriminatorTest extends TestCase
 
         $fooCollection = new MongoCollection(
             Prime::connection('mongo'),
-            new DiscrimiatorMapper(Foo::class)
+            (new DiscrimiatorMapper())->forDocument(Foo::class)
         );
 
         $this->collection->add($base);
@@ -223,7 +220,7 @@ class MongoCollectionWithDiscriminatorTest extends TestCase
 
         $barCollection = new MongoCollection(
             Prime::connection('mongo'),
-            new DiscrimiatorMapper(Bar::class)
+            (new DiscrimiatorMapper())->forDocument(Bar::class)
         );
 
         $this->collection->add($base);

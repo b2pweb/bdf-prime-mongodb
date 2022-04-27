@@ -49,7 +49,7 @@ final class FieldExistenceDocumentSelector implements DocumentSelectorInterface
     {
         foreach ($this->mapping as $documentClass => $fields) {
             foreach ($fields as $field) {
-                if (!array_key_exists($field,$data)) {
+                if (!array_key_exists($field, $data)) {
                     continue 2;
                 }
             }

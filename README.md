@@ -21,76 +21,79 @@ Create connection :
 ```php
 <?php
 use Bdf\Prime\ConnectionManager;
+use Bdf\Prime\MongoDB\Collection\MongoCollectionLocator;
+use Bdf\Prime\MongoDB\Mongo;
 
 // declare your connexion manager
-$connexions = new ConnectionManager();
+$connections = new ConnectionManager();
 
 // Declare connection without username and password
-$connexions->declareConnection('mongo', 'mongodb://127.0.0.1/my_collection?noAuth=true');
+$connections->declareConnection('mongo', 'mongodb://127.0.0.1/my_collection?noAuth=true');
 // With credentials
-$connexions->declareConnection('mongo', 'mongodb://user:password@127.0.0.1/my_database');
+$connections->declareConnection('mongo', 'mongodb://user:password@127.0.0.1/my_database');
 
+// Get the connection locator
+$locator = new MongoCollectionLocator($connections);
+Mongo::configure($locator); // Configure active record system
 ```
 
 ## Usage
 
-### Declare a Mapper
+### Declare a document
 
-MongoDB mapper declaration is almost same as SQL mapper, only primary key declaration differ :
+Declare the base document class by extending `Bdf\Prime\MongoDB\Document\MongoDocument`. 
+The `_id` field is declared by this class.
+
+You can use typed property for generate an automatic type mapping.
+Untyped fields will not be converted when retrieving from mongo.
+
+> Note: it's advisable to declare all fields as nullable in case of missing field
 
 ```php
 <?php
 
-use Bdf\Prime\Mapper\Mapper;
-use Bdf\Prime\MongoDB\Odm\MongoIdGenerator;
+use Bdf\Prime\MongoDB\Document\MongoDocument;
+use \MongoDB\BSON\Binary;
 
-class MyDocumentMapper extends Mapper
+class MyDocument extends MongoDocument
+{
+    public ?string $name;
+    public ?DateTimeInterface $creationDate;
+    public ?Binary $data;
+}
+```
+
+### Declare a Mapper
+
+For a basic usage, simply declare a mapper by extending `Bdf\Prime\MongoDB\Document\DocumentMapper`, and implementing `connection()` and `collection()` methods :
+
+```php
+<?php
+
+use Bdf\Prime\MongoDB\Document\DocumentMapper;
+
+class MyDocumentMapper extends DocumentMapper
 {
     /**
      * {@inheritdoc}
      */
-    public function configure()
+    public function connection(): string
     {
-        // Declare generator for generation MongoId on insertion 
-        $this->setGenerator(MongoIdGenerator::class);
+        // The declared connection name 
+        return 'mongo';
     }
 
     /**
      * {@inheritdoc}
      */
-    public function schema()
+    public function collection(): string
     {
-        return [
-            'connection' => 'mongo',
-            'table' => 'my_collection', // Use 'table' for define the collection name
-        ];
-    }
-    
-    /**
-     * {@inheritdoc}
-     */
-    public function buildFields($builder)
-    {
-        $builder
-            // The mongo id must be declared as primary
-            ->string('oid')->primary()
-            
-            // The rest of fields declaration is same as other prime mappers
-            ->string('name')
-            ->object('value')
-            
-            // Unlike SQL, there is no need to define an alias for embedded values
-            // By default (i.e. without alias), the embedded value will be stored as embedded document on the collection
-            ->embedded('foo', function ($builder) {
-                $builder
-                    ->string('bar')
-                    ->string('rab')
-                ;
-            })
-        ;
+        return 'my_collection'; // The storage collection name
     }
 }
 ```
+
+Mapping and fields will be automatically resolved from the document class.
 
 ### Querying MongoDB
 
@@ -100,7 +103,7 @@ The query system use Prime interfaces, so usage is almost the same :
 <?php
 // Get the query
 /** @var \Bdf\Prime\MongoDB\Query\MongoQuery $query */
-$query = MyDocument::builder();
+$query = MyDocument::query();
 
 $query
     ->where('name', 'John') // Simple where works as expected
@@ -117,7 +120,67 @@ $query->first();
 
 ### Testing
 
-The `TestPack` of Prime is compatible with MongoDB
+Use `Bdf\Prime\MongoDB\Test\MongoTester` for create testing data.
+
+```php
+<?php
+
+use PHPUnit\Framework\TestCase;
+use Bdf\Prime\MongoDB\Test\MongoTester;
+
+class MyTest extends TestCase
+{
+    private MongoTester $tester;
+
+    protected function setUp() : void
+    {
+        $this->tester = new MongoTester();
+        $this->tester
+            // Declare given collections. Collections are automatically declared when `push()` on new collection
+            ->declare(FooDocument::class, BarDocument::class)
+            // Push to mongo given documents with a key for retrieve the value on test
+            ->push([
+                'doc1' => new MyDocument(),
+                'doc2' => new MyDocument(),
+            ])
+        ;
+    }
+    
+    protected function tearDown() : void
+    {
+        $this->tester->destroy(); // Drop all declared collections
+    }
+    
+    public function my_test()
+    {
+        $doc1 = $this->tester->get('doc1'); // get document declared on setUp method
+        $this->tester->push($newDoc = new FooDocument()); // Push a single document without a key (cannot be retrieved with `get()`)
+        
+        // ...
+        
+        $this->assertNotEquals($doc1, $this->tester->refresh($doc1)); // Retrieve the DB version of the given document
+        $this->assertNull($newDoc, $this->tester->refresh($newDoc)); // refresh can be used to check if the document exists on DB
+    }
+    
+    public function with_array_access_test()
+    {
+        // Array access syntax can also be used instead of "classic" method calls
+        $doc1 = $this->tester['doc1']; // get document declared on setUp method
+        $this->tester[] = $newDoc = new FooDocument(); // Push a single document without a key (cannot be retrieved with `get()`)
+        $this->tester['doc3'] = new MyDocument(); // Push a single document with a key
+
+        // ...
+
+        $this->assertNotEquals($doc1, $this->tester[$doc1]); // Retrieve the DB version of the given document
+        $this->assertTrue(isset($this->tester[$newDoc])); // Check if the document exists on DB
+        
+        unset($this->tester['doc3']); // Deleted a declared document
+        unset($this->tester[$newDoc]); // Can also be used to delete a document without key
+
+        $this->assertFalse(isset($this->tester[$newDoc])); // Document is now deleted
+    }
+}
+```
 
 ### Case-insensitive search and index
 
@@ -127,37 +190,112 @@ See [Case Insensitive Indexes](https://docs.mongodb.com/manual/core/index-case-i
 ```php
 <?php
 
-use Bdf\Prime\Mapper\Mapper;
-use Bdf\Prime\MongoDB\Odm\MongoIdGenerator;
+use Bdf\Prime\MongoDB\Document\DocumentMapper;
 
-class MyDocumentMapper extends Mapper
+class MyDocumentMapper extends DocumentMapper
 {
     /**
      * {@inheritdoc}
      */
-    public function configure()
+    public function connection(): string
     {
-        // Declare generator for generation MongoId on insertion 
-        $this->setGenerator(MongoIdGenerator::class);
+        // The declared connection name 
+        return 'mongo';
     }
 
     /**
      * {@inheritdoc}
      */
-    public function schema()
+    public function collection(): string
     {
-        return [
-            'connection' => 'mongo',
-            'table' => 'my_collection',
-            'tableOptions' => [
-                'collation' => [
-                    'locale' => 'en',
-                    'strength' => 2,
-                ],
-            ],
-        ];
+        return 'my_collection'; // The storage collection name
     }
- 
-    // ...   
+    
+    /**
+     * {@inheritdoc}
+     */
+    protected function buildDefinition(\Bdf\Prime\MongoDB\Schema\CollectionDefinitionBuilder $builder) : void
+    {
+        $builder->collation(['locale' => 'en', 'strength' => 2]);
+    }
 }
+```
+
+### Multiple document classes
+
+Mongo is schemaless, so a collection can store documents with different formats.
+You can select a document class corresponding to DB fields by using a custom `Bdf\Prime\MongoDB\Document\Selector\DocumentSelectorInterface`,
+declared using `DocumentMapper::createDocumentSelector()` :
+
+```php
+<?php
+
+// Declare document classes. Note: all documents classes must inherit from a base class 
+class BaseDocument extends MongoDocument
+{
+    public ?string $_type = null; // _type is the default field used by DiscriminatorFieldDocumentSelector
+}
+
+class FooDocument extends BaseDocument
+{
+    public ?string $_type = 'foo';
+    public ?string $foo = null;
+}
+
+class BarDocument extends BaseDocument
+{
+    public ?string $_type = 'bar';
+    public ?string $bar = null;
+}
+
+// Declare a single mapper
+class MyDocumentMapper extends DocumentMapper
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function connection(): string
+    { 
+        return 'mongo';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function collection(): string
+    {
+        return 'my_collection';
+    }
+    
+    /**
+     * {@inheritdoc}
+     */
+    protected function createDocumentSelector(string $documentBaseClass): DocumentSelectorInterface
+    {
+        // Define document class mapping
+        return new DiscriminatorFieldDocumentSelector($documentBaseClass, [
+            'foo' => FooDocument::class,
+            'bar' => BarDocument::class,
+        ]);
+        
+        // If you can't introduce a field for perform discrimination, you can check fields existence :
+        return new DiscriminatorFieldDocumentSelector($documentBaseClass, [
+            FooDocument::class => ['foo'],
+            BarDocument::class => ['bar'],
+        ]);
+    }
+}
+
+// Get the base collection : it handles all document types
+$collection = BaseDocument::collection();
+
+$collection->add(new BaseDocument(...));
+$collection->add(new FooDocument(...));
+$collection->add(new BarDocument(...));
+
+$collection->all(); // Return all documents from all types
+
+// Handle only "FooDocument" document class
+$fooCollection = FooDocument::collection();
+$fooCollection->all(); // Return only document of type "foo"
 ```

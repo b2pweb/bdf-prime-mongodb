@@ -13,6 +13,7 @@ use Bdf\Serializer\Normalizer\PropertyNormalizer;
 use Bdf\Serializer\Normalizer\TraversableNormalizer;
 use Bdf\Serializer\Serializer;
 use Bdf\Serializer\SerializerInterface;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * Hydrator using bdf-serializer
@@ -47,7 +48,7 @@ final class BdfDocumentHydrator implements DocumentHydratorInterface
         return $this->serializer->toArray($document);
     }
 
-    private static function createDefaultSerializer(): SerializerInterface
+    public static function createDefaultSerializer(?CacheInterface $cache = null): SerializerInterface
     {
         $loader = new NormalizerLoader([
             new BsonTypeNormalizer(),
@@ -57,7 +58,7 @@ final class BdfDocumentHydrator implements DocumentHydratorInterface
             new PropertyNormalizer(new MetadataFactory([
                 new StaticMethodDriver(),
                 new AnnotationsDriver(),
-            ])) // @todo cache ?
+            ], $cache, 'mongo-hydrator-cache'))
         ]);
 
         return new Serializer($loader);

@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Document;
 use Bdf\Prime\MongoDB\Collection\MongoCollection;
 use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Document\Hydrator\BdfDocumentHydrator;
+use Bdf\Prime\MongoDB\Document\Hydrator\DocumentHydratorFactory;
 use Bdf\Prime\MongoDB\Document\Hydrator\DocumentHydratorInterface;
 use Bdf\Prime\MongoDB\Document\Hydrator\IdAccessorInterface;
 use Bdf\Prime\MongoDB\Document\Hydrator\MongoDocumentIdAccessor;
@@ -40,6 +41,11 @@ abstract class DocumentMapper implements DocumentMapperInterface
     private ?DocumentHydratorInterface $hydrator = null;
 
     /**
+     * @var DocumentHydratorFactory|null
+     */
+    private ?DocumentHydratorFactory $hydratorFactory;
+
+    /**
      * @var IdAccessorInterface<D>|null
      */
     private ?IdAccessorInterface $idAccessor = null;
@@ -57,9 +63,10 @@ abstract class DocumentMapper implements DocumentMapperInterface
     /**
      * @param class-string<D>|null $documentClass Document class related to the collection. If null stdClass will be used
      */
-    public function __construct(?string $documentClass = null)
+    public function __construct(?string $documentClass = null, ?DocumentHydratorFactory $hydratorFactory = null)
     {
         $this->documentClass = $documentClass ?? stdClass::class;
+        $this->hydratorFactory = $hydratorFactory;
     }
 
     /**
@@ -270,11 +277,9 @@ abstract class DocumentMapper implements DocumentMapperInterface
      */
     protected function createHydrator(string $documentBaseClass): DocumentHydratorInterface
     {
-        if ($documentBaseClass === stdClass::class) {
-            return StdClassDocumentHydrator::instance();
-        }
+        $factory = $this->hydratorFactory ?? DocumentHydratorFactory::instance();
 
-        return new BdfDocumentHydrator();
+        return $factory->create($documentBaseClass);
     }
 
     /**

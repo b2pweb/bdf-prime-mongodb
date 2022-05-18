@@ -11,20 +11,8 @@ class ContainerMapperInstantiatorTest extends TestCase
 {
     public function test_instantiate()
     {
-        $container = new class implements ContainerInterface {
-            public function get(string $id)
-            {
-                if ($id === DocumentWithoutBaseClassMapper::class) {
-                    return new DocumentWithoutBaseClassMapper();
-                }
-                return null;
-            }
-
-            public function has(string $id)
-            {
-                return true;
-            }
-        };
+        $container = $this->createMock(ContainerInterface::class);
+        $container->expects($this->once())->method('get')->with(DocumentWithoutBaseClassMapper::class)->willReturn(new DocumentWithoutBaseClassMapper());
 
         $this->assertInstanceOf(DocumentWithoutBaseClassMapper::class, (new ContainerMapperInstantiator($container))->instantiate(DocumentWithoutBaseClassMapper::class));
     }

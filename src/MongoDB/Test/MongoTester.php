@@ -50,7 +50,7 @@ class MongoTester implements \ArrayAccess
         foreach ($documentClasses as $documentClass) {
             if (!isset($this->declaredCollections[$documentClass])) {
                 $this->declaredCollections[$documentClass] = $documentClass;
-                $this->schemaResolver->resolveByDocumentClass($documentClass)->migrate(); // @todo check null ?
+                $this->schemaResolver->resolveByDomainClass($documentClass)->migrate(); // @todo check null ?
             }
         }
 
@@ -134,7 +134,7 @@ class MongoTester implements \ArrayAccess
     public function destroy(): self
     {
         foreach ($this->declaredCollections as $documentClass) {
-            $this->schemaResolver->resolveByDocumentClass($documentClass)->drop();
+            $this->schemaResolver->resolveByDomainClass($documentClass)->drop();
         }
 
         $this->declaredCollections = [];

@@ -61,9 +61,9 @@ class CollectionSchemaResolverTest extends TestCase
         $this->assertNull($this->resolver->resolveByMapperClass(\ArrayObject::class));
     }
 
-    public function test_resolveByDocumentClass()
+    public function test_resolveByDomainClass()
     {
-        $resolver = $this->resolver->resolveByDocumentClass(FooDocument::class);
+        $resolver = $this->resolver->resolveByDomainClass(FooDocument::class);
         $resolver->migrate();
 
         $this->assertTrue($this->connection->schema()->hasTable('with_discriminator'));

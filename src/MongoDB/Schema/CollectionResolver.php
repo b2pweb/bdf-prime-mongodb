@@ -3,13 +3,13 @@
 namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
-use Bdf\Prime\Schema\ResolverInterface;
+use Bdf\Prime\Schema\StructureUpgraderInterface;
 use MongoDB\Driver\Exception\CommandException;
 
 /**
  *
  */
-class CollectionResolver implements ResolverInterface
+class CollectionResolver implements StructureUpgraderInterface
 {
     private MongoCollectionInterface $collection;
 

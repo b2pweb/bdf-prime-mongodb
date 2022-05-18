@@ -4,12 +4,13 @@ namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\MongoDB\Collection\MongoCollectionLocator;
 use Bdf\Prime\MongoDB\Document\DocumentMapperInterface;
-use Bdf\Prime\Schema\ResolverInterface;
+use Bdf\Prime\Schema\StructureUpgraderInterface;
+use Bdf\Prime\Schema\StructureUpgraderResolverInterface;
 
 /**
  * Resolve CollectionResolver instance
  */
-class CollectionSchemaResolver
+class CollectionSchemaResolver implements StructureUpgraderResolverInterface
 {
     private MongoCollectionLocator $locator;
 
@@ -22,30 +23,22 @@ class CollectionSchemaResolver
     }
 
     /**
-     * Get a schema resolver instance from a mapper class
-     *
-     * @param class-string $mapperClass The mapper class name
-     *
-     * @return ResolverInterface|null Resolver instance, or null if the class name is not a valid mapper class
+     * {@inheritdoc}
      */
-    public function resolveByMapperClass(string $mapperClass): ?ResolverInterface
+    public function resolveByMapperClass(string $mapperClassName, bool $force = false): ?StructureUpgraderInterface
     {
-        if (!is_subclass_of($mapperClass, DocumentMapperInterface::class)) {
+        if (!is_subclass_of($mapperClassName, DocumentMapperInterface::class)) {
             return null;
         }
 
-        return new CollectionResolver($this->locator->collectionByMapper($mapperClass));
+        return new CollectionResolver($this->locator->collectionByMapper($mapperClassName));
     }
 
     /**
-     * Get a schema resolver instance from a document class
-     *
-     * @param class-string $documentClass
-     *
-     * @return ResolverInterface Resolver instance
+     * {@inheritdoc}
      */
-    public function resolveByDocumentClass(string $documentClass): ResolverInterface
+    public function resolveByDomainClass(string $className, bool $force = false): ?StructureUpgraderInterface
     {
-        return new CollectionResolver($this->locator->collection($documentClass));
+        return new CollectionResolver($this->locator->collection($className));
     }
 }

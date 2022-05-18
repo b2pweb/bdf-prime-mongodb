@@ -87,19 +87,19 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      *
-     * @param TableInterface|CollectionDefinition $newTable
-     * @param TableInterface|CollectionDefinition $oldTable
+     * @param TableInterface|CollectionDefinition $new
+     * @param TableInterface|CollectionDefinition $old
      */
-    public function diff($newTable, $oldTable)
+    public function diff($new, $old)
     {
         // @todo handle diff of options using https://www.mongodb.com/docs/manual/reference/command/collMod/
         $comparator = new IndexSetComparator(
-            $oldTable->indexes(),
-            $newTable->indexes()
+            $old->indexes(),
+            $new->indexes()
         );
 
         return new IndexSetDiff(
-            $newTable->name(),
+            $new->name(),
             $comparator
         );
     }
@@ -173,7 +173,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function hasTable($tableName): bool
+    public function has($tableName): bool
     {
         $cursor = $this->connection->runCommand(
             (new ListCollections())
@@ -204,19 +204,19 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * Load definition (i.e. indexes + options) of a collection declared on mongo database
      *
-     * @param string $collectionName Collection name to load
+     * @param string $name Collection name to load
      *
      * @return CollectionDefinition
      */
-    public function load(string $collectionName): CollectionDefinition
+    public function load(string $name): CollectionDefinition
     {
-        $cursor = $this->connection->runCommand((new ListCollections())->byName($collectionName));
+        $cursor = $this->connection->runCommand((new ListCollections())->byName($name));
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
         $collection = $cursor->toArray()[0] ?? [];
 
         return new CollectionDefinition(
-            $collectionName,
-            new IndexSet($this->getIndexes($collectionName)),
+            $name,
+            new IndexSet($this->getIndexes($name)),
             $collection['options'] ?? []
         );
     }
@@ -224,21 +224,21 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      *
-     * @param TableInterface|CollectionDefinition $table
+     * @param TableInterface|CollectionDefinition $structure
      */
-    public function add($table)
+    public function add($structure)
     {
-        if ($table instanceof TableInterface) {
-            return parent::add($table);
+        if ($structure instanceof TableInterface) {
+            return parent::add($structure);
         }
 
-        if ($this->hasTable($table->name())) {
+        if ($this->hasTable($structure->name())) {
             return $this->push(
-                $this->diff($table, $this->load($table->name()))
+                $this->diff($structure, $this->load($structure->name()))
             );
         }
 
-        return $this->push(new SchemaCreation([$table]));
+        return $this->push(new SchemaCreation([$structure]));
     }
 
     /**

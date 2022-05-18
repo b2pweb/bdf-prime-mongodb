@@ -5,7 +5,7 @@ namespace Bdf\Prime\MongoDB\Test;
 use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Collection\MongoCollectionLocator;
 use Bdf\Prime\MongoDB\Mongo;
-use Bdf\Prime\MongoDB\Schema\CollectionSchemaResolver;
+use Bdf\Prime\MongoDB\Schema\CollectionStructureUpgraderResolver;
 
 /**
  * Utility class for handle mongodb documents creation and purge for testing
@@ -14,7 +14,7 @@ use Bdf\Prime\MongoDB\Schema\CollectionSchemaResolver;
 class MongoTester implements \ArrayAccess
 {
     private MongoCollectionLocator $locator;
-    private CollectionSchemaResolver $schemaResolver;
+    private CollectionStructureUpgraderResolver $schemaResolver;
 
     /**
      * @var array<class-string, class-string>
@@ -32,7 +32,7 @@ class MongoTester implements \ArrayAccess
     public function __construct(?MongoCollectionLocator $locator = null)
     {
         $this->locator = $locator ?? Mongo::locator();
-        $this->schemaResolver = new CollectionSchemaResolver($this->locator);
+        $this->schemaResolver = new CollectionStructureUpgraderResolver($this->locator);
     }
 
     /**

@@ -19,12 +19,12 @@ use PHPUnit\Framework\TestCase;
 /**
  *
  */
-class CollectionResolverTest extends TestCase
+class CollectionStructureUpgraderTest extends TestCase
 {
     use PrimeTestCase;
     use MongoAssertion;
 
-    protected CollectionResolver $resolver;
+    protected CollectionStructureUpgrader $resolver;
     protected MongoConnection $connection;
 
     /**
@@ -41,7 +41,7 @@ class CollectionResolverTest extends TestCase
         ]);
 
         Mongo::configure(new MongoCollectionLocator(Prime::service()->connections()));
-        $this->resolver = new CollectionResolver(PersonDocument::collection());
+        $this->resolver = new CollectionStructureUpgrader(PersonDocument::collection());
         $this->connection = Prime::connection('mongo');
     }
 
@@ -211,7 +211,7 @@ class CollectionResolverTest extends TestCase
      */
     public function test_with_index_options()
     {
-        $this->resolver = new CollectionResolver(HomeDocument::collection());
+        $this->resolver = new CollectionStructureUpgrader(HomeDocument::collection());
 
         /** @var Command $diffs[] */
         $diffs = $this->resolver->diff(true);

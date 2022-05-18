@@ -8,9 +8,9 @@ use Bdf\Prime\Schema\StructureUpgraderInterface;
 use Bdf\Prime\Schema\StructureUpgraderResolverInterface;
 
 /**
- * Resolve CollectionResolver instance
+ * Resolve CollectionStructureUpgrader instance
  */
-class CollectionSchemaResolver implements StructureUpgraderResolverInterface
+class CollectionStructureUpgraderResolver implements StructureUpgraderResolverInterface
 {
     private MongoCollectionLocator $locator;
 
@@ -31,7 +31,7 @@ class CollectionSchemaResolver implements StructureUpgraderResolverInterface
             return null;
         }
 
-        return new CollectionResolver($this->locator->collectionByMapper($mapperClassName));
+        return new CollectionStructureUpgrader($this->locator->collectionByMapper($mapperClassName));
     }
 
     /**
@@ -39,6 +39,6 @@ class CollectionSchemaResolver implements StructureUpgraderResolverInterface
      */
     public function resolveByDomainClass(string $className, bool $force = false): ?StructureUpgraderInterface
     {
-        return new CollectionResolver($this->locator->collection($className));
+        return new CollectionStructureUpgrader($this->locator->collection($className));
     }
 }

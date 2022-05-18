@@ -6,19 +6,19 @@ use Bdf\Prime\MongoAssertion;
 use Bdf\Prime\MongoDB\Collection\MongoCollectionLocator;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Mongo;
-use Bdf\Prime\MongoDB\Schema\CollectionSchemaResolver;
+use Bdf\Prime\MongoDB\Schema\CollectionStructureUpgraderResolver;
 use Bdf\Prime\MongoDB\TestDocument\DiscrimiatorDocumentMapper;
 use Bdf\Prime\MongoDB\TestDocument\FooDocument;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
 use PHPUnit\Framework\TestCase;
 
-class CollectionSchemaResolverTest extends TestCase
+class CollectionStructureUpgraderResolverTest extends TestCase
 {
     use PrimeTestCase;
     use MongoAssertion;
 
-    protected CollectionSchemaResolver $resolver;
+    protected CollectionStructureUpgraderResolver $resolver;
     protected MongoConnection $connection;
 
     /**
@@ -35,7 +35,7 @@ class CollectionSchemaResolverTest extends TestCase
         ]);
 
         Mongo::configure($locator = new MongoCollectionLocator(Prime::service()->connections()));
-        $this->resolver = new CollectionSchemaResolver($locator);
+        $this->resolver = new CollectionStructureUpgraderResolver($locator);
         $this->connection = Prime::connection('mongo');
     }
 

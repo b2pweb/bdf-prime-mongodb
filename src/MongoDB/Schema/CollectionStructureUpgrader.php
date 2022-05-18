@@ -7,9 +7,9 @@ use Bdf\Prime\Schema\StructureUpgraderInterface;
 use MongoDB\Driver\Exception\CommandException;
 
 /**
- *
+ * Upgrader for mongodb collection structure
  */
-class CollectionResolver implements StructureUpgraderInterface
+class CollectionStructureUpgrader implements StructureUpgraderInterface
 {
     private MongoCollectionInterface $collection;
 

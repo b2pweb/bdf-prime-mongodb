@@ -1,6 +1,10 @@
 name: Build
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ '[1-9].[0-9]+' ]
+  pull_request:
+    branches: [ '[1-9].[0-9]+' ]
 
 jobs:
   build:

@@ -8,6 +8,7 @@ use Bdf\Prime\Schema\ColumnInterface;
 use Bdf\Prime\Types\PhpTypeInterface;
 use DateTimeZone;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\BSON\UTCDateTimeInterface;
 
 /**
  * Date type
@@ -41,19 +42,34 @@ class BsonDateType extends AbstractPlatformType
         }
 
         $timezone = $fieldOptions['timezone'] ?? date_default_timezone_get();
+        $targetType = $fieldOptions['phpType'] ?? null;
 
-        return $value->toDateTime()->setTimezone(new DateTimeZone($timezone));
+        if ($targetType === UTCDateTime::class || $targetType === UTCDateTimeInterface::class) {
+            return $value;
+        }
+
+        $dateTime = $value->toDateTime()->setTimezone(new DateTimeZone($timezone));
+
+        if (!$targetType) {
+            return $dateTime;
+        }
+
+        if (method_exists($targetType, 'createFromInterface')) {
+            return $targetType::createFromInterface($dateTime);
+        }
+
+        return $targetType::createFromFormat('U.v', $dateTime->format('U.v'));
     }
 
     /**
      * {@inheritdoc}
      *
-     * @param \DateTimeInterface $value
+     * @param \DateTimeInterface|UTCDateTime|null $value
      */
     public function toDatabase($value)
     {
-        if ($value === null) {
-            return null;
+        if ($value === null || $value instanceof UTCDateTimeInterface) {
+            return $value;
         }
 
         $ts = $value->getTimestamp() * 1000;
@@ -65,7 +81,7 @@ class BsonDateType extends AbstractPlatformType
     /**
      * {@inheritdoc}
      */
-    public function phpType()
+    public function phpType(): string
     {
         return PhpTypeInterface::DATETIME;
     }

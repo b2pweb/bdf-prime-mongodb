@@ -45,7 +45,7 @@ class PipelineCompilerTest extends TestCase
 
         ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
-        $this->compiler = new PipelineCompiler($this->manager->connection('mongo'));
+        $this->compiler = new PipelineCompiler($this->manager->getConnection('mongo'));
     }
 
     /**
@@ -105,7 +105,7 @@ class PipelineCompilerTest extends TestCase
     public function test_with_preconfigured_query()
     {
         $compiled = $this->compiler->compileAggregate(
-            $this->manager->connection('mongo')
+            $this->manager->getConnection('mongo')
                 ->from('users')
                 ->select(['user.name', 'customer.id', 'orders'])
                 ->where('date', '>', $now = new \DateTime())
@@ -148,7 +148,7 @@ class PipelineCompilerTest extends TestCase
      */
     protected function query()
     {
-        return (new Pipeline($this->manager->connection('mongo')))->from('users');
+        return (new Pipeline($this->manager->getConnection('mongo')))->from('users');
     }
 
     private function dateTimeToMilliseconds(\DateTime $dateTime)

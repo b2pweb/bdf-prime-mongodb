@@ -42,9 +42,12 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function flush()
+    public function flush(): bool
     {
-        foreach ($this->pending as $pending) {
+        $pendings = $this->pending;
+        $this->pending = []; // Clear queries before execution in case of failing
+
+        foreach ($pendings as $pending) {
             if ($pending instanceof CommandInterface) {
                 $this->connection->runCommand($pending);
             } elseif ($pending instanceof \Closure) {
@@ -52,15 +55,13 @@ class MongoSchemaManager extends AbstractSchemaManager
             }
         }
 
-        $this->pending = [];
-
         return true;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function pending()
+    public function pending(): array
     {
         return $this->pending;
     }
@@ -71,6 +72,7 @@ class MongoSchemaManager extends AbstractSchemaManager
      * @param TableInterface[] $tables
      *
      * @psalm-suppress InvalidReturnType
+     * @deprecated Used for compatiblity with repository
      */
     public function schema($tables = [])
     {
@@ -84,16 +86,20 @@ class MongoSchemaManager extends AbstractSchemaManager
 
     /**
      * {@inheritdoc}
+     *
+     * @param TableInterface|CollectionDefinition $new
+     * @param TableInterface|CollectionDefinition $old
      */
-    public function diff(TableInterface $newTable, TableInterface $oldTable)
+    public function diff($new, $old)
     {
+        // @todo handle diff of options using https://www.mongodb.com/docs/manual/reference/command/collMod/
         $comparator = new IndexSetComparator(
-            $oldTable->indexes(),
-            $newTable->indexes()
+            $old->indexes(),
+            $new->indexes()
         );
 
         return new IndexSetDiff(
-            $newTable->name(),
+            $new->name(),
             $comparator
         );
     }
@@ -126,7 +132,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function hasDatabase($database)
+    public function hasDatabase($database): bool
     {
         return in_array(strtolower($database), array_map('strtolower', $this->getDatabases()));
     }
@@ -134,7 +140,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function getDatabases()
+    public function getDatabases(): array
     {
         $list = $this->connection->runAdminCommand('listDatabases')->toArray();
 
@@ -167,7 +173,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function hasTable($tableName)
+    public function has($tableName): bool
     {
         $cursor = $this->connection->runCommand(
             (new ListCollections())
@@ -180,7 +186,7 @@ class MongoSchemaManager extends AbstractSchemaManager
     /**
      * {@inheritdoc}
      */
-    public function loadTable($tableName)
+    public function loadTable($tableName): Table
     {
         $cursor = $this->connection->runCommand((new ListCollections())->byName($tableName));
         $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
@@ -193,6 +199,46 @@ class MongoSchemaManager extends AbstractSchemaManager
             null,
             $collection['options'] ?? []
         );
+    }
+
+    /**
+     * Load definition (i.e. indexes + options) of a collection declared on mongo database
+     *
+     * @param string $name Collection name to load
+     *
+     * @return CollectionDefinition
+     */
+    public function load(string $name): CollectionDefinition
+    {
+        $cursor = $this->connection->runCommand((new ListCollections())->byName($name));
+        $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
+        $collection = $cursor->toArray()[0] ?? [];
+
+        return new CollectionDefinition(
+            $name,
+            new IndexSet($this->getIndexes($name)),
+            $collection['options'] ?? []
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @param TableInterface|CollectionDefinition $structure
+     */
+    public function add($structure)
+    {
+        if ($structure instanceof TableInterface) {
+            return parent::add($structure);
+        }
+
+        if ($this->hasTable($structure->name())) {
+            return $this->push(
+                $this->diff($structure, $this->load($structure->name()))
+            );
+        }
+
+        return $this->push(new SchemaCreation([$structure]));
     }
 
     /**

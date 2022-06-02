@@ -46,4 +46,14 @@ abstract class AbstractCommand implements CommandInterface
     {
         return 1;
     }
+
+    /**
+     * Convert command to string representation
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return json_encode($this->document());
+    }
 }

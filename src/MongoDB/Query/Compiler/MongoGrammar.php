@@ -2,17 +2,15 @@
 
 namespace Bdf\Prime\MongoDB\Query\Compiler;
 
-use BadMethodCallException;
 use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Query\CompilableClause;
-use Bdf\Prime\Query\Compiler\CompilerInterface;
 use Bdf\Prime\Query\Expression\ExpressionTransformerInterface;
 use Doctrine\DBAL\Query\Expression\CompositeExpression;
 
 /**
  * Mongo grammar for building queries
  */
-class MongoGrammar implements CompilerInterface
+class MongoGrammar
 {
     /**
      * @var PlatformInterface
@@ -20,7 +18,7 @@ class MongoGrammar implements CompilerInterface
     private $platform;
 
     /**
-     * @var array
+     * @var array<string, string>
      */
     private $operatorsMap = [
         '<'   => '$lt',
@@ -56,36 +54,10 @@ class MongoGrammar implements CompilerInterface
         $this->platform = $platform;
     }
 
-    // Add compiler methods for compatibility with ExpressionTransformerInterface::setContext()
-    public function compileInsert(CompilableClause $query)
-    {
-        throw new BadMethodCallException('Not supported');
-    }
-    public function compileUpdate(CompilableClause $query)
-    {
-        throw new BadMethodCallException('Not supported');
-    }
-    public function compileDelete(CompilableClause $query)
-    {
-        throw new BadMethodCallException('Not supported');
-    }
-    public function compileSelect(CompilableClause $query)
-    {
-        throw new BadMethodCallException('Not supported');
-    }
-    public function quoteIdentifier(CompilableClause $query, $column)
-    {
-        throw new BadMethodCallException('Not supported');
-    }
-    public function getBindings(CompilableClause $query)
-    {
-        throw new BadMethodCallException('Not supported');
-    }
-
     /**
-     * {@inheritdoc}
+     * Get the related platform
      */
-    public function platform()
+    public function platform(): PlatformInterface
     {
         return $this->platform;
     }

@@ -5,7 +5,9 @@ namespace Bdf\Prime\MongoDB\Query;
 use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoKeyValueCompiler;
 use Bdf\Prime\Query\AbstractReadCommand;
 use Bdf\Prime\Query\Compiler\Preprocessor\DefaultPreprocessor;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
@@ -20,10 +22,17 @@ use Bdf\Prime\Query\Extension\ProjectionableTrait;
 
 /**
  * KeyValue query implementation for MongoDB
+ *
+ * @template R as object|array
+ *
+ * @extends AbstractReadCommand<MongoConnection, R>
+ * @implements KeyValueQueryInterface<MongoConnection, R>
  */
 final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQueryInterface, Compilable, Paginable, Limitable, OptionsConfigurable
 {
-    use CompilableTrait;
+    use CompilableTrait {
+        doCompilation as baseCompilation;
+    }
     use LimitableTrait;
     use OptionsTrait;
     use PaginableTrait;
@@ -171,11 +180,18 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
      */
     public function aggregate(string $function, ?string $column = null)
     {
-        return $this
+        $result = $this
             ->pipeline()
             ->group(null, ['aggregate' => [$function => $column]])
-            ->execute()[0]['aggregate']
+            ->execute()
+            ->asObject()
         ;
+
+        foreach ($result as $row) {
+            return $row->aggregate;
+        }
+
+        return null;
     }
 
     /**
@@ -207,7 +223,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     /**
      * {@inheritdoc}
      */
-    public function execute($columns = null)
+    public function execute($columns = null): ResultSetInterface
     {
         $this->setType(self::TYPE_SELECT);
 
@@ -216,7 +232,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
         }
 
         try {
-            return $this->connection->execute($this)->all();
+            return $this->connection->execute($this);
         } catch (DBALException $e) {
             //Encapsulation des exceptions de la couche basse.
             //Permet d'eviter la remonté des infos systèmes en cas de catch non intentionnel
@@ -258,6 +274,20 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
             //Permet d'eviter la remonté des infos systèmes en cas de catch non intentionnel
             throw new DBALException('dbal internal error has occurred', 0, $e);
         }
+    }
+
+    /**
+     * @param string $type
+     * @param MongoKeyValueCompiler $compiler
+     * @return mixed
+     */
+    protected function doCompilation(string $type, object $compiler)
+    {
+        if ($type === self::TYPE_COUNT) {
+            return $compiler->compileCount($this);
+        }
+
+        return $this->baseCompilation($type, $compiler);
     }
 
     /**

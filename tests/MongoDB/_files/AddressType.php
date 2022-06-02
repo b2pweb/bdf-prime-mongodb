@@ -17,12 +17,12 @@ class AddressType implements TypeInterface
         return $value ? $value->export() : null;
     }
 
-    public function name()
+    public function name(): string
     {
         return 'Address';
     }
 
-    public function phpType()
+    public function phpType(): string
     {
         return Address::class;
     }

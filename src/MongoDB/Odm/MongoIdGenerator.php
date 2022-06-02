@@ -8,6 +8,7 @@ use MongoDB\BSON\ObjectID;
 
 /**
  * Id generator for MongoDB
+ * @deprecated
  */
 class MongoIdGenerator extends AbstractGenerator
 {

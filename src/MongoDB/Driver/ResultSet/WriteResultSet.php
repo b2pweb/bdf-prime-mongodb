@@ -37,7 +37,7 @@ final class WriteResultSet extends \EmptyIterator implements ResultSetInterface
     /**
      * {@inheritdoc}
      */
-    public function all()
+    public function all(): array
     {
         return $this->result->getUpsertedIds();
     }
@@ -61,7 +61,7 @@ final class WriteResultSet extends \EmptyIterator implements ResultSetInterface
     /**
      * {@inheritdoc}
      */
-    public function asClass(string $className): ResultSetInterface
+    public function asClass(string $className, array $constructorArguments = []): ResultSetInterface
     {
         return $this;
     }
@@ -109,7 +109,7 @@ final class WriteResultSet extends \EmptyIterator implements ResultSetInterface
     /**
      * {@inheritdoc}
      */
-    public function count()
+    public function count(): int
     {
         return
             $this->result->getDeletedCount()
@@ -117,5 +117,13 @@ final class WriteResultSet extends \EmptyIterator implements ResultSetInterface
             + $this->result->getModifiedCount()
             + $this->result->getUpsertedCount()
         ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function rewind(): void
+    {
+        parent::rewind();
     }
 }

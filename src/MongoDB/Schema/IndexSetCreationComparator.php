@@ -31,7 +31,7 @@ class IndexSetCreationComparator implements IndexSetComparatorInterface
     /**
      * {@inheritdoc}
      */
-    public function added()
+    public function added(): array
     {
         // Remove primary
         return array_values(
@@ -47,7 +47,7 @@ class IndexSetCreationComparator implements IndexSetComparatorInterface
     /**
      * {@inheritdoc}
      */
-    public function changed()
+    public function changed(): array
     {
         return [];
     }
@@ -55,7 +55,7 @@ class IndexSetCreationComparator implements IndexSetComparatorInterface
     /**
      * {@inheritdoc}
      */
-    public function removed()
+    public function removed(): array
     {
         return [];
     }

@@ -162,7 +162,7 @@ class PersonMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setGenerator(MongoIdGenerator::class);
     }
@@ -170,7 +170,7 @@ class PersonMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function schema()
+    public function schema(): array
     {
         return [
             'connection' => 'mongo',
@@ -181,7 +181,7 @@ class PersonMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function buildIndexes(IndexBuilder $builder)
+    public function buildIndexes(IndexBuilder $builder): void
     {
         $builder->add('age_sort')->on('age');
     }
@@ -189,7 +189,7 @@ class PersonMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function buildFields($builder)
+    public function buildFields($builder): void
     {
         $builder
             ->guid('id')->alias('_id')->primary()
@@ -236,7 +236,7 @@ class Home extends Model implements InitializableInterface
     /**
      * {@inheritdoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         $this->proprietary = new Person();
         $this->address = new Address();
@@ -311,7 +311,7 @@ class HomeMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setGenerator(MongoIdGenerator::class);
     }
@@ -319,7 +319,7 @@ class HomeMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function schema()
+    public function schema(): array
     {
         return [
             'connection' => 'mongo',
@@ -330,7 +330,7 @@ class HomeMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function buildFields($builder)
+    public function buildFields($builder): void
     {
         $builder
             ->string('id')->alias('_id')->primary()
@@ -351,7 +351,7 @@ class HomeMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function buildRelations($builder)
+    public function buildRelations($builder): void
     {
         $builder
             ->on('proprietary')
@@ -362,7 +362,7 @@ class HomeMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function buildIndexes(IndexBuilder $builder)
+    public function buildIndexes(IndexBuilder $builder): void
     {
         $builder
             ->add('search')
@@ -523,7 +523,7 @@ class EntityWithEmbedded extends Model implements InitializableInterface
     /**
      * {@inheritdoc}
      */
-    public function initialize()
+    public function initialize(): void
     {
         $this->proprietary = new Person();
         $this->address = new Address();
@@ -598,7 +598,7 @@ class EntityWithEmbeddedMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setGenerator(MongoIdGenerator::class);
     }
@@ -606,7 +606,7 @@ class EntityWithEmbeddedMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function schema()
+    public function schema(): array
     {
         return [
             'connection' => 'mongo',
@@ -617,7 +617,7 @@ class EntityWithEmbeddedMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function buildFields($builder)
+    public function buildFields($builder): void
     {
         $builder
             ->string('id')->alias('_id')->primary()
@@ -638,7 +638,7 @@ class EntityWithEmbeddedMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function buildRelations($builder)
+    public function buildRelations($builder): void
     {
         $builder
             ->on('proprietary')
@@ -748,7 +748,7 @@ class TimestampableEntityMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setGenerator(MongoIdGenerator::class);
     }
@@ -756,7 +756,7 @@ class TimestampableEntityMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function schema()
+    public function schema(): array
     {
         return [
             'connection' => 'mongo',
@@ -764,7 +764,7 @@ class TimestampableEntityMapper extends Mapper
         ];
     }
 
-    public function buildFields($builder)
+    public function buildFields($builder): void
     {
         $builder
             ->guid('oid')->alias('_id')->primary()
@@ -772,7 +772,7 @@ class TimestampableEntityMapper extends Mapper
         ;
     }
 
-    public function getDefinedBehaviors()
+    public function getDefinedBehaviors(): array
     {
         return [
             new Timestampable()
@@ -796,12 +796,12 @@ class EntityWithComplexArrayMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setGenerator(MongoIdGenerator::class);
     }
 
-    public function schema()
+    public function schema(): array
     {
         return [
             'connection' => 'mongo',
@@ -809,7 +809,7 @@ class EntityWithComplexArrayMapper extends Mapper
         ];
     }
 
-    public function buildFields($builder)
+    public function buildFields($builder): void
     {
         $builder
             ->guid('oid')->alias('_id')->primary()
@@ -841,7 +841,7 @@ class EntityWithCustomCollationMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function configure()
+    public function configure(): void
     {
         $this->setGenerator(MongoIdGenerator::class);
     }
@@ -849,7 +849,7 @@ class EntityWithCustomCollationMapper extends Mapper
     /**
      * {@inheritdoc}
      */
-    public function schema()
+    public function schema(): array
     {
         return [
             'connection' => 'mongo',
@@ -863,7 +863,7 @@ class EntityWithCustomCollationMapper extends Mapper
         ];
     }
 
-    public function buildFields($builder)
+    public function buildFields($builder): void
     {
         $builder
             ->string('id')->alias('_id')->primary()

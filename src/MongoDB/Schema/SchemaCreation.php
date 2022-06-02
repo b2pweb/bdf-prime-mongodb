@@ -12,27 +12,36 @@ use MongoDB\Driver\Command;
 class SchemaCreation implements CommandSetInterface
 {
     /**
-     * @var TableInterface[]
+     * @var list<TableInterface|CollectionDefinition>
      */
-    private $tables;
+    private array $collections;
 
 
     /**
      * SchemaCreation constructor.
      *
-     * @param TableInterface[] $tables
+     * @param list<TableInterface|CollectionDefinition> $collections
      */
-    public function __construct(array $tables)
+    public function __construct(array $collections)
     {
-        $this->tables = $tables;
+        $this->collections = $collections;
     }
 
     /**
-     * @return TableInterface[]
+     * @return list<TableInterface|CollectionDefinition>
+     * @deprecated Use collections() instead
      */
     public function tables()
     {
-        return $this->tables;
+        return $this->collections;
+    }
+
+    /**
+     * @return list<TableInterface|CollectionDefinition>
+     */
+    public function collections()
+    {
+        return $this->collections;
     }
 
     /**
@@ -42,14 +51,14 @@ class SchemaCreation implements CommandSetInterface
     {
         $commands = [];
 
-        foreach ($this->tables as $table) {
-            $commands[] = $this->collectionCreationCommand($table);
+        foreach ($this->collections as $collection) {
+            $commands[] = $this->collectionCreationCommand($collection);
 
             $commands = array_merge(
                 $commands,
                 (new IndexSetDiff(
-                    $table->name(),
-                    new IndexSetCreationComparator($table->indexes())
+                    $collection->name(),
+                    new IndexSetCreationComparator($collection->indexes())
                 ))->commands()
             );
         }
@@ -57,14 +66,12 @@ class SchemaCreation implements CommandSetInterface
         return $commands;
     }
 
-    private function collectionCreationCommand(TableInterface $table): Create
+    /**
+     * @param TableInterface|CollectionDefinition $collection
+     * @return Create
+     */
+    private function collectionCreationCommand($collection): Create
     {
-        $command = new Create($table->name());
-
-        foreach ($table->options() as $option => $value) {
-            $command->$option($value);
-        }
-
-        return $command;
+        return new Create($collection->name(), $collection->options());
     }
 }

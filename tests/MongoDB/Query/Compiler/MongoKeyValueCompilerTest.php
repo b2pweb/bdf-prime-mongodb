@@ -168,6 +168,18 @@ class MongoKeyValueCompilerTest extends TestCase
     /**
      *
      */
+    public function test_compileCount_with_collation()
+    {
+        $this->assertEquals(
+            (new Count('test', ['collation' => ['locale' => 'fr', 'strength' => 2]]))
+                ->query(['name' => 'John']),
+            $this->compiler->compileCount($this->query()->where(['name' => 'John'])->collation(['locale' => 'fr', 'strength' => 2]))
+        );
+    }
+
+    /**
+     *
+     */
     public function test_compileDelete_all()
     {
         $this->assertEquals(

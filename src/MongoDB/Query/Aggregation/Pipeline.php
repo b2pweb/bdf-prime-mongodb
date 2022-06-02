@@ -3,6 +3,7 @@
 namespace Bdf\Prime\MongoDB\Query\Aggregation;
 
 use Bdf\Prime\Connection\ConnectionInterface;
+use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Group;
@@ -12,6 +13,7 @@ use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Project;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Skip;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\Sort;
 use Bdf\Prime\MongoDB\Query\Aggregation\Stage\StageInterface;
+use Bdf\Prime\MongoDB\Query\Command\Aggregate;
 use Bdf\Prime\Query\CommandInterface;
 use Bdf\Prime\Query\CompilableClause;
 use Bdf\Prime\Query\Compiler\CompilerInterface;
@@ -34,16 +36,8 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
 {
     use SimpleWhereTrait;
 
-    /**
-     * @var MongoConnection
-     */
-    private $connection;
-
-    /**
-     * @var PipelineCompiler
-     */
-    private $compiler;
-
+    private MongoConnection $connection;
+    private PipelineCompiler $compiler;
 
     /**
      * Pipeline constructor.
@@ -71,21 +65,9 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function compiler(): CompilerInterface
+    public function compiler(): PipelineCompiler
     {
         return $this->compiler;
-    }
-
-    /**
-     * {@inheritdoc}
-     *
-     * @param PipelineCompiler $compiler
-     */
-    public function setCompiler(CompilerInterface $compiler)
-    {
-        $this->compiler = $compiler;
-
-        return $this;
     }
 
     /**
@@ -188,13 +170,14 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function execute($columns = null)
+    public function execute($columns = null): CursorResultSet
     {
         if ($columns !== null) {
             $this->project($columns);
         }
 
-        return $this->connection->execute($this)->fetchMode(CursorResultSet::FETCH_RAW_ARRAY)->all();
+        /** @var CursorResultSet */
+        return $this->connection->execute($this);
     }
 
     /**
@@ -242,7 +225,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function compile(bool $forceRecompile = false)
+    public function compile(bool $forceRecompile = false): Aggregate
     {
         return $this->compiler->compileAggregate($this);
     }
@@ -250,7 +233,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     /**
      * {@inheritdoc}
      */
-    public function getBindings()
+    public function getBindings(): array
     {
         return [];
     }

@@ -65,7 +65,7 @@ class BsonObjectType extends AbstractPlatformType
     /**
      * {@inheritdoc}
      */
-    public function phpType()
+    public function phpType(): string
     {
         return isset($this->arrayTypeMap[$this->name])
             ? PhpTypeInterface::TARRAY

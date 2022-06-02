@@ -46,7 +46,7 @@ class MongoKeyValueQueryTest extends TestCase
         ]));
         ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
-        $this->connection = $manager->connection('mongo');
+        $this->connection = $manager->getConnection('mongo');
 
         $this->insertData();
     }
@@ -285,6 +285,15 @@ class MongoKeyValueQueryTest extends TestCase
         $this->assertEquals(0, $this->query()->where('name.first', 'Not found')->count());
         $this->assertEquals(1, $this->query()->limit(1)->count());
         $this->assertEquals(1, $this->query()->offset(1)->count());
+    }
+
+    /**
+     *
+     */
+    public function test_count_with_collation()
+    {
+        $this->assertSame(0, $this->query()->where('name.first', 'JOHN')->count());
+        $this->assertSame(1, $this->query()->where('name.first', 'JOHN')->collation(['locale' => 'en', 'strength' => 1])->count());
     }
 
     /**

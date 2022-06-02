@@ -104,275 +104,6 @@ class MongoCompilerTest extends TestCase
     /**
      *
      */
-    public function test_compileFilters_simple()
-    {
-        $query = $this->query()->where('first_name', 'John');
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            'first_name' => 'John'
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_type_transform()
-    {
-        $query = $this->query()->where('created_at', $date = new \DateTime('2017-07-10 15:45:32'));
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertCount(1, $filters);
-        $this->assertInstanceOf(UTCDateTime::class, $filters['created_at']);
-        $this->assertEquals($date, $filters['created_at']->toDateTime());
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_multiple_and()
-    {
-        $query = $this->query()
-            ->where('first_name', 'John')
-            ->where('last_name', 'Doe')
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            'first_name' => 'John',
-            'last_name'  => 'Doe',
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_unoptimisable_and()
-    {
-        $query = $this->query()
-            ->where('age', '>=', 7)
-            ->where('age', '<=', 77)
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            '$and' => [
-                ['age' => ['$gte' => 7]],
-                ['age' => ['$lte' => 77]],
-            ]
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_with_or()
-    {
-        $query = $this->query()
-            ->where('first_name', 'John')
-            ->where('last_name', 'Doe')
-            ->orWhere('age', '<', 30)
-            ->where('attr', 25)
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            '$or' => [
-                [
-                    'first_name' => 'John',
-                    'last_name'  => 'Doe',
-                ],
-                [
-                    'age' => ['$lt' => 30],
-                    'attr' => 25
-                ]
-            ]
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_nested()
-    {
-        $query = $this->query()
-            ->where('first_name', 'John')
-            ->orWhere(function (MongoQuery $query) {
-                $query
-                    ->where('age', 'between', [7, 77])
-                    ->where('last_name', ':like', 'A%')
-                ;
-            })
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            '$or' => [
-                ['first_name' => 'John'],
-                [
-                    '$and' => [
-                        ['age' => ['$gte' => 7]],
-                        ['age' => ['$lte' => 77]],
-                    ],
-                    'last_name' => ['$regex' => '^A.*$', '$options' => 'i']
-                ]
-            ]
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_transformer_expression_like()
-    {
-        $query = $this->query()
-            ->where('first_name', (new Like('j'))->startsWith())
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            'first_name' => ['$regex' => '^j.*$', '$options' => 'i']
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_with_array_value()
-    {
-        $query = $this->query()
-            ->where('first_name', '~=', ['John', 'Paul', 'Richard'])
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            '$or' => [
-                ['first_name' => ['$regex' => 'John']],
-                ['first_name' => ['$regex' => 'Paul']],
-                ['first_name' => ['$regex' => 'Richard']],
-            ]
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_with_empty_array()
-    {
-        $query = $this->query()
-            ->where('first_name', '>', [])
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            'first_name' => ['$gt' => null]
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_with_singleton_array()
-    {
-        $query = $this->query()
-            ->where('age', '>', [5])
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            'age' => ['$gt' => 5]
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileFilters_with_raw()
-    {
-        $query = $this->query()
-            ->whereRaw([
-                '$where' => 'this.data.length > 15'
-            ])
-        ;
-
-        $filters = $this->compiler->compileFilters(
-            $query,
-            $query->statements['where']
-        );
-
-        $this->assertEquals([
-            '$where' => 'this.data.length > 15'
-        ], $filters);
-    }
-
-    /**
-     *
-     */
-    public function test_compileProjection()
-    {
-        $this->assertEquals([], $this->compiler->compileProjection($this->query(), [['column' => '*']]));
-
-        $this->assertEquals([
-            'attr1' => true,
-            'attr2' => true,
-            '_id'   => false
-        ], $this->compiler->compileProjection($this->query(), [
-            ['column' => 'attr1'],
-            ['column' => 'attr2']
-        ]));
-
-        $this->assertEquals([
-            'attr' => true,
-            '_id'  => true
-        ], $this->compiler->compileProjection($this->query(), [
-            ['column' => 'attr'],
-            ['column' => '_id']
-        ]));
-    }
-
-    /**
-     *
-     */
     public function test_compileUpdateOperators()
     {
         $query = $this->query()
@@ -392,20 +123,6 @@ class MongoCompilerTest extends TestCase
                 'az' => 3
             ]
         ], $this->compiler->compileUpdateOperators($query, $query->statements));
-    }
-
-    /**
-     *
-     */
-    public function test_compileSort()
-    {
-        $this->assertEquals([
-            'attr' => -1,
-            'other' => 1
-        ], $this->compiler->compileSort($this->query(), [
-            ['sort' => 'attr', 'order' => 'DESC'],
-            ['sort' => 'other', 'order' => 'ASC'],
-        ]));
     }
 
     /**
@@ -436,39 +153,27 @@ class MongoCompilerTest extends TestCase
     /**
      *
      */
-    public function test_compileExpression_scalar()
+    public function test_compileCount_with_collation()
     {
-        $this->assertSame(5, $this->compiler->compileExpression($this->query(), 5));
-    }
+        $query = $this->query()
+            ->collation(['locale' => 'fr', 'strength' => 2])
+            ->where('first_name', ':like', 't%')
+            ->limit(5)
+        ;
 
-    /**
-     *
-     */
-    public function test_compileExpression_datetime()
-    {
-        $compiled = $this->compiler->compileExpression($this->query(), $date = new \DateTime('2017-10-12 15:32:12'));
+        $count = $this->compiler->compileCount($query);
 
-        $this->assertInstanceOf(UTCDateTime::class, $compiled);
-        $this->assertEquals($date, $compiled->toDatetime());
-    }
-
-    /**
-     *
-     */
-    public function test_compileExpression_field_found()
-    {
-        $query = Person::builder();
-
-        $this->assertEquals('$first_name', $this->compiler->compileExpression($query, '$firstName'));
-    }
-
-    /**
-     *
-     */
-    public function test_compileExpression_field_not_found()
-    {
-        $query = Person::builder();
-
-        $this->assertEquals('$notFound', $this->compiler->compileExpression($query, '$notFound'));
+        $this->assertInstanceOf(Count::class, $count);
+        $this->assertEquals([
+            'collation' => ['locale' => 'fr', 'strength' => 2],
+            'count' => 'test_collection',
+            'query' => [
+                'first_name' => [
+                    '$regex' => '^t.*$',
+                    '$options' => 'i'
+                ]
+            ],
+            'limit' => 5
+        ], $count->document());
     }
 }

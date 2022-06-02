@@ -23,6 +23,11 @@ use Bdf\Prime\Query\QueryInterface;
  *
  * @property MongoConnection $connection
  * @property MongoCompiler $compiler
+ *
+ * @template R as object|array
+ *
+ * @implements QueryInterface<MongoConnection, R>
+ * @extends AbstractQuery<MongoConnection, R>
  */
 class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable, Aggregatable, Limitable, OptionsConfigurable
 {
@@ -59,7 +64,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
     /**
      * {@inheritdoc}
      */
-    public function execute($columns = null)
+    public function execute($columns = null): ResultSetInterface
     {
         if ($columns !== null) {
             $this->select($columns);
@@ -67,11 +72,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
 
         $this->setType(self::TYPE_SELECT);
 
-        return $this->connection
-            ->execute($this)
-            ->fetchMode(ResultSetInterface::FETCH_ASSOC)
-            ->all()
-        ;
+        return $this->connection->execute($this);
     }
 
     /**
@@ -241,10 +242,17 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      */
     public function aggregate(string $function, ?string $column = null)
     {
-        return $this
+        $result = $this
             ->group(null, ['aggregate' => [$function => $column]])
-            ->execute()[0]['aggregate']
+            ->execute()
+            ->asObject()
         ;
+
+        foreach ($result as $row) {
+            return $row->aggregate;
+        }
+
+        return null;
     }
 
     /**

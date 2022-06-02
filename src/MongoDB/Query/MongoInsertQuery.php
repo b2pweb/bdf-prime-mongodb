@@ -3,10 +3,12 @@
 namespace Bdf\Prime\MongoDB\Query;
 
 use Bdf\Prime\Connection\ConnectionInterface;
+use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Driver\ResultSet\WriteResultSet;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoInsertCompiler;
 use Bdf\Prime\Query\CommandInterface;
 use Bdf\Prime\Query\CompilableClause;
-use Bdf\Prime\Query\Compiler\CompilerInterface;
 use Bdf\Prime\Query\Compiler\CompilerState;
 use Bdf\Prime\Query\Compiler\Preprocessor\DefaultPreprocessor;
 use Bdf\Prime\Query\Compiler\Preprocessor\PreprocessorInterface;
@@ -19,26 +21,15 @@ use MongoDB\Driver\Exception\BulkWriteException;
  */
 final class MongoInsertQuery extends CompilableClause implements CommandInterface, Compilable, InsertQueryInterface
 {
-    /**
-     * The DBAL Connection.
-     *
-     * @var ConnectionInterface
-     */
-    protected $connection;
-
-    /**
-     * The SQL compiler
-     *
-     * @var CompilerInterface
-     */
-    protected $compiler;
+    private ConnectionInterface $connection;
+    private MongoInsertCompiler $compiler;
 
 
     /**
      * BulkInsertQuery constructor.
      *
      * @param ConnectionInterface $connection
-     * @param PreprocessorInterface $preprocessor
+     * @param PreprocessorInterface|null $preprocessor
      */
     public function __construct(ConnectionInterface $connection, PreprocessorInterface $preprocessor = null)
     {
@@ -52,25 +43,16 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
             'values'     => [],
             'mode'       => self::MODE_INSERT,
             'bulk'       => false,
+            'flatten'    => true,
         ];
     }
 
     /**
      * {@inheritdoc}
      */
-    public function compiler(): CompilerInterface
+    public function compiler(): MongoInsertCompiler
     {
         return $this->compiler;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setCompiler(CompilerInterface $compiler)
-    {
-        $this->compiler = $compiler;
-
-        return $this;
     }
 
     /**
@@ -95,13 +77,13 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
     /**
      * {@inheritdoc}
      */
-    public function execute($columns = null)
+    public function execute($columns = null): ResultSetInterface
     {
         try {
-            return $this->connection->execute($this)->count();
+            return $this->connection->execute($this);
         } catch (DBALException $e) {
             if ($this->statements['mode'] === self::MODE_IGNORE && $e->getPrevious() instanceof BulkWriteException) {
-                return $e->getPrevious()->getWriteResult()->getInsertedCount();
+                return new WriteResultSet($e->getPrevious()->getWriteResult());
             }
 
             //Encapsulation des exceptions de la couche basse.
@@ -223,13 +205,16 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
      */
     public function compile(bool $forceRecompile = false)
     {
-        return $this->compiler->{'compile' . $this->type()}($this);
+        return $this->statements['mode'] === self::MODE_REPLACE
+            ? $this->compiler->compileUpdate($this)
+            : $this->compiler->compileInsert($this)
+        ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function getBindings()
+    public function getBindings(): array
     {
         return [];
     }
@@ -243,5 +228,22 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
             ? self::TYPE_UPDATE
             : self::TYPE_INSERT
         ;
+    }
+
+    /**
+     * Enable or disable flatten mode for insert document
+     *
+     * By default, this mode is enabled, so embedded document fields will be modified using dot notation (ex: 'doc.field.other')
+     * If disabled, abstract array structure can be used
+     *
+     * @param bool $enabled true to enable, or false for disable
+     *
+     * @return $this
+     */
+    public function flatten(bool $enabled = true)
+    {
+        $this->statements['flatten'] = $enabled;
+
+        return $this;
     }
 }

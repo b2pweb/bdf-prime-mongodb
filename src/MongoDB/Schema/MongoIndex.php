@@ -32,7 +32,7 @@ class MongoIndex extends AbstractIndex
     /**
      * {@inheritdoc}
      */
-    public function name()
+    public function name(): string
     {
         return $this->data['name'];
     }
@@ -40,7 +40,7 @@ class MongoIndex extends AbstractIndex
     /**
      * {@inheritdoc}
      */
-    public function type()
+    public function type(): int
     {
         if ($this->name() === self::PRIMARY) {
             return self::TYPE_PRIMARY;
@@ -56,7 +56,7 @@ class MongoIndex extends AbstractIndex
     /**
      * {@inheritdoc}
      */
-    public function fields()
+    public function fields(): array
     {
         return array_keys($this->data['key']);
     }
@@ -64,7 +64,7 @@ class MongoIndex extends AbstractIndex
     /**
      * {@inheritdoc}
      */
-    public function options()
+    public function options(): array
     {
         return array_diff_key($this->data, [
             'key' => true,
@@ -78,7 +78,7 @@ class MongoIndex extends AbstractIndex
     /**
      * {@inheritdoc}
      */
-    public function fieldOptions($field)
+    public function fieldOptions($field): array
     {
         $options = [];
 

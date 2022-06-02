@@ -44,7 +44,7 @@ class CursorResultSetTest extends TestCase
         ]));
         ConnectionFactory::registerDriverMap('mongodb', MongoDriver::class, MongoConnection::class);
 
-        $this->connection = $manager->connection('mongo');
+        $this->connection = $manager->getConnection('mongo');
 
 
         $this->connection->insert($this->collection, [

@@ -5,7 +5,7 @@ namespace Bdf\Prime\MongoDB\Collection;
 use Bdf\Prime\MongoDB\Document\DocumentMapperInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
-use Bdf\Prime\Repository\Write\WriterInterface;
+use Bdf\Prime\Repository\Write\BufferedWriterInterface;
 use MongoDB\BSON\ObjectId;
 
 /**
@@ -13,9 +13,6 @@ use MongoDB\BSON\ObjectId;
  *
  * @template D as object
  * @mixin MongoQuery<D>
- *
- * @todo gestion des exceptions
- * @todo lazy connection
  */
 interface MongoCollectionInterface
 {
@@ -55,10 +52,8 @@ interface MongoCollectionInterface
      *
      * If the document has no id, or do not exist, this will do nothing
      *
-     * @param D $document
+     * @param D|\MongoId $document Document to delete, or its ID
      * @return void
-     *
-     * @todo allow delete by id
      */
     public function delete(object $document): void;
 
@@ -149,10 +144,9 @@ interface MongoCollectionInterface
      * Get buffered writer for perform bulk write to collection
      * Note: a new instance is always returned by this method
      *
-     * @return WriterInterface<D>
-     * @todo BufferedWriterInterface
+     * @return BufferedWriterInterface<D>
      */
-    public function writer(): WriterInterface;
+    public function writer(): BufferedWriterInterface;
 
     /**
      * Create a query builder for perform search on the collection

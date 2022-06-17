@@ -5,18 +5,20 @@ namespace Bdf\Prime\MongoDB\Driver;
 use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Driver\Exception\MongoCommandException;
+use Bdf\Prime\MongoDB\Driver\Exception\MongoDBALException;
 use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
 use Bdf\Prime\MongoDB\Platform\MongoPlatform as PrimePlatform;
-use Bdf\Prime\MongoDB\Query\Aggregation\PipelineCompiler;
 use Bdf\Prime\MongoDB\Query\Aggregation\Pipeline;
+use Bdf\Prime\MongoDB\Query\Aggregation\PipelineCompiler;
 use Bdf\Prime\MongoDB\Query\Aggregation\PipelineInterface;
 use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
 use Bdf\Prime\MongoDB\Query\Command\Commands;
-use Bdf\Prime\MongoDB\Query\Compiler\MongoInsertCompiler;
-use Bdf\Prime\MongoDB\Query\MongoInsertQuery;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoCompiler;
-use Bdf\Prime\MongoDB\Query\MongoKeyValueQuery;
+use Bdf\Prime\MongoDB\Query\Compiler\MongoInsertCompiler;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoKeyValueCompiler;
+use Bdf\Prime\MongoDB\Query\MongoInsertQuery;
+use Bdf\Prime\MongoDB\Query\MongoKeyValueQuery;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
 use Bdf\Prime\MongoDB\Query\SelfExecutable;
 use Bdf\Prime\MongoDB\Schema\MongoSchemaManager as PrimeSchemaManager;
@@ -28,7 +30,6 @@ use Bdf\Prime\Query\Contract\Query\KeyValueQueryInterface;
 use Bdf\Prime\Query\Factory\DefaultQueryFactory;
 use Bdf\Prime\Query\Factory\QueryFactoryInterface;
 use Bdf\Prime\Query\ReadCommandInterface;
-use Bdf\Prime\Schema\SchemaManagerInterface;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Configuration;
@@ -38,9 +39,12 @@ use Doctrine\DBAL\Driver;
 use Doctrine\DBAL\Result;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Command;
+use MongoDB\Driver\Cursor;
+use MongoDB\Driver\Exception\CommandException;
+use MongoDB\Driver\Exception\Exception;
 use MongoDB\Driver\Manager;
 use MongoDB\Driver\Query;
-use MongoDB\Driver\WriteConcern;
+use MongoDB\Driver\WriteResult;
 
 /**
  * Connection for mongoDb
@@ -218,9 +222,10 @@ class MongoConnection extends Connection implements ConnectionInterface
      * @param string $collection
      * @param Query $query
      *
-     * @return \MongoDB\Driver\Cursor
+     * @return Cursor
+     * @throws MongoDBALException
      */
-    public function executeSelect($collection, Query $query)
+    public function executeSelect($collection, Query $query): Cursor
     {
         try {
             $this->connect();
@@ -229,8 +234,8 @@ class MongoConnection extends Connection implements ConnectionInterface
             $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
 
             return $cursor;
-        } catch (\Exception $e) {
-            throw new DBALException('MongoDB : ' . $e->getMessage(), 0, $e);
+        } catch (Exception $e) {
+            throw new MongoDBALException('MongoDB : ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -238,16 +243,17 @@ class MongoConnection extends Connection implements ConnectionInterface
      * @param string $collection
      * @param BulkWrite $query
      *
-     * @return \MongoDB\Driver\WriteResult
+     * @return WriteResult
+     * @throws MongoDBALException
      */
-    public function executeWrite($collection, BulkWrite $query)
+    public function executeWrite($collection, BulkWrite $query): WriteResult
     {
         try {
             $this->connect();
 
             return $this->_conn->executeBulkWrite($this->getNamespace($collection), $query);
-        } catch (\Exception $e) {
-            throw new DBALException('MongoDB : ' . $e->getMessage(), 0, $e);
+        } catch (Exception $e) {
+            throw new MongoDBALException('MongoDB : ' . $e->getMessage(), 0, $e);
         }
     }
 
@@ -273,16 +279,23 @@ class MongoConnection extends Connection implements ConnectionInterface
      * @param mixed $command
      * @param mixed $arguments
      *
-     * @return \MongoDB\Driver\Cursor
+     * @return Cursor
+     * @throws MongoDBALException
      */
-    public function runCommand($command, $arguments = 1)
+    public function runCommand($command, $arguments = 1): Cursor
     {
-        $this->connect();
+        try {
+            $this->connect();
 
-        return $this->_conn->executeCommand(
-            $this->getDatabase(),
-            Commands::create($command, $arguments)->get()
-        );
+            return $this->_conn->executeCommand(
+                $this->getDatabase(),
+                Commands::create($command, $arguments)->get()
+            );
+        } catch (CommandException $e) {
+            throw new MongoCommandException($e);
+        } catch (Exception $e) {
+            throw new MongoDBALException('MongoDB : ' . $e->getMessage(), 0, $e);
+        }
     }
 
     /**
@@ -295,12 +308,18 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     public function runAdminCommand($command, $arguments = 1)
     {
-        $this->connect();
+        try {
+            $this->connect();
 
-        return $this->_conn->executeCommand(
-            'admin',
-            Commands::create($command, $arguments)->get()
-        );
+            return $this->_conn->executeCommand(
+                'admin',
+                Commands::create($command, $arguments)->get()
+            );
+        } catch (CommandException $e) {
+            throw new MongoCommandException($e);
+        }  catch (Exception $e) {
+            throw new MongoDBALException('MongoDB : ' . $e->getMessage(), 0, $e);
+        }
     }
 
     /**

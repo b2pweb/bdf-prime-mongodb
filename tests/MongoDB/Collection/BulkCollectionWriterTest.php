@@ -296,4 +296,19 @@ class BulkCollectionWriterTest extends TestCase
 
         $this->assertEquals($doc, $this->collection->refresh($doc));
     }
+
+    public function test_clear()
+    {
+        $doc = new PersonDocument();
+        $doc->setFirstName('John');
+        $doc->setLastName('Doe');
+
+        $this->writer->insert($doc);
+        $this->assertEquals(1, $this->writer->pending());
+
+        $this->writer->clear();
+        $this->assertEquals(0, $this->writer->pending());
+        $this->assertEquals(0, $this->writer->flush());
+        $this->assertNull(PersonDocument::refresh($doc));
+    }
 }

@@ -7,6 +7,7 @@ use Bdf\Prime\MongoDB\Collection\BulkCollectionWriter;
 use Bdf\Prime\MongoDB\Collection\MongoCollection;
 use Bdf\Prime\MongoDB\Document\DocumentMapper;
 use Bdf\Prime\MongoDB\Document\MongoDocument;
+use Bdf\Prime\MongoDB\Driver\Exception\MongoDBALException;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
 use Bdf\Prime\Query\Expression\Like;
@@ -191,6 +192,20 @@ class MongoCollectionTest extends TestCase
     /**
      * @return void
      */
+    public function test_delete_by_id()
+    {
+        $doc = (object) ['foo' => 'bar', '_id' => new ObjectId()];
+
+        $this->simpleObjectCollection->add($doc);
+        $this->simpleObjectCollection->delete($doc->_id);
+
+        $this->assertNull($this->simpleObjectCollection->get($doc->_id));
+        $this->simpleObjectCollection->delete($doc->_id);
+    }
+
+    /**
+     * @return void
+     */
     public function test_findOneRaw()
     {
         $doc1 = (object) ['foo' => 'bar'];
@@ -320,5 +335,23 @@ class MongoCollectionTest extends TestCase
 
         $this->assertTrue($this->simpleObjectCollection->exists($doc1));
         $this->assertTrue($this->simpleObjectCollection->exists($doc2));
+    }
+
+    public function test_write_exceptions()
+    {
+        $this->assertThrows(MongoDBALException::class, function () { $this->simpleObjectCollection->insert(['_id' => []]); });
+        $this->assertThrows(MongoDBALException::class, function () { $this->simpleObjectCollection->update((object) ['_id' => new ObjectId(), '.$$$[]' => '$$$']); });
+    }
+
+    private function assertThrows(string $exceptionClass, callable $task): void
+    {
+        try {
+            $task();
+        } catch (\Throwable $e) {
+            $this->assertInstanceOf($exceptionClass, $e);
+            return;
+        }
+
+        $this->fail('Expect ' . $exceptionClass . ' to be thrown');
     }
 }

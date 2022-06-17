@@ -4,6 +4,10 @@ namespace Bdf\Prime\MongoDB\Driver;
 
 use Bdf\Prime\Connection\ConnectionRegistry;
 use Bdf\Prime\Connection\Factory\ConnectionFactory;
+use Bdf\Prime\MongoDB\Driver\Exception\MongoCommandException;
+use Bdf\Prime\MongoDB\Driver\Exception\MongoDBALException;
+use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
+use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
 use PHPUnit\Framework\TestCase;
 use Bdf\Prime\ConnectionManager;
 use Bdf\Prime\Exception\DBALException;
@@ -402,5 +406,28 @@ class MongoConnectionTest extends TestCase
         $this->assertInstanceOf(MongoInsertQuery::class, $this->connection->make(InsertQueryInterface::class));
         $this->assertInstanceOf(MongoKeyValueQuery::class, $this->connection->make(KeyValueQueryInterface::class));
         $this->assertInstanceOf(Pipeline::class, $this->connection->make(PipelineInterface::class));
+    }
+
+    /**
+     * @return void
+     */
+    public function test_exceptions()
+    {
+        $this->assertThrows(MongoDBALException::class, function () { $this->connection->execute($this->connection->builder()->from('not_found')->where('foo', '$invalid', 'bar')); });
+        $this->assertThrows(MongoCommandException::class, function () { $this->connection->runCommand('invalid'); });
+        $this->assertThrows(MongoCommandException::class, function () { $this->connection->runAdminCommand('invalid'); });
+        $this->assertThrows(MongoDBALException::class, function () { (new WriteQuery('invalid'))->update(['foo' => ['$bar' => []]], [])->execute($this->connection); });
+    }
+
+    private function assertThrows(string $exceptionClass, callable $task): void
+    {
+        try {
+            $task();
+        } catch (\Throwable $e) {
+            $this->assertInstanceOf($exceptionClass, $e);
+            return;
+        }
+
+        $this->fail('Expect ' . $exceptionClass . ' to be thrown');
     }
 }

@@ -3,6 +3,7 @@
 namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
+use Bdf\Prime\MongoDB\Driver\Exception\MongoCommandException;
 use Bdf\Prime\Schema\StructureUpgraderInterface;
 use MongoDB\Driver\Exception\CommandException;
 
@@ -59,8 +60,8 @@ class CollectionStructureUpgrader implements StructureUpgraderInterface
     {
         try {
             $this->schema()->drop($this->collection->mapper()->collection());
-        } catch (CommandException $e) {
-            if (isset($e->getResultDocument()->codeName) && $e->getResultDocument()->codeName === 'NamespaceNotFound') {
+        } catch (MongoCommandException $e) {
+            if ($e->errorCode() === 'NamespaceNotFound') {
                 return false;
             }
 

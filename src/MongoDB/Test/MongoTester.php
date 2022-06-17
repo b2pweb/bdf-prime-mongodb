@@ -146,7 +146,7 @@ class MongoTester implements \ArrayAccess
     /**
      * {@inheritdoc}
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         if (is_object($offset)) {
             return $this->collection($offset)->exists($offset);
@@ -158,7 +158,7 @@ class MongoTester implements \ArrayAccess
     /**
      * {@inheritdoc}
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): ?object
     {
         if (is_object($offset)) {
             return $this->collection($offset)->refresh($offset);
@@ -170,7 +170,7 @@ class MongoTester implements \ArrayAccess
     /**
      * {@inheritdoc}
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         if (is_string($offset)) {
             $this->push([$offset => $value]);
@@ -182,7 +182,7 @@ class MongoTester implements \ArrayAccess
     /**
      * {@inheritdoc}
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         if (is_string($offset)) {
             $document = $this->get($offset);

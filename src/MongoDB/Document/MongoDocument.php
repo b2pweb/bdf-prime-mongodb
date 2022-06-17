@@ -92,8 +92,6 @@ class MongoDocument
      * @return void
      *
      * @see MongoCollectionInterface::add() The called method
-     *
-     * @todo error si déjà existant
      */
     public function insert(): void
     {

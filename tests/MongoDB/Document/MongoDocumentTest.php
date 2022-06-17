@@ -6,6 +6,7 @@ use Bdf\Prime\MongoDB\Collection\MongoCollection;
 use Bdf\Prime\MongoDB\Collection\MongoCollectionLocator;
 use Bdf\Prime\MongoDB\Document\DocumentMapper;
 use Bdf\Prime\MongoDB\Document\MongoDocument;
+use Bdf\Prime\MongoDB\Driver\Exception\MongoDBALException;
 use Bdf\Prime\MongoDB\Mongo;
 use Bdf\Prime\Prime;
 use Bdf\Prime\PrimeTestCase;
@@ -152,6 +153,17 @@ class MongoDocumentTest extends TestCase
         $person->insert();
 
         $this->assertEquals($person, $this->collection->get($id));
+    }
+
+    public function test_insert_already_inserted_should_fail()
+    {
+        $this->expectException(MongoDBALException::class);
+        $this->expectExceptionMessage('duplicate key error collection: TEST.persons');
+
+        $person = new Person('John', 'Doe');
+
+        $person->insert();
+        $person->insert();
     }
 
     public function test_delete()

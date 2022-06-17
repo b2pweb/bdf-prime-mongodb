@@ -6,8 +6,9 @@ use Bdf\Prime\MongoDB\Document\DocumentMapperInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
+use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
-use Bdf\Prime\Repository\Write\WriterInterface;
+use Bdf\Prime\Repository\Write\BufferedWriterInterface;
 use MongoDB\BSON\ObjectId;
 
 /**
@@ -16,7 +17,6 @@ use MongoDB\BSON\ObjectId;
  * @template D as object
  * @implements MongoCollectionInterface<D>
  *
- * @todo gestion des exceptions
  * @todo lazy connection
  */
 class MongoCollection implements MongoCollectionInterface
@@ -73,6 +73,14 @@ class MongoCollection implements MongoCollectionInterface
      */
     public function delete(object $document): void
     {
+        if ($document instanceof ObjectId) {
+            (new WriteQuery($this->mapper->collection()))
+                ->delete(['_id' => $document])
+                ->execute($this->connection)
+            ;
+            return;
+        }
+
         $writer = new BulkCollectionWriter($this);
         $writer->delete($document);
         $writer->flush();
@@ -185,7 +193,7 @@ class MongoCollection implements MongoCollectionInterface
     /**
      * {@inheritdoc}
      */
-    public function writer(): WriterInterface
+    public function writer(): BufferedWriterInterface
     {
         return new BulkCollectionWriter($this);
     }

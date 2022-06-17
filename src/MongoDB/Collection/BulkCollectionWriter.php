@@ -5,7 +5,7 @@ namespace Bdf\Prime\MongoDB\Collection;
 use Bdf\Prime\MongoDB\Document\DocumentMapperInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
-use Bdf\Prime\Repository\Write\WriterInterface;
+use Bdf\Prime\Repository\Write\BufferedWriterInterface;
 use Bdf\Prime\Types\TypesRegistryInterface;
 use Bdf\Util\Arr;
 use InvalidArgumentException;
@@ -27,13 +27,11 @@ use MongoDB\BSON\ObjectId;
  * </code>
  *
  * @template D as object
- * @implements WriterInterface<D>
+ * @implements BufferedWriterInterface<D>
  *
  * @see MongoCollectionInterface::writer() For create the instance
- *
- * @todo BufferedWriteInterface sur prime
  */
-class BulkCollectionWriter implements WriterInterface
+class BulkCollectionWriter implements BufferedWriterInterface
 {
     private MongoConnection $connection;
     private TypesRegistryInterface $types;
@@ -119,9 +117,7 @@ class BulkCollectionWriter implements WriterInterface
     }
 
     /**
-     * Get count of write operation waiting for application
-     *
-     * @return int
+     * {@inheritdoc}
      */
     public function pending(): int
     {
@@ -133,9 +129,7 @@ class BulkCollectionWriter implements WriterInterface
     }
 
     /**
-     * Apply all pending operations
-     *
-     * @return int Applied operations / affected documents
+     * {@inheritdoc}
      */
     public function flush(): int
     {
@@ -146,6 +140,14 @@ class BulkCollectionWriter implements WriterInterface
         }
 
         return 0;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function clear(): void
+    {
+        $this->query = null;
     }
 
     public function __destruct()

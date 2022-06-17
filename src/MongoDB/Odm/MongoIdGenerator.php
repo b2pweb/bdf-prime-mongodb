@@ -19,4 +19,20 @@ class MongoIdGenerator extends AbstractGenerator
     {
         return $data[$property] = new ObjectID();
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function postProcess($entity): void
+    {
+        // Keep old algorithm to ensure that it'll not cause BC breaks
+        if (!$this->hasBeenErased) {
+            return;
+        }
+
+        $propertyName = $this->getPropertyToHydrate();
+        $value = $this->lastGeneratedId();
+
+        $this->mapper()->hydrateOne($entity, $propertyName, $value);
+    }
 }

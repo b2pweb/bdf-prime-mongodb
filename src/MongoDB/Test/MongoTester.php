@@ -157,6 +157,9 @@ class MongoTester implements \ArrayAccess
 
     /**
      * {@inheritdoc}
+     *
+     * @param object|string $offset
+     * @return null|object
      */
     public function offsetGet($offset): ?object
     {

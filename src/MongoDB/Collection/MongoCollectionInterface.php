@@ -52,7 +52,7 @@ interface MongoCollectionInterface
      *
      * If the document has no id, or do not exist, this will do nothing
      *
-     * @param D|\MongoId $document Document to delete, or its ID
+     * @param D|ObjectId $document Document to delete, or its ID
      * @return void
      */
     public function delete(object $document): void;

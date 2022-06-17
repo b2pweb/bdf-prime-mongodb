@@ -6,5 +6,4 @@ use Bdf\Prime\Exception\DBALException;
 
 class MongoDBALException extends DBALException implements PrimeMongoDbException
 {
-
 }

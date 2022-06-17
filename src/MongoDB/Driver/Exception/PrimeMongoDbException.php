@@ -9,5 +9,4 @@ use Bdf\Prime\Exception\PrimeException;
  */
 interface PrimeMongoDbException extends PrimeException
 {
-
 }

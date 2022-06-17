@@ -317,7 +317,7 @@ class MongoConnection extends Connection implements ConnectionInterface
             );
         } catch (CommandException $e) {
             throw new MongoCommandException($e);
-        }  catch (Exception $e) {
+        } catch (Exception $e) {
             throw new MongoDBALException('MongoDB : ' . $e->getMessage(), 0, $e);
         }
     }

@@ -6,7 +6,7 @@ use Bdf\Prime\Platform\AbstractPlatformType;
 use Bdf\Prime\Platform\PlatformInterface;
 use Bdf\Prime\Schema\ColumnInterface;
 use Bdf\Prime\Types\PhpTypeInterface;
-use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\ObjectId;
 
 /**
  * ObjectId type
@@ -51,7 +51,7 @@ class BsonObjectIdType extends AbstractPlatformType
             return null;
         }
 
-        if ($value instanceof ObjectID) {
+        if ($value instanceof ObjectId) {
             return $value;
         }
 
@@ -61,7 +61,7 @@ class BsonObjectIdType extends AbstractPlatformType
             $value = str_repeat('0', 24 - $len) . $value;
         }
 
-        return new ObjectID($value);
+        return new ObjectId($value);
     }
 
     /**

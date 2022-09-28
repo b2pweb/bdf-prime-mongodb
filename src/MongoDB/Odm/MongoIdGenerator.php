@@ -4,7 +4,7 @@ namespace Bdf\Prime\MongoDB\Odm;
 
 use Bdf\Prime\IdGenerators\AbstractGenerator;
 use Bdf\Prime\ServiceLocator;
-use MongoDB\BSON\ObjectID;
+use MongoDB\BSON\ObjectId;
 
 /**
  * Id generator for MongoDB
@@ -16,7 +16,7 @@ class MongoIdGenerator extends AbstractGenerator
      */
     protected function doGenerate($property, array &$data, ServiceLocator $serviceLocator)
     {
-        return $data[$property] = new ObjectID();
+        return $data[$property] = new ObjectId();
     }
 
     /**

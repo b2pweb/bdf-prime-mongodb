@@ -10,7 +10,7 @@
     },
     "minimum-stability": "dev",
     "require": {
-        "php": "~7.4 | ~8.0.0 | ~8.1.0",
+        "php": "~7.4 | ~8.0.0 | ~8.1.0 | ~8.2.0",
         "ext-mongodb": "*",
         "b2pweb/bdf-serializer": "~1.2",
         "b2pweb/bdf-prime": "~2.0",

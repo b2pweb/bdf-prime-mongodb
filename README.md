@@ -1,7 +1,6 @@
 # Prime MongoDB driver
 [![build](https://github.com/b2pweb/bdf-prime-mongodb/actions/workflows/php.yml/badge.svg)](https://github.com/b2pweb/bdf-prime-mongodb/actions/workflows/php.yml)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/b2pweb/bdf-prime-mongodb/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/b2pweb/bdf-prime-mongodb/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/b2pweb/bdf-prime-mongodb/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/b2pweb/bdf-prime-mongodb/?branch=master)
+[![codecov](https://codecov.io/github/b2pweb/bdf-prime-mongodb/branch/2.0/graph/badge.svg?token=VOFSPEWYKX)](https://codecov.io/github/b2pweb/bdf-prime-mongodb)
 [![Packagist Version](https://img.shields.io/packagist/v/b2pweb/bdf-prime-mongodb.svg)](https://packagist.org/packages/b2pweb/bdf-prime-mongodb)
 [![Total Downloads](https://img.shields.io/packagist/dt/b2pweb/bdf-prime-mongodb.svg)](https://packagist.org/packages/b2pweb/bdf-prime-mongodb)
 [![Type Coverage](https://shepherd.dev/github/b2pweb/bdf-prime-mongodb/coverage.svg)](https://shepherd.dev/github/b2pweb/bdf-prime-mongodb)

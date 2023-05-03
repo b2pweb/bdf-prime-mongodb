@@ -4,7 +4,6 @@ namespace Bdf\Prime\MongoDB\Schema;
 
 use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Driver\Exception\MongoCommandException;
-use Bdf\Prime\Schema\SchemaManagerInterface;
 use Bdf\Prime\Schema\StructureUpgraderInterface;
 
 /**
@@ -52,7 +51,7 @@ class CollectionStructureUpgrader implements StructureUpgraderInterface
 
         $simulation = $this->schema()
             ->generateRollback()
-            ->simulate(function (SchemaManagerInterface $schema) use ($listDrop) {
+            ->simulate(function (MongoSchemaManager $schema) use ($listDrop) {
                 $schema->useDrop($listDrop);
                 $schema->add($this->collection->mapper()->definition());
             })

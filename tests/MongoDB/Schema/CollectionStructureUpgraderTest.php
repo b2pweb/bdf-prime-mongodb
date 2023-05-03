@@ -9,6 +9,8 @@ use Bdf\Prime\MongoDB\Collection\MongoCollectionLocator;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Mongo;
 use Bdf\Prime\MongoDB\Query\Command\CommandInterface;
+use Bdf\Prime\MongoDB\Query\Command\Create;
+use Bdf\Prime\MongoDB\Query\Command\CreateIndexes;
 use Bdf\Prime\MongoDB\TestDocument\HomeDocument;
 use Bdf\Prime\MongoDB\TestDocument\PersonDocument;
 use Bdf\Prime\Prime;
@@ -238,5 +240,30 @@ class CollectionStructureUpgraderTest extends TestCase
 
         // @fixme Diff do not works on text index
         //$this->assertEmpty($this->resolver->diff(true));
+    }
+
+    public function test_queries()
+    {
+        $this->resolver = new CollectionStructureUpgrader(HomeDocument::collection());
+
+        $this->assertEquals([
+            'up' => ['mongo' => [
+                new Create('home_test'),
+                new CreateIndexes('home_test', [
+                    [
+                        'key' => [
+                            'address' => 'text',
+                            'city' => 'text',
+                        ],
+                        'name' => 'search',
+                        'weights' => [
+                            'city' => 2,
+                            'address' => 1,
+                        ],
+                    ],
+                ])
+            ]],
+            'down' => ['mongo' => []],
+        ], $this->resolver->queries(true));
     }
 }

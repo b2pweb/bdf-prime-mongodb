@@ -5,7 +5,6 @@ namespace Bdf\Prime\MongoDB\Schema;
 use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Driver\Exception\MongoCommandException;
 use Bdf\Prime\Schema\StructureUpgraderInterface;
-use MongoDB\Driver\Exception\CommandException;
 
 /**
  * Upgrader for mongodb collection structure
@@ -41,6 +40,27 @@ class CollectionStructureUpgrader implements StructureUpgraderInterface
             })
             ->pending()
         ;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function queries(bool $listDrop = true): array
+    {
+        $queries = [];
+
+        $simulation = $this->schema()
+            ->generateRollback()
+            ->simulate(function (MongoSchemaManager $schema) use ($listDrop) {
+                $schema->useDrop($listDrop);
+                $schema->add($this->collection->mapper()->definition());
+            })
+        ;
+
+        $queries['up'][$this->collection->mapper()->connection()] = $simulation->pending();
+        $queries['down'][$this->collection->mapper()->connection()] = $simulation->rollbackQueries();
+
+        return $queries;
     }
 
     /**

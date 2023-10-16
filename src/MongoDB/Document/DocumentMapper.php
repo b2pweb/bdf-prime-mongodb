@@ -122,6 +122,15 @@ abstract class DocumentMapper implements DocumentMapperInterface
     /**
      * {@inheritdoc}
      */
+    public function filters(): array
+    {
+        // To overrides
+        return [];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     final public function getId(object $document): ?ObjectId
     {
         return $this->idAccessor()->readId($document);

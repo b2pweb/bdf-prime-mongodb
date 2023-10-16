@@ -63,6 +63,15 @@ class CollectionQueriesTest extends TestCase
                         }
                     ];
                 }
+
+                public function filters(): array
+                {
+                    return [
+                        'search' => function (MongoQuery $query, string $search) {
+                            return $query->where('foo', (new Like($search))->contains())->orWhere('bar', (new Like($search))->contains());
+                        }
+                    ];
+                }
             }
         );
 
@@ -131,5 +140,16 @@ class CollectionQueriesTest extends TestCase
         $this->assertEquals([$doc1, $doc2], $this->queries->search('r'));
         $this->assertEquals([$doc2, $doc3], $this->queries->search('si'));
         $this->assertEquals([$doc2], $this->queries->search('dol'));
+    }
+
+    public function test_filters()
+    {
+        $this->collection->add($doc1 = (object) ['foo' => 'lorem', 'bar' => 'ipsum']);
+        $this->collection->add($doc2 = (object) ['foo' => 'sin', 'bar' => 'dolor']);
+        $this->collection->add($doc3 = (object) ['foo' => 'sit', 'bar' => 'amet']);
+
+        $this->assertEquals([$doc1, $doc2], $this->queries->where('search', 'r')->all());
+        $this->assertEquals([$doc2, $doc3], $this->queries->where('search', 'si')->all());
+        $this->assertEquals([$doc2], $this->queries->where('search', 'dol')->all());
     }
 }

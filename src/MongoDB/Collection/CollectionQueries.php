@@ -6,8 +6,11 @@ use Bdf\Prime\MongoDB\Document\DocumentMapperInterface;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Query\MongoKeyValueQuery;
 use Bdf\Prime\MongoDB\Query\MongoQuery;
+use Bdf\Prime\Query\ClauseInterface;
 use Bdf\Prime\Query\CommandInterface;
 use Bdf\Prime\Query\ReadCommandInterface;
+
+use function method_exists;
 
 /**
  * Class CollectionQueries
@@ -47,6 +50,11 @@ class CollectionQueries
     private array $queries;
 
     /**
+     * @var array<string, callable>
+     */
+    private array $filters;
+
+    /**
      * @param MongoCollectionInterface<D> $collection
      * @param DocumentMapperInterface<D> $mapper
      * @param MongoConnection $connection
@@ -57,6 +65,7 @@ class CollectionQueries
         $this->mapper = $mapper;
         $this->connection = $connection;
         $this->queries = $mapper->queries();
+        $this->filters = method_exists($mapper, 'filters') ? $mapper->filters() : [];
     }
 
     /**
@@ -134,6 +143,10 @@ class CollectionQueries
 
         if ($query instanceof ReadCommandInterface) {
             $extension->apply($query);
+        }
+
+        if ($query instanceof ClauseInterface) {
+            $query->setCustomFilters($this->filters);
         }
 
         return $query;

@@ -106,6 +106,8 @@ jobs:
 
     - name: MongoDB in GitHub Actions
       uses: supercharge/mongodb-github-action@1.6.0
+      with:
+        mongodb-version: 6.0
 
     - name: Install PHP
       uses: shivammathur/setup-php@v2

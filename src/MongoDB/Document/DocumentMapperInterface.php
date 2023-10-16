@@ -7,6 +7,7 @@ use Bdf\Prime\MongoDB\Collection\MongoCollectionInterface;
 use Bdf\Prime\MongoDB\Document\Mapping\FieldsMapping;
 use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Schema\CollectionDefinition;
+use Bdf\Prime\Query\QueryInterface;
 use Bdf\Prime\Types\TypesRegistryInterface;
 use MongoDB\BSON\ObjectId;
 
@@ -14,6 +15,8 @@ use MongoDB\BSON\ObjectId;
  * Base type for declare a mongo collection
  *
  * @template D as object
+ *
+ * @method array<string, callable> filters() Get custom filters for this collection
  */
 interface DocumentMapperInterface
 {
@@ -163,4 +166,41 @@ interface DocumentMapperInterface
      * @see Mapper::queries() Equivalent on prime ORM
      */
     public function queries(): array;
+
+    /**
+     * Get custom filters for this collection
+     *
+     * A filter is a callable which can be used as "column" parameter on where method call,
+     * and which will be called to build the mongo filter.
+     * so, you can use filters for declare common criteria, or to hide complex mongo filter.
+     *
+     * Each filters will take as first argument the query instance, and the second argument is the value passed to where method.
+     * The filter should return nothing.
+     *
+     * <code>
+     *  // Method body:
+     *  return [
+     *      'inSearch' => function (MongoQuery $query, $search): void {
+     *          $query->where('search', ':in', $search);
+     *      },
+     *      'complex' => function (MongoQuery $collection, $search) {
+     *           $query->whereRaw([
+     *             '$or' => [
+     *                  ['name' => ['$regex' => $search]],
+     *                  ['description' => ['$regex' => $search]],
+     *              ]
+     *           ]);
+     *       },
+     *  ];
+     *
+     *  // Usage:
+     *  MyEntity::where('complex', 'foo')->all();
+     *  MyEntity::where('inSearch', ['foo', 'bar'])->all();
+     * </code>
+     *
+     * @return array<string, callable(QueryInterface, mixed):void>
+     *
+     * @see Mapper::filters() Equivalent on prime ORM
+     */
+    //public function filters(): array;
 }

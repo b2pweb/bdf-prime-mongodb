@@ -454,6 +454,6 @@ class MongoSchemaManagerTest extends TestCase
         $this->connection->runCommand('create', 'test_collection');
         $this->connection->runCommand('create', 'other');
 
-        $this->assertSame(['test_collection', 'other'], $this->schema->getCollections());
+        $this->assertEqualsCanonicalizing(['test_collection', 'other'], $this->schema->getCollections());
     }
 }

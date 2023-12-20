@@ -25,6 +25,8 @@ class MongoDriver implements Driver
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = [])
     {
+        @trigger_error('MongoDriver is deprecated. Use MongoConnection directly.', E_USER_DEPRECATED);
+
         if (!empty($username)) {
             $params['username'] = $username;
         }
@@ -46,6 +48,8 @@ class MongoDriver implements Driver
      */
     public function getDatabasePlatform()
     {
+        @trigger_error('MongoDriver is deprecated. Use MongoConnection directly.', E_USER_DEPRECATED);
+
         return new MongoPlatform();
     }
 
@@ -54,6 +58,8 @@ class MongoDriver implements Driver
      */
     public function getSchemaManager(Connection $conn, AbstractPlatform $platform)
     {
+        @trigger_error('MongoDriver is deprecated. Use MongoConnection directly.', E_USER_DEPRECATED);
+
         return new MongoSchemasManager($conn, $platform);
     }
 

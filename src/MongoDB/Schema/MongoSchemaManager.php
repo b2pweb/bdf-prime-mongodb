@@ -154,6 +154,26 @@ class MongoSchemaManager extends AbstractSchemaManager
     }
 
     /**
+     * Get all collection names of the current database
+     *
+     * @return list<string>
+     */
+    public function getCollections(): array
+    {
+        $list = $this->connection->runCommand('listCollections');
+
+        $collections = [];
+
+        foreach ($list as $info) {
+            $collections[] = $info->name;
+        }
+
+        return $collections;
+    }
+
+    // @todo getTables
+
+    /**
      * {@inheritdoc}
      */
     public function createDatabase($database)

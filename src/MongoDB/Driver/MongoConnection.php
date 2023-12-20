@@ -4,7 +4,6 @@ namespace Bdf\Prime\MongoDB\Driver;
 
 use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Connection\Result\ResultSetInterface;
-use Bdf\Prime\Exception\DBALException;
 use Bdf\Prime\MongoDB\Driver\Exception\MongoCommandException;
 use Bdf\Prime\MongoDB\Driver\Exception\MongoDBALException;
 use Bdf\Prime\MongoDB\Driver\ResultSet\CursorResultSet;
@@ -30,13 +29,18 @@ use Bdf\Prime\Query\Contract\Query\KeyValueQueryInterface;
 use Bdf\Prime\Query\Factory\DefaultQueryFactory;
 use Bdf\Prime\Query\Factory\QueryFactoryInterface;
 use Bdf\Prime\Query\ReadCommandInterface;
+use Closure;
 use Doctrine\Common\EventManager;
 use Doctrine\DBAL\Cache\QueryCacheProfile;
 use Doctrine\DBAL\Configuration;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ConnectionException;
 use Doctrine\DBAL\Driver;
+use Doctrine\DBAL\Query\Expression\ExpressionBuilder;
 use Doctrine\DBAL\Result;
+use Doctrine\DBAL\Schema\AbstractSchemaManager;
+use Doctrine\DBAL\Statement;
+use InvalidArgumentException;
 use MongoDB\Driver\BulkWrite;
 use MongoDB\Driver\Command;
 use MongoDB\Driver\Cursor;
@@ -46,51 +50,61 @@ use MongoDB\Driver\Manager;
 use MongoDB\Driver\Query;
 use MongoDB\Driver\WriteResult;
 
+use function array_filter;
+use function implode;
+
 /**
  * Connection for mongoDb
  *
- * @property Manager $_conn
  * @method \Bdf\Prime\Configuration getConfiguration()
+ * @final
  */
 class MongoConnection extends Connection implements ConnectionInterface
 {
-    /**
-     * @var string
-     */
-    protected $name;
+    protected string $name = '';
+    protected ?PrimeSchemaManager $schema = null;
 
     /**
-     * @var PrimeSchemaManager
-     */
-    protected $schema;
-
-    /**
-     * Field for emulate transaction into MongoDB (will be added on
+     * Field for emulate transaction into MongoDB (will be added on each document)
      *
      * @var string
      */
-    protected $transactionEmulationStateField = '__MONGO_CONNECTION_TRANSACTION__';
+    protected string $transactionEmulationStateField = '__MONGO_CONNECTION_TRANSACTION__';
 
     /**
      * Level for transaction emulation
      *
      * @var int
      */
-    protected $transationLevel = 0;
+    protected int $transationLevel = 0;
+
+    protected ?PrimePlatform $platform = null;
+    protected QueryFactoryInterface $factory;
 
     /**
-     * @var PrimePlatform
+     * The mongoDB connection
+     * Do not use directly, use $this->connection() instead
      */
-    protected $platform;
+    private ?Manager $connection = null;
+    private array $parameters;
 
     /**
-     * @var QueryFactoryInterface
+     * @param $params
+     * @param Driver|Configuration|null $driver
+     * @param Configuration|null $config
+     * @param EventManager|null $eventManager
+     * @throws \Doctrine\DBAL\Exception
      */
-    private $factory;
-
-    public function __construct($params, Driver $driver, Configuration $config = null, EventManager $eventManager = null)
+    public function __construct($params, $driver = null, ?Configuration $config = null, EventManager $eventManager = null)
     {
-        parent::__construct($params, $driver, $config, $eventManager);
+        if ($config === null && $driver instanceof Configuration) {
+            $config = $driver;
+            $driver = null;
+        }
+
+        parent::__construct($params, $driver ?? new MongoDriver(), $config, $eventManager);
+
+        $this->parameters = $params;
 
         /** @psalm-suppress InvalidArgument */
         $this->factory = new DefaultQueryFactory(
@@ -132,7 +146,7 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     public function getDatabase(): string
     {
-        return $this->getParams()['dbname'];
+        return $this->parameters['dbname'];
     }
 
     /**
@@ -154,7 +168,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     {
         if ($this->platform === null) {
             $this->platform = new PrimePlatform(
-                $this->getDatabasePlatform(),
+                new MongoPlatform(),
                 $this->getConfiguration()->getTypes()
             );
         }
@@ -228,9 +242,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     public function executeSelect($collection, Query $query): Cursor
     {
         try {
-            $this->connect();
-
-            $cursor = $this->_conn->executeQuery($this->getNamespace($collection), $query);
+            $cursor = $this->connection()->executeQuery($this->getNamespace($collection), $query);
             $cursor->setTypeMap(['root' => 'array', 'document' => 'array', 'array' => 'array']);
 
             return $cursor;
@@ -249,9 +261,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     public function executeWrite($collection, BulkWrite $query): WriteResult
     {
         try {
-            $this->connect();
-
-            return $this->_conn->executeBulkWrite($this->getNamespace($collection), $query);
+            return $this->connection()->executeBulkWrite($this->getNamespace($collection), $query);
         } catch (Exception $e) {
             throw new MongoDBALException('MongoDB : ' . $e->getMessage(), 0, $e);
         }
@@ -274,6 +284,22 @@ class MongoConnection extends Connection implements ConnectionInterface
     }
 
     /**
+     * {@inheritdoc}
+     */
+    public function prepare(string $sql): Statement
+    {
+        throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function lastInsertId($name = null)
+    {
+        throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
+    }
+
+    /**
      * Run a command
      *
      * @param mixed $command
@@ -285,9 +311,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     public function runCommand($command, $arguments = 1): Cursor
     {
         try {
-            $this->connect();
-
-            return $this->_conn->executeCommand(
+            return $this->connection()->executeCommand(
                 $this->getDatabase(),
                 Commands::create($command, $arguments)->get()
             );
@@ -309,9 +333,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     public function runAdminCommand($command, $arguments = 1)
     {
         try {
-            $this->connect();
-
-            return $this->_conn->executeCommand(
+            return $this->connection()->executeCommand(
                 'admin',
                 Commands::create($command, $arguments)->get()
             );
@@ -337,7 +359,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     {
         $this->connect();
 
-        foreach ($this->getSchemaManager()->listTableNames() as $collection) {
+        foreach ($this->schema()->getCollections() as $collection) {
             $bulk = new BulkWrite();
             $bulk->update([], [
                 '$inc' => [
@@ -378,7 +400,7 @@ class MongoConnection extends Connection implements ConnectionInterface
             throw ConnectionException::noActiveTransaction();
         }
 
-        foreach ($this->getSchemaManager()->listTableNames() as $collection) {
+        foreach ($this->schema()->getCollections() as $collection) {
             $bulk = new BulkWrite();
             $bulk->update([], [
                 '$inc' => [
@@ -403,7 +425,7 @@ class MongoConnection extends Connection implements ConnectionInterface
             throw ConnectionException::noActiveTransaction();
         }
 
-        foreach ($this->getSchemaManager()->listTableNames() as $collection) {
+        foreach ($this->schema()->getCollections() as $collection) {
             $bulk = new BulkWrite();
 
             $bulk->delete([
@@ -450,7 +472,7 @@ class MongoConnection extends Connection implements ConnectionInterface
             return new CursorResultSet($this->runCommand($compiled));
         }
 
-        throw new \InvalidArgumentException('Unsupported compiled query type ' . get_class($compiled));
+        throw new InvalidArgumentException('Unsupported compiled query type ' . get_class($compiled));
     }
 
     /**
@@ -469,5 +491,127 @@ class MongoConnection extends Connection implements ConnectionInterface
     public function close(): void
     {
         parent::close();
+
+        if ($this->connection !== null) {
+            $this->connection = null;
+        }
+    }
+
+    private function connection(): Manager
+    {
+        if ($this->connection !== null) {
+            return $this->connection;
+        }
+
+        $params = $this->parameters;
+        $dsn = $this->buildDsn($params);
+
+        return $this->connection = new Manager($dsn, array_filter($params));
+    }
+
+    private function buildDsn(array $params): string
+    {
+        $uri = 'mongodb://';
+
+        if (!empty($params['host'])) {
+            $uri .= $params['host'];
+
+            if (!empty($params['port'])) {
+                $uri .= ':' . $params['port'];
+            }
+
+            return $uri;
+        }
+
+        if (!empty($params['hosts'])) {
+            $uri .= implode(',', $params['hosts']);
+
+            return $uri;
+        }
+
+        throw new InvalidArgumentException('Cannot build mongodb DSN');
+    }
+
+    // Mark all methods of doctrine's connection as deprecated
+
+    /**
+     * @deprecated
+     */
+    public function getDriver()
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::getDriver();
+    }
+
+    /**
+     * @deprecated
+     */
+    public function getDatabasePlatform()
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::getDatabasePlatform();
+    }
+
+    /**
+     * @deprecated
+     */
+    public function createExpressionBuilder(): ExpressionBuilder
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::createExpressionBuilder();
+    }
+
+    /**
+     * @deprecated
+     */
+    public function isConnected()
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::isConnected();
+    }
+
+    /**
+     * @deprecated
+     */
+    public function transactional(Closure $func)
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::transactional($func);
+    }
+
+    /**
+     * @deprecated
+     */
+    public function getNativeConnection()
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::getNativeConnection();
+    }
+
+    /**
+     * @deprecated
+     */
+    public function createSchemaManager(): AbstractSchemaManager
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::createSchemaManager();
+    }
+
+    /**
+     * @deprecated
+     */
+    public function convertToDatabaseValue($value, $type)
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::convertToDatabaseValue($value, $type);
+    }
+
+    /**
+     * @deprecated
+     */
+    public function convertToPHPValue($value, $type)
+    {
+        @trigger_error('Method ' . __METHOD__ . ' is deprecated without replacement.', E_USER_DEPRECATED);
+        return parent::convertToPHPValue($value, $type);
     }
 }

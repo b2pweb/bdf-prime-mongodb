@@ -446,4 +446,14 @@ class MongoSchemaManagerTest extends TestCase
             ],
         ], $table->options());
     }
+
+    public function test_getCollections()
+    {
+        $this->assertSame([], $this->schema->getCollections());
+
+        $this->connection->runCommand('create', 'test_collection');
+        $this->connection->runCommand('create', 'other');
+
+        $this->assertEqualsCanonicalizing(['test_collection', 'other'], $this->schema->getCollections());
+    }
 }

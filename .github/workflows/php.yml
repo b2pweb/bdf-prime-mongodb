@@ -48,6 +48,39 @@ jobs:
     - name: Run test suite
       run: composer run-script tests
 
+  mongo_compatibility:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        mongo-versions: ['5', '6', '7']
+    name: Compatibility mongodb ${{ matrix.mongo-versions }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set Timezone
+        uses: szenius/set-timezone@v1.0
+        with:
+          timezoneLinux: "Europe/Paris"
+
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.0
+          extensions: json
+          ini-values: date.timezone=Europe/Paris
+
+      - name: MongoDB in GitHub Actions
+        uses: supercharge/mongodb-github-action@1.6.0
+        with:
+          mongodb-version: ${{ matrix.mongo-versions }}
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-progress
+
+      - name: Run test suite
+        run: composer run-script tests
+
   analysis:
     name: Analysis
     runs-on: ubuntu-latest

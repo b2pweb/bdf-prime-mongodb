@@ -7,6 +7,8 @@ use MongoDB\Driver\WriteResult;
 
 /**
  * Adapt mongo WriteResult to ResultSetInterface
+ *
+ * @implements ResultSetInterface<never>
  */
 final class WriteResultSet extends \EmptyIterator implements ResultSetInterface
 {

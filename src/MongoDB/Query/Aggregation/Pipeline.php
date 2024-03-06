@@ -31,6 +31,7 @@ use Doctrine\DBAL\Query\Expression\CompositeExpression;
  * @link https://docs.mongodb.com/manual/core/aggregation-pipeline/
  *
  * @todo use pagination
+ * @implements CommandInterface<MongoConnection>
  */
 class Pipeline extends CompilableClause implements PipelineInterface, Whereable, CommandInterface, Compilable
 {
@@ -202,16 +203,15 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
     public function buildNested(string $statement, callable $callback, string $type = CompositeExpression::TYPE_AND)
     {
         $statements = $this->statements;
-        $this->statements = [$statement => []];
+        /** @var array{pipeline: MatchStage[]} $this->statements */
+        $this->statements = ['pipeline' => []];
 
         $callback($this);
 
         $statements['pipeline'][] = new MatchStage([
             'where' => [
                 [
-                    'nested' => array_map(function (MatchStage $match) {
-                        return $match->export()[0];
-                    }, $this->statements['pipeline']),
+                    'nested' => array_map(fn(MatchStage $match) => $match->export()[0], $this->statements['pipeline']),
                     'glue'   => $type,
                 ]
             ]

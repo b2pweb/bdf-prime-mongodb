@@ -27,6 +27,7 @@ use Bdf\Prime\Query\Extension\ProjectionableTrait;
  *
  * @extends AbstractReadCommand<MongoConnection, R>
  * @implements KeyValueQueryInterface<MongoConnection, R>
+ * @implements Paginable<R>
  */
 final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQueryInterface, Compilable, Paginable, Limitable, OptionsConfigurable
 {
@@ -35,6 +36,7 @@ final class MongoKeyValueQuery extends AbstractReadCommand implements KeyValueQu
     }
     use LimitableTrait;
     use OptionsTrait;
+    /** @use PaginableTrait<R> */
     use PaginableTrait;
     use ProjectionableTrait;
 

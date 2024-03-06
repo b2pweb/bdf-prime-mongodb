@@ -6,11 +6,14 @@ use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\MongoDB\Query\Command\Count;
 use Bdf\Prime\MongoDB\Query\Compiled\ReadQuery;
 use Bdf\Prime\MongoDB\Query\Compiled\WriteQuery;
+use Bdf\Prime\MongoDB\Query\MongoQuery;
 use Bdf\Prime\Query\CompilableClause;
 use Bdf\Prime\Query\Compiler\AbstractCompiler;
 
 /**
  * MongoCompiler
+ *
+ * @extends AbstractCompiler<MongoQuery, ConnectionInterface>
  */
 class MongoCompiler extends AbstractCompiler
 {

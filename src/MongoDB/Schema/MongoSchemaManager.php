@@ -20,6 +20,7 @@ use MongoDB\Driver\BulkWrite;
  * SchemaManager for MongoDB on Prime
  *
  * @property MongoConnection $connection protected
+ * @extends AbstractSchemaManager<MongoConnection>
  */
 class MongoSchemaManager extends AbstractSchemaManager
 {
@@ -108,6 +109,7 @@ class MongoSchemaManager extends AbstractSchemaManager
      * {@inheritdoc}
      *
      * @todo à voir si on a un système de schema
+     * @return never
      */
     public function loadSchema()
     {

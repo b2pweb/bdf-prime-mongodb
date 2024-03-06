@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Query;
 use Bdf\Prime\Connection\ConnectionInterface;
 use Bdf\Prime\Connection\Result\ResultSetInterface;
 use Bdf\Prime\Exception\DBALException;
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\MongoDB\Driver\ResultSet\WriteResultSet;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoInsertCompiler;
 use Bdf\Prime\Query\CommandInterface;
@@ -18,6 +19,9 @@ use MongoDB\Driver\Exception\BulkWriteException;
 
 /**
  * Insert query implementation for MongoDB connection
+ *
+ * @implements InsertQueryInterface<MongoConnection>
+ * @implements CommandInterface<MongoConnection>
  */
 final class MongoInsertQuery extends CompilableClause implements CommandInterface, Compilable, InsertQueryInterface
 {

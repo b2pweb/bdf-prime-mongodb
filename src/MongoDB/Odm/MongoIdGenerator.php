@@ -3,12 +3,14 @@
 namespace Bdf\Prime\MongoDB\Odm;
 
 use Bdf\Prime\IdGenerators\AbstractGenerator;
+use Bdf\Prime\MongoDB\Driver\MongoConnection;
 use Bdf\Prime\ServiceLocator;
 use MongoDB\BSON\ObjectId;
 
 /**
  * Id generator for MongoDB
  * @deprecated
+ * @extends AbstractGenerator<MongoConnection>
  */
 class MongoIdGenerator extends AbstractGenerator
 {

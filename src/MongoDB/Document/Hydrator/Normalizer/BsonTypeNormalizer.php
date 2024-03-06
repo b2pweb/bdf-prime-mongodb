@@ -20,6 +20,8 @@ use MongoDB\BSON\UTCDateTime;
 /**
  * Serializer normalizer for MongoDB BSON types
  * This normalizer will let unmodified bson values
+ *
+ * @implements NormalizerInterface<BsonType>
  */
 class BsonTypeNormalizer implements NormalizerInterface, AutoRegisterInterface
 {

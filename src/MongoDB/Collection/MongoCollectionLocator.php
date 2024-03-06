@@ -72,6 +72,7 @@ class MongoCollectionLocator
      */
     public function collectionByMapper(string $mapperClass, ?string $documentClass = null): MongoCollectionInterface
     {
+        /** @var DocumentMapperInterface<D> $mapper Psalm can't handle |null with template */
         $mapper = $this->mapperFactory->createByMapperClassName($mapperClass, $documentClass);
         $connection = $this->connections->getConnection($mapper->connection());
 

@@ -26,11 +26,13 @@ use Bdf\Prime\Query\QueryInterface;
  *
  * @template R as object|array
  *
- * @implements QueryInterface<MongoConnection, R>
  * @extends AbstractQuery<MongoConnection, R>
+ * @implements QueryInterface<MongoConnection, R>
+ * @implements Paginable<R>
  */
 class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Paginable, Aggregatable, Limitable, OptionsConfigurable
 {
+    /** @use PaginableTrait<R> */
     use PaginableTrait;
     use LimitableTrait;
     use OptionsTrait;

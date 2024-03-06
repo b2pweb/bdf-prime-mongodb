@@ -14,6 +14,8 @@ use MongoDB\BSON\UTCDateTime;
  *
  * DateTime will be normalized to `UTCDateTime`
  * The denormalization is not used because bdf-serializer ignore object values
+ *
+ * @implements NormalizerInterface<DateTimeInterface|int|float|string>
  */
 class DateTimeNormalizer implements NormalizerInterface
 {

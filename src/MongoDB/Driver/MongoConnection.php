@@ -88,7 +88,7 @@ class MongoConnection extends Connection implements ConnectionInterface
      */
     private $factory;
 
-    public function __construct($params, Driver $driver, Configuration $config = null, EventManager $eventManager = null)
+    public function __construct($params, Driver $driver, ?Configuration $config = null, ?EventManager $eventManager = null)
     {
         parent::__construct($params, $driver, $config, $eventManager);
 
@@ -165,7 +165,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function make($query, PreprocessorInterface $preprocessor = null): \Bdf\Prime\Query\CommandInterface
+    public function make($query, ?PreprocessorInterface $preprocessor = null): \Bdf\Prime\Query\CommandInterface
     {
         return $this->factory->make($query, $preprocessor);
     }
@@ -260,7 +260,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function executeQuery($sql, array $params = [], $types = [], QueryCacheProfile $qcp = null): Result
+    public function executeQuery($sql, array $params = [], $types = [], ?QueryCacheProfile $qcp = null): Result
     {
         throw new \BadMethodCallException('Method ' . __METHOD__ . ' cannot be called on mongoDB connection');
     }
@@ -429,7 +429,7 @@ class MongoConnection extends Connection implements ConnectionInterface
     /**
      * {@inheritdoc}
      */
-    public function builder(PreprocessorInterface $preprocessor = null): ReadCommandInterface
+    public function builder(?PreprocessorInterface $preprocessor = null): ReadCommandInterface
     {
         /** @psalm-suppress InvalidArgument */
         return $this->factory->make(MongoQuery::class, $preprocessor);

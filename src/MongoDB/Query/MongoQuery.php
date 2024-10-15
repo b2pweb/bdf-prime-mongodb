@@ -45,7 +45,7 @@ class MongoQuery extends AbstractQuery implements QueryInterface, Orderable, Pag
      * @param MongoConnection $connection
      * @param PreprocessorInterface|null $preprocessor
      */
-    public function __construct(MongoConnection $connection, PreprocessorInterface $preprocessor = null)
+    public function __construct(MongoConnection $connection, ?PreprocessorInterface $preprocessor = null)
     {
         parent::__construct($connection, $preprocessor ?: new DefaultPreprocessor());
 

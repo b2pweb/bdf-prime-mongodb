@@ -35,7 +35,7 @@ final class MongoInsertQuery extends CompilableClause implements CommandInterfac
      * @param ConnectionInterface $connection
      * @param PreprocessorInterface|null $preprocessor
      */
-    public function __construct(ConnectionInterface $connection, PreprocessorInterface $preprocessor = null)
+    public function __construct(ConnectionInterface $connection, ?PreprocessorInterface $preprocessor = null)
     {
         parent::__construct($preprocessor ?: new DefaultPreprocessor(), new CompilerState());
 

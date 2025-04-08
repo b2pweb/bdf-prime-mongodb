@@ -417,6 +417,22 @@ class MongoConnectionTest extends TestCase
         $this->assertThrows(MongoCommandException::class, function () { $this->connection->runCommand('invalid'); });
         $this->assertThrows(MongoCommandException::class, function () { $this->connection->runAdminCommand('invalid'); });
         $this->assertThrows(MongoDBALException::class, function () { (new WriteQuery('invalid'))->update(['foo' => ['$bar' => []]], [])->execute($this->connection); });
+        $this->assertThrows(\LogicException::class, function () { $this->connection->getNativeConnection(); });
+        $this->assertThrows(\BadMethodCallException::class, function () { $this->connection->prepare('foo'); });
+        $this->assertThrows(\BadMethodCallException::class, function () { $this->connection->lastInsertId(); });
+    }
+
+    public function test_coverage_deprecated()
+    {
+        $this->assertInstanceOf(MongoDriver::class, $this->connection->getDriver());
+        $this->assertInstanceOf(MongoPlatform::class, $this->connection->getDatabasePlatform());
+        $this->assertInstanceOf(MongoSchemasManager::class, $this->connection->createSchemaManager());
+        $this->assertInstanceOf(MongoSchemasManager::class, $this->connection->getSchemaManager());
+        $this->assertFalse($this->connection->isConnected());
+        $this->assertInstanceOf(Manager::class, $this->connection->getWrappedConnection());
+        $this->connection->transactional(function () {});
+        $this->assertSame('foo', $this->connection->convertToDatabaseValue('foo', 'text'));
+        $this->assertSame('foo', $this->connection->convertToPHPValue('foo', 'text'));
     }
 
     private function assertThrows(string $exceptionClass, callable $task): void

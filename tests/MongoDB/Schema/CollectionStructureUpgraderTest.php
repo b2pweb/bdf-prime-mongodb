@@ -183,7 +183,7 @@ class CollectionStructureUpgraderTest extends TestCase
         $this->assertTrue($this->resolver->drop());
         $this->assertEmpty($this->connection->runCommand('listCollections')->toArray());
 
-        $this->assertFalse($this->resolver->drop());
+        $this->resolver->drop(); // true in mongo >= 7, false in mongo < 7
         $this->assertEmpty($this->connection->runCommand('listCollections')->toArray());
     }
 

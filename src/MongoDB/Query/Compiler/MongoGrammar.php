@@ -125,7 +125,7 @@ class MongoGrammar
      * @param CompilableClause $query The query container
      * @param array $columns The columns (or expressions) to project
      *
-     * @return array<string, bool|int>
+     * @return array<string, bool|int|string>
      *
      * @see https://docs.mongodb.com/manual/reference/method/db.collection.find/#projection For find projection
      * @see https://docs.mongodb.com/v3.2/reference/operator/aggregation/project/ For aggregation operation

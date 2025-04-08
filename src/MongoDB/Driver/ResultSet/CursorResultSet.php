@@ -3,13 +3,18 @@
 namespace Bdf\Prime\MongoDB\Driver\ResultSet;
 
 use Bdf\Prime\Connection\Result\ResultSetInterface;
+use IteratorIterator;
 use MongoDB\BSON\Unserializable;
 use MongoDB\Driver\Cursor;
 
 /**
  * Adapt mongo result cursor to ResultSetInterface
+ *
+ * @template T
+ * @implements ResultSetInterface<T>
+ * @extends IteratorIterator<int, mixed, Cursor>
  */
-final class CursorResultSet extends \IteratorIterator implements ResultSetInterface
+final class CursorResultSet extends IteratorIterator implements ResultSetInterface
 {
     public const FETCH_RAW_ARRAY = 'raw_array';
 
@@ -109,6 +114,9 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
 
     /**
      * {@inheritdoc}
+     *
+     * @psalm-suppress InvalidReturnType
+     * @psalm-suppress InvalidReturnStatement
      */
     public function asClass(string $className, array $constructorArguments = []): ResultSetInterface
     {

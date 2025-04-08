@@ -11,6 +11,7 @@ use Doctrine\DBAL\Schema\AbstractSchemaManager;
  * @property MongoConnection $_conn
  *
  * @deprecated since 1.3 Will be deleted
+ * @extends AbstractSchemaManager<MongoPlatform>
  */
 class MongoSchemasManager extends AbstractSchemaManager
 {

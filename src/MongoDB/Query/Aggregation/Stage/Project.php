@@ -5,6 +5,7 @@ namespace Bdf\Prime\MongoDB\Query\Aggregation\Stage;
 use Bdf\Prime\MongoDB\Query\Aggregation\PipelineInterface;
 use Bdf\Prime\MongoDB\Query\Compiler\MongoGrammar;
 use Bdf\Prime\Query\CompilableClause;
+use Closure;
 
 /**
  * Aggregation projection
@@ -116,7 +117,7 @@ class Project implements StageInterface
     /**
      * Make project instance
      *
-     * @param array|\Closure $fields
+     * @param array|Closure|string $fields
      *
      * @return Project
      *
@@ -134,7 +135,7 @@ class Project implements StageInterface
                     $project->add($column, is_int($alias) ? null : $alias);
                 }
             }
-        } elseif ($fields instanceof \Closure) {
+        } elseif ($fields instanceof Closure) {
             $fields($project);
         } elseif (is_string($fields)) {
             $project->add($fields);

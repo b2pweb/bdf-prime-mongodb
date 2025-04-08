@@ -177,7 +177,7 @@ class CollectionPreprocessorTest extends TestCase
     public function test_forUpdate()
     {
         $query = new class(DocumentWithEmbeddedDate::connection()) extends MongoQuery {
-            public function __construct(MongoConnection $connection, PreprocessorInterface $preprocessor = null)
+            public function __construct(MongoConnection $connection, ?PreprocessorInterface $preprocessor = null)
             {
                 parent::__construct($connection, $preprocessor);
                 $this->setType(self::TYPE_UPDATE);
@@ -193,7 +193,7 @@ class CollectionPreprocessorTest extends TestCase
     public function test_forUpdate_with_constraint()
     {
         $query = new class(BarDocument::connection()) extends MongoQuery {
-            public function __construct(MongoConnection $connection, PreprocessorInterface $preprocessor = null)
+            public function __construct(MongoConnection $connection, ?PreprocessorInterface $preprocessor = null)
             {
                 parent::__construct($connection, $preprocessor);
                 $this->setType(self::TYPE_UPDATE);
@@ -211,7 +211,7 @@ class CollectionPreprocessorTest extends TestCase
     public function test_forDelete_with_constraints()
     {
         $query = new class(BarDocument::connection()) extends MongoQuery {
-            public function __construct(MongoConnection $connection, PreprocessorInterface $preprocessor = null)
+            public function __construct(MongoConnection $connection, ?PreprocessorInterface $preprocessor = null)
             {
                 parent::__construct($connection, $preprocessor);
                 $this->setType(self::TYPE_DELETE);

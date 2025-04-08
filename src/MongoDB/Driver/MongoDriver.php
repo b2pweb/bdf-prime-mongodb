@@ -22,6 +22,7 @@ class MongoDriver implements Driver
      * {@inheritdoc}
      *
      * @psalm-suppress InvalidReturnType
+     * @psalm-suppress InvalidArrayOffset
      */
     public function connect(array $params, $username = null, $password = null, array $driverOptions = [])
     {

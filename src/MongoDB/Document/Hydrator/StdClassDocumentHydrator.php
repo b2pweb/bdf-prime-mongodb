@@ -6,6 +6,8 @@ use MongoDB\BSON\ObjectId;
 
 /**
  * Hydrator for simple stdClass document
+ *
+ * @implements IdAccessorInterface<\stdClass>
  */
 final class StdClassDocumentHydrator implements DocumentHydratorInterface, IdAccessorInterface
 {

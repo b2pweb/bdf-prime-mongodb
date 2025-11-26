@@ -56,7 +56,7 @@ class MongoDocumentTest extends TestCase
         $person = new Person();
 
         $r = new ReflectionProperty(MongoDocument::class, '_id');
-        $r->setAccessible(true);
+        PHP_VERSION_ID >= 80100 or $r->setAccessible(true);
 
         $this->assertNull($person->id());
         $this->assertNull($r->getValue($person));

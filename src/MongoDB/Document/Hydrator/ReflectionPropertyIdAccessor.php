@@ -60,7 +60,7 @@ final class ReflectionPropertyIdAccessor implements IdAccessorInterface
         for ($reflection = new ReflectionClass($this->className); $reflection; $reflection = $reflection->getParentClass()) {
             if ($reflection->hasProperty('_id')) {
                 $this->reflectionProperty = $reflection->getProperty('_id');
-                $this->reflectionProperty->setAccessible(true);
+                PHP_VERSION_ID >= 80100 or $this->reflectionProperty->setAccessible(true);
 
                 return $this->reflectionProperty;
             }

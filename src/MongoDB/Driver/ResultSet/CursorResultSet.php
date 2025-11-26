@@ -321,7 +321,7 @@ final class CursorResultSet extends IteratorIterator implements ResultSetInterfa
         foreach ($data as $property => $value) {
             if (!isset($this->reflectionProperties[$property])) {
                 $this->reflectionProperties[$property] = $this->reflectionClass->getProperty($property);
-                $this->reflectionProperties[$property]->setAccessible(true);
+                PHP_VERSION_ID >= 80100 or $this->reflectionProperties[$property]->setAccessible(true);
             }
 
             $this->reflectionProperties[$property]->setValue($object, $value);

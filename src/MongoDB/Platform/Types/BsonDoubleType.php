@@ -33,7 +33,7 @@ class BsonDoubleType extends AbstractPlatformType
      */
     public function fromDatabase($value, array $fieldOptions = [])
     {
-        return $value === null ? null : (double) $value;
+        return $value === null ? null : (float) $value;
     }
 
     /**
@@ -41,7 +41,7 @@ class BsonDoubleType extends AbstractPlatformType
      */
     public function toDatabase($value)
     {
-        return $value === null ? null : (double) $value;
+        return $value === null ? null : (float) $value;
     }
 
     /**

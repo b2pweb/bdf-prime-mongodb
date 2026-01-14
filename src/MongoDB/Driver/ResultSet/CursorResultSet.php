@@ -158,7 +158,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
     /**
      * {@inheritdoc}
      */
-    public function count()
+    public function count(): int
     {
         return count($this->all());
     }
@@ -166,6 +166,7 @@ final class CursorResultSet extends \IteratorIterator implements ResultSetInterf
     /**
      * {@inheritdoc}
      */
+    #[\ReturnTypeWillChange]
     public function current()
     {
         $value = parent::current();

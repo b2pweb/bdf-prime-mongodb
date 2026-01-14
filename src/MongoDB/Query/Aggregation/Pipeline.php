@@ -52,7 +52,7 @@ class Pipeline extends CompilableClause implements PipelineInterface, Whereable,
      * @param PreprocessorInterface|null $preprocessor
      * @param CompilerState|null $state
      */
-    public function __construct(ConnectionInterface $connection, PreprocessorInterface $preprocessor = null, CompilerState $state = null)
+    public function __construct(ConnectionInterface $connection, ?PreprocessorInterface $preprocessor = null, ?CompilerState $state = null)
     {
         parent::__construct($preprocessor ?: new DefaultPreprocessor(), $state ?: new CompilerState());
 

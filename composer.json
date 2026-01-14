@@ -10,7 +10,7 @@
     },
     "minimum-stability": "dev",
     "require": {
-        "php": "~7.1 | ~8.0.0",
+        "php": "~7.1 | ~8.0",
         "ext-mongodb": "*"
     },
     "require-dev": {

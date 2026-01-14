@@ -261,7 +261,7 @@ class UnserializablePerson implements Unserializable
         $this->import($data);
     }
 
-    public function bsonUnserialize(array $data)
+    public function bsonUnserialize(array $data): void
     {
         $this->_id = $data['_id'];
         $this->name = (array) $data['name'];
